@@ -164,8 +164,3 @@ A lint item is complete when:
 - no note has been deleted or moved;
 - the report contains the finding, action, question and review space.
 
-## Relations
-
-- extends [[semantic-lint]]
-- informed_by [[wiki-maintenance]]
-- pairs_with [[unsupervised-ingest]]
