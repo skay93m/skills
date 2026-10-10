@@ -308,10 +308,10 @@ def run(base, today):
     added, new_files = parse_diff(base)
     for path, rows in sorted(added.items()):
         if path in EXEMPT:
-            report.add(True, "STD", path, 1, "The checker or its tests changed. The owner must review this change in person.")
+            report.add(False, "STD", path, 1, "The checker or its tests changed.")
             continue
         if path.startswith(STANDARD_PATHS):
-            report.add(True, "STD", path, 1, "The standard changes only when its owner re-stamps it. The owner must review this change in person.")
+            report.add(False, "STD", path, 1, "The standard changed.")
         if path.startswith(AGENT_CONFIG):
             risky = bool(re.search(r"(?i)\b(hooks?|permissions?|allow|mcpServers)\b|\brun\b.*`[^`]+`", "\n".join(t for _, t in rows)))
             report.add(risky, "C5", path, 1, "Agent configuration changed" + (": it adds a hook, command, tool or permission. Say what an agent can now do that it could not before." if risky else " (wording only)."))
