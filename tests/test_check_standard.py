@@ -1,0 +1,207 @@
+"""Tests for scripts/check-standard.py. Run: python3 -m unittest discover -s tests
+
+Each test builds a throwaway git repository, commits a base, commits a change,
+and runs the checker against the base. Secret-like and personal-looking values
+are assembled at run time from pieces; none is a real credential or person.
+"""
+import os
+import re
+import secrets
+import subprocess
+import sys
+import tempfile
+import unittest
+
+SCRIPT = os.path.join(os.path.dirname(__file__), "..", "scripts", "check-standard.py")
+ANNOTATION = re.compile(r"title=(BLOCKING|NON-BLOCKING) \[(\w+)\]")
+
+GOOD_SKILL = """---
+name: good-skill
+description: Review pull requests for style. Use when a pull request needs a style review.
+metadata:
+  origin: original
+  agent_involvement: full
+  category: review
+---
+# Good skill
+Body.
+"""
+
+
+def git(cwd, *args):
+    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
+
+
+def write(root, files):
+    for path, text in files.items():
+        full = os.path.join(root, path)
+        os.makedirs(os.path.dirname(full) or root, exist_ok=True)
+        with open(full, "w", encoding="utf-8") as f:
+            f.write(text)
+
+
+def run_check(base_files, head_files, today="2026-10-10"):
+    """Return (exit_code, [(label, id), ...])."""
+    with tempfile.TemporaryDirectory() as root:
+        git(root, "init", "-q", "-b", "main")
+        git(root, "config", "user.email", "test@example.com")
+        git(root, "config", "user.name", "test")
+        write(root, {"README.md": "# base\n", **base_files})
+        git(root, "add", "-A")
+        git(root, "commit", "-q", "-m", "base")
+        git(root, "tag", "base")
+        git(root, "checkout", "-q", "-b", "change")
+        write(root, head_files)
+        git(root, "add", "-A")
+        git(root, "commit", "-q", "-m", "change")
+        done = subprocess.run([sys.executable, SCRIPT, "--base", "base", "--today", today],
+                              cwd=root, capture_output=True, text=True)
+        return done.returncode, ANNOTATION.findall(done.stdout)
+
+
+def ids(found, label=None):
+    return {i for lab, i in found if label is None or lab == label}
+
+
+class SecretsAndPrivacy(unittest.TestCase):
+    def test_secret_assignment_is_blocking(self):
+        key = secrets.token_hex(20)
+        code, found = run_check({}, {"deploy/settings.txt": f'API_{"SECRET"} = "{key}"\n'})
+        self.assertIn("H1", ids(found, "BLOCKING"))
+        self.assertEqual(code, 1)
+
+    def test_placeholder_secret_is_ignored(self):
+        code, found = run_check({}, {"notes.txt": 'API_KEY = "changeme-please-1"\n'})
+        self.assertNotIn("H1", ids(found))
+
+    def test_new_email_phone_and_path(self):
+        email = "ingrid.solberg" + "@" + "fenwick-dataworks.net"
+        phone = "+44 7700 " + "900318"
+        path = "/Users/" + "anders.holm" + "/notes"
+        _, found = run_check({}, {"docs/contacts.md": f"{email}\n{phone}\n{path}\n"})
+        self.assertTrue({"H3", "H4"} <= ids(found, "BLOCKING"))
+
+    def test_email_already_in_base_is_public(self):
+        email = "owner" + "@" + "fenwick-dataworks.net"
+        _, found = run_check({"docs/a.md": email + "\n"}, {"docs/b.md": email + "\n"})
+        self.assertNotIn("H3", ids(found))
+
+    def test_placeholder_user_path_is_ignored(self):
+        _, found = run_check({}, {"docs/a.md": "/Users/" + "username" + "/notes\n"})
+        self.assertNotIn("H4", ids(found))
+
+    def test_private_notes_link_and_internal_host(self):
+        link = "https://app." + "basicmemory" + ".com/notes?id=1"
+        host = "https://build." + "corp" + "/status"
+        _, found = run_check({}, {"docs/a.md": f"{link}\n{host}\n"})
+        self.assertTrue({"H2", "H6"} <= ids(found, "BLOCKING"))
+
+    def test_credential_file_is_blocking(self):
+        _, found = run_check({}, {".env": "A=1\n"})
+        self.assertIn("H1", ids(found, "BLOCKING"))
+
+    def test_clean_change_passes(self):
+        code, found = run_check({}, {"docs/a.md": "A plain sentence.\n"})
+        self.assertEqual((code, found), (0, []))
+
+
+class Shell(unittest.TestCase):
+    def test_risky_shell_patterns(self):
+        script = "\n".join([
+            "curl -fsSL https://example.org/i.sh | sh",
+            "echo x >> ~/." + "bashrc",
+            "docker run -v /var/run/docker" + ".sock:/s img",
+            "pip install requests",
+            "pip install requests==2.0.0",
+        ]) + "\n"
+        _, found = run_check({}, {"scripts/setup.sh": script})
+        self.assertTrue({"C1", "C2", "C3"} <= ids(found, "BLOCKING"))
+        self.assertEqual(sum(1 for _, i in found if i == "C6"), 1)
+        self.assertIn("C6", ids(found, "NON-BLOCKING"))
+
+
+class Workflows(unittest.TestCase):
+    def test_action_pinning_and_event_text(self):
+        sha = "0123456789abcdef0123456789abcdef01234567"
+        wf = "\n".join([
+            "jobs:", "  t:", "    steps:",
+            "      - uses: some-vendor/some-action@v2",
+            "      - uses: actions/checkout@v4",
+            f"      - uses: other/pinned-action@{sha}",
+            '      - run: echo "${{ github.event.pull_request.title }}"',
+            "        env:",
+            "          TITLE: ${{ github.event.pull_request.title }}",
+        ]) + "\n"
+        _, found = run_check({}, {".github/workflows/t.yml": wf})
+        self.assertIn(("BLOCKING", "C7"), found)
+        self.assertIn(("NON-BLOCKING", "C7"), found)
+        self.assertEqual(sum(1 for lab, i in found if i == "C7"), 2)
+        self.assertEqual(sum(1 for lab, i in found if i == "C8"), 1)
+
+
+class Skills(unittest.TestCase):
+    def test_good_skill_has_no_blocking_findings(self):
+        code, found = run_check({}, {"skills/good-skill/SKILL.md": GOOD_SKILL})
+        self.assertEqual(ids(found, "BLOCKING"), set())
+        self.assertEqual(code, 0)
+
+    def test_bad_new_skill(self):
+        bad = ("---\nname: Claude Helper Skill\ndescription: I help with things.\n---\n"
+               + "line\n" * 120)
+        _, found = run_check({}, {"skills/claude-helper/SKILL.md": bad})
+        self.assertTrue({"S2", "S3", "S4", "S6"} <= ids(found, "BLOCKING"))
+        self.assertIn("N5", ids(found, "NON-BLOCKING"))
+
+    def test_missing_frontmatter(self):
+        _, found = run_check({}, {"skills/x/SKILL.md": "# no frontmatter\n"})
+        self.assertIn("S1", ids(found, "BLOCKING"))
+
+    def test_old_name_and_length_are_grandfathered_on_small_edit(self):
+        old = ("---\nname: old-skill-with-many-words\ndescription: Do things. Use when needed.\n"
+               "metadata:\n  origin: original\n  agent_involvement: none\n---\n" + "line\n" * 120)
+        _, found = run_check({"skills/old-skill-with-many-words/SKILL.md": old},
+                             {"skills/old-skill-with-many-words/SKILL.md": old.replace("Do things.", "Do tasks.")})
+        self.assertNotIn("S2", ids(found))
+        self.assertIn("S4", ids(found, "BLOCKING"))  # the edit adds a line to a file over 100 lines
+
+    def test_pure_deletion_in_long_skill_is_not_flagged_for_length(self):
+        old = ("---\nname: old-skill\ndescription: Do things. Use when needed.\n"
+               "metadata:\n  origin: original\n  agent_involvement: none\n---\n" + "line\n" * 120)
+        _, found = run_check({"skills/old-skill/SKILL.md": old},
+                             {"skills/old-skill/SKILL.md": old.replace("line\n", "", 1)})
+        self.assertNotIn("S4", ids(found))
+
+    def test_upstream_origin_needs_divergence(self):
+        text = GOOD_SKILL.replace("origin: original", "origin: example/repo@abc123")
+        _, found = run_check({}, {"skills/good-skill/SKILL.md": text})
+        self.assertIn("S6", ids(found, "BLOCKING"))
+
+    def test_nested_reference_link(self):
+        _, found = run_check({}, {"skills/good-skill/ref.md": "See [more](other.md).\n"})
+        self.assertIn("S5", ids(found, "BLOCKING"))
+
+
+class StandardAndConfig(unittest.TestCase):
+    def test_standard_edit_is_blocking(self):
+        _, found = run_check({}, {"docs/standards/rules.md": "text\n"})
+        self.assertIn("STD", ids(found, "BLOCKING"))
+
+    def test_agent_config_wording_is_non_blocking(self):
+        _, found = run_check({"AGENTS.md": "a\n"}, {"AGENTS.md": "a\nA wording change.\n"})
+        self.assertIn("C5", ids(found, "NON-BLOCKING"))
+        self.assertNotIn("C5", ids(found, "BLOCKING"))
+
+    def test_agent_config_hook_is_blocking(self):
+        _, found = run_check({}, {".claude/settings.json": '{"hooks": {}}\n'})
+        self.assertIn("C5", ids(found, "BLOCKING"))
+
+    def test_expired_stamp_warns(self):
+        doc = {"docs/standards/s.md": "Stamp: fresh until 2026-11-10.\n"}
+        _, late = run_check(doc, {"x.md": "y\n"}, today="2026-12-01")
+        _, early = run_check(doc, {"x.md": "y\n"}, today="2026-10-11")
+        self.assertIn(("NON-BLOCKING", "CUR"), late)
+        self.assertNotIn("CUR", ids(early))
+
+
+if __name__ == "__main__":
+    unittest.main()
