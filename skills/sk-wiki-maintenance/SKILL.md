@@ -1,8 +1,6 @@
 ---
 name: sk-wiki-maintenance
-description: Supervised, report-only Wiki maintenance that runs Basic Memory's memory-curate,
-  memory-defrag, memory-schema and memory-reflect one at a time, with an orchestrator
-  reviewing each report before Syafiq releases the next.
+description: Supervised, report-only Wiki maintenance that runs Basic Memory's maintenance skills one at a time, with an orchestrator reviewing each report before Syafiq releases the next.
 ---
 
 # Wiki maintenance
@@ -11,7 +9,7 @@ description: Supervised, report-only Wiki maintenance that runs Basic Memory's m
 
 Keep the Wiki tidy and connected by running Basic Memory's four maintenance skills as a supervised sequence: `memory-curate`, then `memory-defrag`, then `memory-schema`, then `memory-reflect`. A maintenance agent finds and proposes. An orchestrator checks every claim against the Wiki. Syafiq decides what is applied.
 
-This skill does not replace [[syafiq-kay/wiki/skill/semantic-lint]], which owns questions of meaning, truth and authority, or structural lint, which owns deterministic checks. Reuse their recorded evidence, never repeat completed work, and never propose a change that duplicates or contradicts a finding in their Tasks.
+This skill does not replace `sk-semantic-lint`, which owns questions of meaning, truth and authority, or structural lint, which owns deterministic checks. Reuse their recorded evidence, never repeat completed work, and never propose a change that duplicates or contradicts a finding in their Tasks.
 
 ## Roles
 
@@ -23,7 +21,7 @@ This skill does not replace [[syafiq-kay/wiki/skill/semantic-lint]], which owns 
 
 Resumable state lives in one Task for the run, never in chat. It holds the purpose, the work already done that must not be repeated, the per-operation scope, the evidence rule, the verdicts and decisions, the current step and an exact next step. Prompts passed to agents stay short and point at the Task. Return any inter-agent prompt in a fenced code block.
 
-A maintenance agent bootstraps from AGENTS.md, the root index and triage, states the revision checksums of AGENTS and triage, loads the named Basic Memory skill, and reads the Task. If the Task is missing or insufficient it reports a continuity failure instead of reconstructing state from memory. If the skill is unavailable it stops and reports.
+A maintenance agent bootstraps from `AGENTS.md`, the root index and triage, loads the named Basic Memory skill, and reads the Task. If the Task is missing or insufficient it reports a continuity failure instead of reconstructing state from memory. If the skill is unavailable it stops and reports.
 
 ## Protocol for every operation
 
@@ -82,21 +80,8 @@ The orchestrator re-checks the report against the Wiki, appends a **Review verdi
 
 ## Applying approved changes
 
-The orchestrator applies a change only after Syafiq's approval in the current session, reads the note immediately before editing, guards the edit with its checksum, and verifies by read-back. Changes to immediate notes follow AGENTS section 9. Append a log entry for a change that matters chronologically.
+The orchestrator applies a change only after Syafiq's approval in the current session, reads the note immediately before editing, guards the edit with its checksum (if supported), and verifies by read-back. Changes to immediate notes follow AGENTS section 9. Append a log entry for a change that matters chronologically.
 
 ## Task status
 
 Use the Task schema's statuses. The run Task is `doing` until every operation has an approved review and this procedure has been persisted, then `done`. Later work, such as scheduling, belongs in another Task or Project.
-
-## Observations
-
-- [description] Supervised, report-only Wiki maintenance across curate, defrag, schema and reflect, with orchestrator review between steps.
-- [decision] The agent reports and proposes, Syafiq approves, and the orchestrator applies and verifies.
-- [boundary] Maintenance reports never change knowledge notes and never repeat completed lint work.
-- [boundary] This skill does not schedule or automate the run.
-
-## Relations
-
-- relates_to [[syafiq-kay/wiki/skill/semantic-lint]]
-- relates_to [[syafiq-kay/wiki/skill/triage]]
-- derived_from [[syafiq-kay/wiki/tasks/wiki-four-skill-maintenance-run]]
