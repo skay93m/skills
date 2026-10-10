@@ -1,12 +1,11 @@
 ---
 name: sk-cli-agent-onboarding
-description: 'Wiki-specific contract for agents with a local shell and Git worktree:
-  CLI note mutation, Git cadence, synchronisation and reconciliation.'
+description: 'Wiki-specific contract for agents with a local shell and Git worktree: CLI note mutation, Git cadence, synchronisation and reconciliation.'
 ---
 
 # CLI agent onboarding
 
-This note applies to agents that work on the Wiki through a local shell and Git worktree, such as `agy`, `codex` and `claude` running in a parent workspace. It sits beside [[syafiq-kay/wiki/agents]], which remains the default contract for every agent and assumes access through the Basic Memory MCP tools. Agents that reach the Wiki only through MCP do not need this note. A CLI agent reads it during bootstrap, after the triage skill, and treats it as binding for all shell and Git work.
+This note applies to agents that work on the Wiki through a local shell and Git worktree, such as `agy` and `claude` running in a parent workspace. It sits beside `AGENTS.md`, which remains the default contract for every agent and assumes access through the Basic Memory MCP tools. Agents that reach the Wiki only through MCP do not need this note. A CLI agent reads it during bootstrap, after the triage skill, and treats it as binding for all shell and Git work.
 
 ## Parent workspace routing
 
@@ -49,7 +48,7 @@ Local Git commits and Basic Memory Cloud may diverge during development. GitHub 
 
 ### Control plane notes
 
-A change to a note marked `sync_class: immediate` must be committed to Git `main`, pushed to `origin/main` and propagated to Basic Memory Cloud within the same task, using the supported single-note mutation path available in the current environment. Publication is per note. Do not start full reconciliation or reindexing merely because a control-plane note changed, and do not use raw transport such as direct WebDAV calls unless explicitly commissioned. A Cloud failure during publication is handled by the Cloud Transient-Failure Rule in [[syafiq-kay/wiki/agents]].
+A change to a note marked `sync_class: immediate` must be committed to Git `main`, pushed to `origin/main` and propagated to Basic Memory Cloud within the same task, using the supported single-note mutation path available in the current environment. Publication is per note. Do not start full reconciliation or reindexing merely because a control-plane note changed, and do not use raw transport such as direct WebDAV calls unless explicitly commissioned. A Cloud failure during publication is handled by the Cloud Transient-Failure Rule in `AGENTS.md`.
 
 ### Knowledge plane notes
 
@@ -68,24 +67,12 @@ Another agent or Syafiq may author notes in Cloud at the same time, so publicati
 
 ### Transient failures on the command line
 
-The Cloud Transient-Failure Rule in [[syafiq-kay/wiki/agents]] applies to `bm cloud pull`, `bm cloud push`, WebDAV and any equivalent command-line Cloud operation, and the failing command is the operation to record.
+The Cloud Transient-Failure Rule in `AGENTS.md` applies to `bm cloud pull`, `bm cloud push`, WebDAV and any equivalent command-line Cloud operation, and the failing command is the operation to record.
 
 ## Lint prerequisites
 
-Parity must be established before a full production lint run, and before any semantic sweep. Any lint mutation creates a fresh Git delta and invalidates active parity certificates until they are re-sealed. The structural and semantic lint tiers themselves are defined in [[syafiq-kay/wiki/agents]].
+Parity must be established before a full production lint run, and before any semantic sweep. Any lint mutation creates a fresh Git delta and invalidates active parity certificates until they are re-sealed. The structural and semantic lint tiers themselves are defined in `AGENTS.md`.
 
 ## Reconciliation procedure
 
-Active reconciliation follows [[wiki/skill/local-cloud-reconciliation]]. Control-layer notes retain current instructions only. Resolve deterministic structural differences and settled semantic differences automatically. Preserve unsettled alternatives only at the disputed passages in one review-ready note, and synchronise that same note without waiting for semantic decisions. Report file parity and semantic review separately.
-
-## Observations
-
-- [decision] Syafiq directed on 2026-10-04 that MCP is the default way for agents to interact with the Wiki and that CLI-specific guidance lives in this note rather than in AGENTS.
-- [scope] This note holds shell, Git, GitHub and `bm cloud` mechanics moved out of AGENTS without changing their substance.
-- [gap] Local Git and GitHub copies of this note do not exist until a CLI agent propagates it, because it was created through Cloud MCP.
-
-## Relations
-
-- relates_to [[syafiq-kay/wiki/agents]]
-- relates_to [[syafiq-kay/wiki/skill/triage]]
-- relates_to [[wiki/skill/local-cloud-reconciliation]]
+Active reconciliation follows `sk-local-cloud-reconciliation`. Control-layer notes retain current instructions only. Resolve deterministic structural differences and settled semantic differences automatically. Preserve unsettled alternatives only at the disputed passages in one review-ready note, and synchronise that same note without waiting for semantic decisions. Report file parity and semantic review separately.
