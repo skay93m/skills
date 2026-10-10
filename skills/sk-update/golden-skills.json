@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "path": "~/.agents/mattpocock-skills/skills/engineering"
+    },
+    {
+      "path": "~/.agents/mattpocock-skills/skills/productivity"
+    },
+    {
+      "path": "~/.agents/basic-memory-skills"
+    },
+    {
+      "path": "~/.agents/syafiq-kay-skills/skills"
+    },
+    {
+      "path": "~/.agents/agy-builtin-skills/skills"
+    }
+  ]
+}
