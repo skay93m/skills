@@ -2,3 +2,7 @@ aws_access_key_id = AKIAIOSFODNN7EXAMPLE
 aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 # second fake key pair, same documentation example values
 aws_session_token = FwoGZXIvYXdzEXAMPLEEXAMPLEEXAMPLE
+
+# service credentials
+API_SECRET = "ea64ea89c28d58d6c44b206de71965fc0598eb49"
+DATABASE_PASSWORD = "Gl4ss-Harbor!895bea-47"

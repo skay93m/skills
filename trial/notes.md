@@ -4,3 +4,7 @@ Contact: trial.person@example.com
 Working folder: /Users/trial-user/scratch/skills
 Another contact: second.person@example.com
 Backup folder: /Users/trial-user/backup
+
+## Contacts from my notes
+Tobias Wren, tobias.wren@quillfield-systems.com, +44 7700 900415
+Working copy: /Users/dmitri.vance/Documents/agent-notes/skills-private
