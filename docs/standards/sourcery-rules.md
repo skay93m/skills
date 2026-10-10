@@ -1,6 +1,22 @@
 # Sourcery AI Dashboard Rules
 
-Sourcery's PR Reviewer requires custom rules to be added via the Sourcery Dashboard (up to 3,000 characters each). 
+Sourcery's AI PR Reviewer feature does not natively read custom review instructions from repository files (e.g., `AGENTS.md` or `.sourcery.yaml`). Instead, custom plain-language rules must be configured manually via the Sourcery Dashboard.
+
+## How to add custom review rules
+
+1. Navigate to the **Sourcery Dashboard** (app.sourcery.ai) and select the repository.
+2. Go to the **Review rules** tab (usually under Settings).
+3. Click the **+ Add rule** button.
+4. For each rule, you must provide the **Path patterns** (e.g., `*` or `skills/**/SKILL.md, scripts/**`) and the **Rule** text itself.
+5. Save the rules.
+
+## Preventing unwanted approvals
+
+By default, Sourcery may approve pull requests if it finds no issues. To ensure it acts only as an advisory reviewer:
+1. Go to the **General** tab in the Sourcery repository settings.
+2. Ensure the setting **"Let Sourcery approve pull requests"** is toggled **OFF**.
+
+---
 
 Copy and paste the following rules into your Sourcery Dashboard to enforce the repository's hard constraints:
 
