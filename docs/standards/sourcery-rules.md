@@ -15,7 +15,7 @@ Sourcery's AI PR Reviewer feature does not natively read custom review instructi
 By default, Sourcery may approve pull requests if it finds no issues.
 1. Go to the **General** tab in the Sourcery repository settings.
 2. Ensure the setting **"Let Sourcery approve pull requests"** is toggled **ON**.
-   *Rationale: Even when Sourcery automatically approves a PR, it still requires a human to manually click the merge button on GitHub. This behaviour reduces friction while maintaining ultimate human control.*
+   *Rationale: While Sourcery can auto-approve to reduce friction, GitHub auto-merge must remain **disabled** for this repository. Furthermore, branch protection rules must require at least one **independent human review**—Sourcery's approval alone does not satisfy the required-review gate. This ensures production changes always receive mandatory human oversight before a manual merge.*
 
 ---
 
