@@ -112,12 +112,3 @@ If Syafiq is running behind on writing (few notes, or notes not being written de
 - Check whether the coaching-use gate triggered in the scheduler (coaching nudge sent instead of new prompt)
 - If so, flag this in your message: "The seeder detected incomplete coaching from [date]; focus there before adding new prompts"
 
-## Observations
-
-- [coaching-pick] none: no substantive drafts written in 2026-10-04 or 2026-10-05 notes. Ready for promotion step: no (needs writing).
-
-## Relations
-
-- part_of [[syafiq-kay/wiki/projects/writing-practice-plan]]
-- relates_to [[syafiq-kay/wiki/journal/index]]
-- relates_to [[syafiq-kay/wiki/projects/syafiqkay.com-writing-pipeline-coordination]]
