@@ -162,12 +162,12 @@ Prefer the most precise predicate that the evidence supports.
 
 Examples include:
 
-- `presents [[Concept]]`;
-- `applies [[Concept]]`;
-- `illustrates [[Concept]]`;
-- `critiques [[Claim]]`;
-- `compares [[Concept]]`;
-- `draws_on [[Source]]`.
+- `presents Concept`;
+- `applies Concept`;
+- `illustrates Concept`;
+- `critiques Claim`;
+- `compares Concept`;
+- `draws_on Source`.
 
 Avoid generic `relates_to` when a more informative relationship is established.
 
@@ -176,7 +176,7 @@ Do not overstate the relationship. Predicates such as `supports`, `validates`, `
 Use the documented Basic Memory relation form:
 
 ```markdown
-- relation_type [[Target]]
+- relation_type Target
 ```
 
 Do not make undocumented parser behaviour part of the Wiki contract.
@@ -319,31 +319,3 @@ A supervised literature ingest is complete when:
 
 Completion of ingestion does not mean the source has been accepted as true or promoted into Syafiq's own worldview. It means the source has been represented faithfully and usefully enough for later query, comparison, reflection and linting.
 
-## Observations
-
-- [purpose] Defines the sole current executable procedure for supervised ingestion of external sources into the Wiki.
-- [trigger] Use when an external source is to be ingested into the Wiki.
-- [access_boundary] Proceed only when the relevant source content, or an already-existing authorised derivative, is directly inspectable; if transcription, OCR, reconstruction or comparable preprocessing is required, stop and flag the dependency to Syafiq.
-- [authority_boundary] The agent performs capture, provenance work, search, drafting, extraction, graph construction and verification; Syafiq retains interpretive judgement and authority over promotion into canonical knowledge.
-- [provenance_rule] Keep the primary source distinct from supporting derivatives such as transcripts, caption tracks, text extractions and working notes.
-- [search_rule] Search the Wiki for the source, existing entities, relevant decisions and prior interpretations before creating new notes or concepts.
-- [taxonomy_rule] Capture meaning, provenance, observations and semantic relations before forcing final taxonomy; folder, note type and exclusive project ownership may remain provisional until repeated use and later curation provide evidence for a stable form.
-- [deepening_rule] For insight-bearing material, supervised ingestion may deepen the source through discussion with Syafiq; preserve source-derived claims, Syafiq's first-hand observations and jointly developed analysis as distinct provenance layers.
-- [observation_rule] Extract observations for retrieval value and source support; do not force-fill expected properties or invent missing information.
-- [relation_rule] Use evidence-supported, typed directional relations that explain why an agent should traverse the edge; ask Syafiq when materially different predicates remain plausible.
-- [promotion_rule] A genuinely new source-derived idea must not become canonical knowledge without Syafiq's judgement or clear prior approval.
-- [authorship_rule] Agent-authored raw analysis must identify the specific creating model as semantic author and must not attribute authorship to Syafiq.
-- [verification_rule] Every mutation must follow read current state, make the bounded change, reread and verify.
-- [completion_rule] Completion means the source has been represented faithfully and usefully with unresolved interpretive issues surfaced; it does not mean the source has been accepted as true or adopted into Syafiq's worldview.
-- [ingestion_purpose] Ingestion extracts a source's insights and key themes, considers them within existing Wiki knowledge, and reflects on corroboration, conflict, extension and gaps, applying analytical frameworks where appropriate; it is not transcription.
-- [facilitation_rule] The agent facilitates the reflection and Syafiq supplies the synthesis.
-- [scoping_rule] Before any theme is discussed, the agent scopes the themes against existing Wiki notes, ranks them by consequence, and persists that scoping in the literature note, labelled as agent-proposed, model-attributed and unreviewed.
-- [bounding_rule] Reflect with Syafiq on at most three or four themes per source, prioritising conflicts, extensions and gaps; resolve mainly corroborating themes with a drafted insight for him to accept, edit or reject; record the remainder as parked with a reason.
-- [reflection_rule] Take themes one at a time: surface the theme, propose a draft insight and destination, and where his judgement is needed ask one multiple-choice question with the recommended option first and room for his comments. Record the outcome and a final status of resolved or parked before moving on. Never present several themes at once.
-- [prompt_rule] Do not ask open-ended or abstract counterfactual questions; give Syafiq facts or a draft to react to and defined alternatives to choose between.
-- [framework_rule] Use only the Wiki's own defined version of an analytical framework such as the idea compass; if it cannot be found, ask where it is defined rather than inventing its prompts.
-- [persistence_rule] Persist each reflected outcome where it belongs, for example the literature note, an existing entity, `concepts/` or another suitable folder; do not create a new folder without Syafiq's explicit authorisation.
-- [unsupervised_relation] Unsupervised ingestion, not yet drafted, is expected to scope themes without human synthesis and leave a foundation for later agent-facilitated reflection.
-
-## Relations
-- governed_by [[AGENTS.md]]
