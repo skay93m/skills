@@ -1,7 +1,7 @@
 {
   "entries": [
-    { "path": "~/.agents/basic-memory-skills" },
-    { "path": "~/.agents/mattpocock-skills/skills/engineering" },
-    { "path": "~/.agents/mattpocock-skills/skills/productivity" }
+    { "path": "./.agents/basic-memory-skills" },
+    { "path": "./.agents/mattpocock-skills/skills/engineering" },
+    { "path": "./.agents/mattpocock-skills/skills/productivity" }
   ]
 }

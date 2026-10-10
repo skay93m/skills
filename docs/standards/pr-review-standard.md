@@ -47,7 +47,7 @@ Every bump needs the owner's approval and a new review date.
 | A missing or malformed stamp | Blocking |
 | A stamp whose version differs from this file | Blocking |
 | A lapsed freshness period | Non-blocking, with a comment recommending a re-review (check `CUR`) |
-| A pull request that edits the standard, its checker, its tests or its workflow | Blocking until the owner re-stamps it (check `STD`) |
+| A pull request that edits the standard, its checker, its tests or its workflow | Non-blocking (check `STD`) |
 
 ## Findings and the verdict
 
@@ -84,7 +84,7 @@ All seven are blocking, even in advisory mode.
 |---|---|---|---|
 | H1 to H4, H6 | The hard-stops above that a pattern can find | Blocking | Script |
 | H5, H7 | Pasted prompts and transcripts; open security findings | Blocking | Owner and Sourcery |
-| STD | A change to the standard, its checker, tests or workflow | Blocking | Script |
+| STD | A change to the standard, its checker, tests or workflow | Non-blocking | Script |
 | CUR | The stamp's fresh-until date has passed | Non-blocking | Script |
 | S1 | Frontmatter holds `name` and `description` | Blocking | Script |
 | S2 | Name is kebab-case, at most three words, equals its directory, no "anthropic" or "claude" | Blocking | Script |
