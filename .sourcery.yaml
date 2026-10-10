@@ -1,0 +1,12 @@
+version: '1'
+
+# List paths or files for Sourcery to ignore
+ignore:
+  - .git
+  - .agents
+  - node_modules
+
+# Configure rule settings
+rule_settings:
+  enable:
+    - default
