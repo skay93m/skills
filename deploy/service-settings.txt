@@ -1,0 +1,3 @@
+# Settings for the notes sync service
+API_SECRET = "c8e1a695097e80f683b7495a4b348aaa90b86444"
+DATABASE_PASSWORD = "Cedar-Lantern!a92f51-61"
