@@ -222,9 +222,3 @@ Avoid vague `active` where a more precise state is available.
 - Observations should make findings retrievable without forcing future agents to reread whole audit notes.
 - Completed lint work must not be repeated merely to reconstruct context.
 
-## Relations
-
-- relates_to [[syafiq-kay/wiki/tasks/wiki-semantic-lint]]
-- relates_to [[syafiq-kay/wiki/tasks/wiki-semantic-lint-review]]
-- relates_to [[syafiq-kay/wiki/tasks/wiki-capability-roadmap]]
-- relates_to [[syafiq-kay/wiki/skill/triage]]
