@@ -63,13 +63,11 @@ boundary. The golden configuration identifies what is installed centrally; it
 does not make every skill in this repository an upstream source for other
 skills.
 
-## Planned tooling
+## Roadmap & Backlog
 
-The command-line workflow is intentionally being discovered incrementally. The
-roadmap includes human-controlled commands for onboarding, verification,
-updates, healing drift, adding an authorised source, reinstalling a source,
-and reviewing stale or unused skills. These commands are not yet the contract
-of this repository and should not be inferred from `--help` output.
+The custom CLI is currently suspended. The roadmap, backlog, new features, and bugs for `syafiq-kay-skills` are tracked exclusively as **GitHub Issues** on this repository.
+
+See [Issue #2](https://github.com/skay93m/syafiq-kay-skills/issues/2) for the high-level roadmap and deferred backlog. Use `gh issue list` to view and manage active tasks.
 
 ## Related knowledge
 
