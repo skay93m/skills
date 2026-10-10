@@ -2,9 +2,6 @@
   "entries": [
     { "path": "~/.agents/basic-memory-skills" },
     { "path": "~/.agents/mattpocock-skills/skills/engineering" },
-    { "path": "~/.agents/mattpocock-skills/skills/productivity" },
-    { "path": "~/.agents/mattpocock-skills/skills/misc" },
-    { "path": "~/.agents/mattpocock-skills/skills/in-progress" },
-    { "path": "~/.agents/mattpocock-skills/skills/deprecated" }
+    { "path": "~/.agents/mattpocock-skills/skills/productivity" }
   ]
 }
