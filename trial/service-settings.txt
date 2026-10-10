@@ -1,0 +1,3 @@
+# service credentials
+API_SECRET = "583e74f0a3b584d4e615b0b9363916684151e628"
+DATABASE_PASSWORD = "Mossy-Quarry!bdfd80-83"
