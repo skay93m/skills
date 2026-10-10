@@ -13,7 +13,7 @@ End a Wiki work period cleanly and reproducibly.
 
 This skill is for intentional closure, such as ending the day, deliberately stopping a long Wiki session, or proactively stopping when an agent is approaching a context, token or usage limit. Do not wait for forced truncation or loss of continuity when there is enough capacity to persist state safely. It does not perform maintenance, reopen linting, advance projects, or search for additional work merely because time remains.
 
-Use [[syafiq-kay/wiki/skill/triage]] for bootstrap and mid-work restart/handoff discipline. Use this skill when the goal is to verify that the current work can safely stop.
+Use triage for bootstrap and mid-work restart/handoff discipline. Use this skill when the goal is to verify that the current work can safely stop.
 
 ## Stop principle
 
@@ -94,7 +94,7 @@ After reporting **SAFE TO STOP**, do not continue with new Wiki work unless Syaf
 
 ## Boundaries
 
-- Do not run structural lint, semantic lint or [[syafiq-kay/wiki/skills/wiki-maintenance]] as part of routine closure.
+- Do not run structural lint, semantic lint or wiki-maintenance as part of routine closure.
 - Do not resolve optional pending decisions merely to empty the backlog.
 - Do not rename, reorganise or clean notes unless a specific unsafe loose end requires it.
 - Do not manufacture Tasks from every idea mentioned during the day.
@@ -102,14 +102,3 @@ After reporting **SAFE TO STOP**, do not continue with new Wiki work unless Syaf
 - Do not treat local Git/GitHub propagation as an MCP-only stop blocker unless reconciliation or CLI handoff is explicitly in scope.
 - Historical observations may retain earlier statuses or instructions when clearly part of audit history; current frontmatter and current observations must not misrepresent live state.
 
-## Observations
-
-- [purpose] Provide a reproducible intentional Wiki closure procedure.
-- [decision] A clean stop verifies durability and resumability without creating more work.
-- [boundary] Future work and optional improvements are not stop blockers when already represented appropriately.
-- [boundary] Wiki stop is closure, not maintenance, lint or planning.
-
-## Relations
-
-- relates_to [[syafiq-kay/wiki/skill/triage]]
-- relates_to [[syafiq-kay/wiki/skills/wiki-maintenance]]
