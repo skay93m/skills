@@ -15,7 +15,7 @@ Sourcery is advisory. It recommends, and the repository owner decides and merges
 5. Keep the stamp line identical across all ten rules and identical to the version above. When the owner re-stamps the standard, change the dates here and in the dashboard together, so the repository text and the dashboard rules stay the same.
 ## Settings that must stay as described
 
-- **Let Sourcery approve pull requests** (General tab of the repository settings): **ON**. Sourcery may approve a pull request when it finds nothing it judges worth blocking. Rationale: GitHub auto-merge must stay **disabled** for this repository, and branch protection must require at least one **independent human review**. A Sourcery approval does not satisfy that required review. Every merge is a manual merge by the repository owner.
+- **Let Sourcery approve pull requests** (General tab of the repository settings): **ON**. Sourcery may approve a pull request when it finds nothing it judges worth blocking. Rationale: GitHub auto-merge stays **disabled**, and the ruleset `protect-develop-main` on `develop` and `main` requires a pull request with one approval, which a Sourcery approval never satisfies. The owner is the only collaborator and the author of every pull request, so every merge is a deliberate bypass by the owner after reading the findings.
 - A `BLOCKING` label in a rule does not stop Sourcery from approving, because the approval is Sourcery's own judgement. The owner reads the labelled findings before merging.
 - **Review profile**: Balanced. Change it only if the trial pull request shows too much noise.
 - The **Sourcery review** status check is informational. Do not add it to branch protection as a required check.
