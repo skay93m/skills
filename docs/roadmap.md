@@ -17,35 +17,16 @@ This document records future commands, planned phases, and deferred work for `sy
 
 ### Phase 2: authority projection and validation
 - Define how `docs/authorised-skill-repositories.md` relates to `skills/sk-update/golden-skills.json`.
+  - **Decision:** `golden-skills.json` is the technical source of truth that gets validated against `docs/authorised-skill-repositories.md` to ensure programmatic updates remain aligned with human-readable authority.
 
-### Phase 3: safe command contract
-Document inputs, outputs, failure modes, and confirmation requirements for:
-- `sk-onboarding`: initial machine setup.
-- `skills verify`: read-only diagnosis.
-- `skills update`: routine updates for authorised repositories.
-- `skills heal`: explicit high-risk repair.
-- `skills add <repo-url>`: proposal for adding an authorised repository.
-- `skills reinstall <repo>`: explicit reinstall of one authorised repository.
-- `skills review`: report stale, unused, duplicate or orphaned skills.
-- `skills remove <skill>`: explicit removal after confirmation.
-
-### Phase 4: onboarding
-Revise `sk-onboarding` only after the contract is approved.
-
-### Phase 5: verification
-Implement `skills verify` as read-only diagnosis.
-
-### Phase 6: routine update
-Update only repositories already on the authorised list.
-
-### Phase 7: healing and explicit repair
-A future `skills heal` flow must inspect state, produce a repair plan, and wait for explicit human approval.
-
-### Phase 8: repository and skill lifecycle
-Future `add`, `reinstall`, `review`, and `remove` flows.
+### Phase 3-8: Re-evaluation due to CLI Suspension
+- **Decision:** The custom `skills` CLI (e.g. `sk-onboarding`, `skills verify`) is currently **suspended**.
+- All interaction with Basic Memory should occur exclusively via the Basic Memory MCP tools.
+- CLI-specific workflows (onboarding, verification, updates, explicit repair) are deferred or need to be reimagined as Agent Skills rather than bash/CLI commands.
+- Technical implementation of human confirmation is deferred while the CLI is suspended.
 
 ## Deferred Work
-- The full CLI
+- The full CLI (Currently Suspended)
 - Automated healing
 - Automated repository addition
 - Bulk pruning
@@ -57,14 +38,16 @@ Future `add`, `reinstall`, `review`, and `remove` flows.
 - Complex versioning and package distribution
 - Broad test framework
 
+## Settled Decisions
+- **CLI Implementation Location:** CLI is suspended. Interaction with Basic Memory is via MCP tools.
+- **`golden-skills.json`:** Validated against `docs/authorised-skill-repositories.md` (JSON is the source of truth).
+- **Human Confirmation:** Deferred while CLI is suspended.
+- **Extension Metadata Model:** Stored directly in the YAML frontmatter of the custom skill's `SKILL.md` (e.g., `upstream_source` and `divergence_rationale`).
+- **Branch Protection:** `develop` receives branch protection to ensure all code is reviewed before entering the development branch.
+
 ## Open Decisions
-- Exact implementation location for the `skills` CLI.
 - Schema for `docs/authorised-skill-repositories.md`.
-- Whether `golden-skills.json` is generated or validated.
-- Exact onboarding behaviour by agent and operating system.
-- Technical implementation of human confirmation.
-- Whether `develop` also receives branch protection.
-- Extension metadata and wrapper, overlay or copy model.
-- Verification-report and handover-prompt format.
+- Exact onboarding behaviour by agent and operating system (given CLI suspension).
+- Verification-report and handover-prompt format (given CLI suspension).
 - Historical snapshot format.
 - Final authorised repository list.
