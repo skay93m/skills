@@ -36,6 +36,7 @@ The stamp lets a review say which version of the standard it used. Sourcery quot
 - **Major**: a blocking check is added, removed or loosened.
 - **Minor**: non-blocking checks change.
 - **Patch**: wording only.
+- A change that only describes repository settings or process, and changes no check, does not change the version.
 
 Every bump needs the owner's approval and a new review date.
 
@@ -59,7 +60,7 @@ The owner maps them to a verdict:
 - No findings: approve, as the owner's decision.
 - Not enough evidence for a confident call: comment only.
 
-Sourcery's setting to approve pull requests is on, and its approval is its own judgement. A blocking label does not stop it from approving, so the owner reads the findings before every merge. GitHub auto-merge is off, and a ruleset on `develop` and `main` requires a pull request with one approval. The ruleset also requires review from a code owner (`.github/CODEOWNERS` names the owner), and Sourcery is not one, so a Sourcery approval does not make a pull request merge-ready. Every merge is a deliberate bypass by the owner. To hand blocking findings to an agent, use [repair-prompt-template.md](repair-prompt-template.md).
+Sourcery's setting to approve pull requests is on, and its approval is its own judgement. A blocking label does not stop it from approving, so the owner reads the findings before every merge. GitHub auto-merge is off, and a ruleset on `develop` and `main` requires a pull request with one approval. Sourcery's approval satisfies that requirement, so a pull request Sourcery approves can be merged normally. The owner is the only person who merges, and reads the findings first. When Sourcery withholds approval, merging needs the owner's bypass, which is exceptional. To hand blocking findings to an agent, use [repair-prompt-template.md](repair-prompt-template.md).
 
 ## Hard-stops
 

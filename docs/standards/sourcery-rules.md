@@ -19,7 +19,7 @@ Three trials on throwaway pull requests showed that Sourcery did not post labell
 
 ## Settings that must stay as described
 
-- **Let Sourcery approve pull requests** (General tab of the repository settings): **ON**. Sourcery may approve a pull request when it finds nothing it judges worth blocking. Rationale: GitHub auto-merge stays **disabled**, and the ruleset `protect-develop-main` on `develop` and `main` requires a pull request with one approval. The ruleset also requires review from a code owner (`.github/CODEOWNERS` names the owner), and Sourcery is not one, so a Sourcery approval does not make a pull request merge-ready. Every merge is a deliberate bypass by the owner, after reading the findings.
+- **Let Sourcery approve pull requests** (General tab of the repository settings): **ON**. Sourcery may approve a pull request when it finds nothing it judges worth blocking. Rationale: GitHub auto-merge stays **disabled**, and the ruleset `protect-develop-main` on `develop` and `main` requires a pull request with one approval. Sourcery's approval satisfies that requirement, so a pull request Sourcery approves can be merged normally. The owner is the only person who merges, and reads the findings first. When Sourcery withholds approval, merging needs the owner's bypass, which is exceptional.
 - A `BLOCKING` label in a rule does not stop Sourcery from approving, because the approval is Sourcery's own judgement. The owner reads the labelled findings before every merge.
 - **Review profile**: Balanced. Change it only if too much noise appears.
 - The **Sourcery review** status check is informational. Do not add it to branch protection as a required check.
