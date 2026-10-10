@@ -130,7 +130,3 @@ An item is complete when:
 - no source was silently captured from Google Drive or another external service;
 - the report contains the finding, action, question and review space.
 
-## Relations
-
-- extends [[supervised-ingest]]
-- informed_by [[2026-10-03-unsupervised-ingest-design]]
