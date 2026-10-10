@@ -12,7 +12,7 @@ This pattern delegates the core reasoning/logic to an existing upstream skill, b
 
 ### Step 1: Gather Requirements
 Ask the user for three things (if they haven't provided them):
-1. **Upstream Skill Path:** The absolute path to the `SKILL.md` they want to adapt (e.g., `/Users/syafiq/.agents/mattpocock-skills/...`).
+1. **Upstream Skill Path:** The absolute path to the `SKILL.md` they want to adapt (e.g., `~/.agents/mattpocock-skills/...`).
 2. **Adapter Name:** The name of the new adapter skill (e.g., `sk-wiki-teach`).
 3. **The Override Rules:** Exactly what behavior needs to change (e.g., "Save files to Basic Memory wiki instead of local disk").
 
