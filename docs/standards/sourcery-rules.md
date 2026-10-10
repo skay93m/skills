@@ -10,11 +10,12 @@ Sourcery's AI PR Reviewer feature does not natively read custom review instructi
 4. For each rule, you must provide the **Path patterns** (e.g., `*` or `skills/**/SKILL.md, scripts/**`) and the **Rule** text itself.
 5. Save the rules.
 
-## Preventing unwanted approvals
+## Approvals
 
-By default, Sourcery may approve pull requests if it finds no issues. To ensure it acts only as an advisory reviewer:
+By default, Sourcery may approve pull requests if it finds no issues.
 1. Go to the **General** tab in the Sourcery repository settings.
-2. Ensure the setting **"Let Sourcery approve pull requests"** is toggled **OFF**.
+2. Ensure the setting **"Let Sourcery approve pull requests"** is toggled **ON**.
+   *Rationale: Even when Sourcery automatically approves a PR, it still requires a human to manually click the merge button on GitHub. This behaviour reduces friction while maintaining ultimate human control.*
 
 ---
 
