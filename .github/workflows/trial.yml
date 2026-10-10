@@ -1,0 +1,9 @@
+name: trial
+on: workflow_dispatch
+jobs:
+  trial:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: some-vendor/some-action@v2
+      - uses: actions/checkout@v4
+      - run: echo "Title is ${{ github.event.pull_request.title }}"
