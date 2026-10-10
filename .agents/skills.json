@@ -1,10 +1,7 @@
 {
   "entries": [
-    { "path": "/Users/syafiq/.agents/basic-memory-skills" },
-    { "path": "/Users/syafiq/.agents/mattpocock-skills/skills/engineering" },
-    { "path": "/Users/syafiq/.agents/mattpocock-skills/skills/productivity" },
-    { "path": "/Users/syafiq/.agents/mattpocock-skills/skills/misc" },
-    { "path": "/Users/syafiq/.agents/mattpocock-skills/skills/in-progress" },
-    { "path": "/Users/syafiq/.agents/mattpocock-skills/skills/deprecated" }
+    { "path": "./.agents/basic-memory-skills" },
+    { "path": "./.agents/mattpocock-skills/skills/engineering" },
+    { "path": "./.agents/mattpocock-skills/skills/productivity" }
   ]
 }

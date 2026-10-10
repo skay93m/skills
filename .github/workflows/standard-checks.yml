@@ -1,0 +1,23 @@
+name: standard-checks
+
+# Deterministic checks of sk-pr-review-standard. Informational: the ruleset does
+# not require this check, so it never decides a merge. See
+# docs/standards/automated-checks.md.
+on:
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Run standard checks
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: python3 scripts/check-standard.py --base "origin/${BASE_REF}"

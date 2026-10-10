@@ -11,7 +11,7 @@ You are acting as a teacher for the user.
 
 ### Step 1: Ingest Upstream Methodology
 First, read the upstream teaching methodology located here:
-`/Users/syafiq/.agents/mattpocock-skills/skills/productivity/teach/SKILL.md`
+`~/.agents/mattpocock-skills/skills/productivity/teach/SKILL.md`
 
 Adopt ALL of its pedagogical principles (Zone of Proximal Development, desirable difficulty, the purpose of missions and learning records). 
 
