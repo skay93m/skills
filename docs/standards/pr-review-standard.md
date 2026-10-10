@@ -59,7 +59,7 @@ The owner maps them to a verdict:
 - No findings: approve, as the owner's decision.
 - Not enough evidence for a confident call: comment only.
 
-Sourcery's setting to approve pull requests is on, and its approval is its own judgement. A blocking label does not stop it from approving, so the owner reads the findings before every merge. GitHub auto-merge is off, and a ruleset on `develop` and `main` requires a pull request with one approval. Whether a Sourcery approval counts towards that requirement is under review: today it does, so the ruleset alone does not stop a Sourcery-approved pull request from being merge-ready. The owner is the only person who merges. To hand blocking findings to an agent, use [repair-prompt-template.md](repair-prompt-template.md).
+Sourcery's setting to approve pull requests is on, and its approval is its own judgement. A blocking label does not stop it from approving, so the owner reads the findings before every merge. GitHub auto-merge is off, and a ruleset on `develop` and `main` requires a pull request with one approval. The ruleset also requires review from a code owner (`.github/CODEOWNERS` names the owner), and Sourcery is not one, so a Sourcery approval does not make a pull request merge-ready. Every merge is a deliberate bypass by the owner. To hand blocking findings to an agent, use [repair-prompt-template.md](repair-prompt-template.md).
 
 ## Hard-stops
 
