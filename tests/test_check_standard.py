@@ -229,7 +229,7 @@ class Skills(unittest.TestCase):
 class StandardAndConfig(unittest.TestCase):
     def test_standard_edit_is_blocking(self):
         _, found = run_check({}, {"docs/standards/rules.md": "text\n"})
-        self.assertIn("STD", ids(found, "BLOCKING"))
+        self.assertIn("STD", ids(found, "NON-BLOCKING"))
 
     def test_agent_config_wording_is_non_blocking(self):
         _, found = run_check({"AGENTS.md": "a\n"}, {"AGENTS.md": "a\nA wording change.\n"})

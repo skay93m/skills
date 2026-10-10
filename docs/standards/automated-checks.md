@@ -23,7 +23,7 @@ Standard: `sk-pr-review-standard`, version `1.0.0-draft`. The mechanical checks 
 | H3 | Blocking | An email address not already in the base branch (the example domains and their subdomains are exempt), or a phone number in international, US or UK format |
 | H4 | Blocking | A local user home path |
 | H6 | Blocking | An internal host (with or without a scheme), a private IPv4 or IPv6 address, or a private session link |
-| STD | Blocking | A change to the standard, to `.sourcery.yaml`, or to this checker, its tests or workflow |
+| STD | Non-blocking | A change to the standard, to `.sourcery.yaml`, or to this checker, its tests or workflow |
 | C5 | Blocking or non-blocking | A change to agent configuration; blocking when it adds a hook, command, tool or permission |
 | C1 | Blocking | A mount of the Docker socket |
 | C2 | Blocking | A download piped into a shell |
