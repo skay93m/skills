@@ -13,10 +13,10 @@ Sourcery is advisory. It recommends, and the repository owner decides and merges
 3. For each rule below, click **+ Add rule**, enter the **Path patterns** and paste the **Rule text**.
 4. Paste each stamp line exactly as written here. Only the repository owner sets or changes its dates (review date 2026-10-10, fresh until 2026-11-10). A rule saved with an altered or invalid stamp is a malformed stamp.
 5. Keep the stamp line identical across all ten rules and identical to the version above. When the owner re-stamps the standard, change the dates here and in the dashboard together, so the repository text and the dashboard rules stay the same.
-
 ## Settings that must stay as described
 
-- **Let Sourcery approve pull requests**: OFF (General tab of the repository settings).
+- **Let Sourcery approve pull requests** (General tab of the repository settings): **ON**. Sourcery may approve a pull request when it finds nothing it judges worth blocking. Rationale: GitHub auto-merge must stay **disabled** for this repository, and branch protection must require at least one **independent human review**. A Sourcery approval does not satisfy that required review. Every merge is a manual merge by the repository owner.
+- A `BLOCKING` label in a rule does not stop Sourcery from approving, because the approval is Sourcery's own judgement. The owner reads the labelled findings before merging.
 - **Review profile**: Balanced. Change it only if the trial pull request shows too much noise.
 - The **Sourcery review** status check is informational. Do not add it to branch protection as a required check.
 - If the pattern `*` does not match files in subfolders on the first trial pull request, change it to `**/*` in rules 1 and 2.
