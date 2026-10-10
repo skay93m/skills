@@ -40,18 +40,24 @@ SECRET_PATTERNS = [
     ("Slack token", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}\b")),
 ]
 SECRET_ASSIGN = re.compile(
-    r"""(?i)\b[\w.-]*(secret|token|passw(?:or)?d|api[_-]?key|private[_-]?key|credential)[\w.-]*\s*[:=]\s*["']?([^\s"'#]{8,})""")
+    r"""(?i)\b[\w.-]*(secret|token|passw(?:or)?d|api[_-]?key|private[_-]?key|credential)[\w.-]*\s*[:=]\s*(["']?)([^\s"'#]{8,})""")
 CREDENTIAL_FILE = re.compile(r"(^|/)(\.env(\.(?!example|sample)[\w.-]+)?|id_rsa|id_ed25519|[\w.-]+\.pem)$")
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 EMAIL_OK_DOMAINS = ("noreply.github.com", "users.noreply.github.com",
                     "example.com", "example.org", "example.net", "anthropic.com")
-PHONE = re.compile(r"(?<![\w+])\+\d{1,3}[\s-]?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}(?!\d)")
+PHONE = re.compile(
+    r"(?<![\w+])\+\d{1,3}[\s-]?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}(?!\d)"   # international
+    r"|(?<![\w.])\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}(?![\d.])"                      # US: 415 555 0134
+    r"|(?<![\w.])0\d{3,4}[\s-]\d{3}[\s-]?\d{3,4}(?![\d.])")                       # UK: 07700 900123
 HOME_PATH = re.compile(r"(/Users/([A-Za-z0-9._-]+)|/home/([A-Za-z0-9._-]+)|[A-Za-z]:\\Users\\([^\\\s]+))")
 HOME_OK_NAMES = {"username", "user", "you", "name", "youruser", "yourname"}
 PRIVATE_NOTES = re.compile(r"(basicmemory\.com|memory://|syafiq-kay/wiki)")
 INTERNAL_URL = re.compile(
-    r"(https?://[^\s)\"']*\.(local|internal|corp|lan|intranet)\b|\b10\.\d+\.\d+\.\d+\b|\b192\.168\.\d+\.\d+\b|"
-    r"\b172\.(1[6-9]|2\d|3[01])\.\d+\.\d+\b|claude\.ai/code/session_)")
+    r"(https?://[^\s)\"']*\.(local|internal|corp|lan|intranet)\b"
+    r"|(?<![\w/.-])[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.(local|internal|corp|lan|intranet)(?![\w.-])"   # bare host
+    r"|\b10\.\d+\.\d+\.\d+\b|\b192\.168\.\d+\.\d+\b|\b172\.(1[6-9]|2\d|3[01])\.\d+\.\d+\b"
+    r"|(?<![\w:])(f[cd][0-9a-f]{2}|fe80)(:[0-9a-f]{0,4}){1,7}(?![\w:])"                              # private IPv6
+    r"|claude\.ai/code/session_)", re.IGNORECASE)
 DOCKER_SOCKET = re.compile(r"docker\.sock")
 PIPE_TO_SHELL = re.compile(r"\b(curl|wget)\b[^|\n]*\|\s*(sudo\s+)?(ba|z)?sh\b")
 OUTSIDE_WRITE = re.compile(
@@ -159,6 +165,19 @@ def parse_frontmatter(text):
     return data, where
 
 
+def looks_like_secret(quote, value):
+    """A quoted value, or a value with a digit, capital, symbol or length of 16 or more.
+
+    Plain lowercase words such as `token: description` in prose are left alone.
+    """
+    return bool(quote) or len(value) >= 16 or any(c.isdigit() or c.isupper() or not c.isalnum() for c in value)
+
+
+def email_domain_ok(email):
+    domain = email.rsplit("@", 1)[1].lower()
+    return any(domain == ok or domain.endswith("." + ok) for ok in EMAIL_OK_DOMAINS)
+
+
 def check_secrets_and_privacy(report, base, path, rows):
     if CREDENTIAL_FILE.search(path):
         report.add(True, "H1", path, 1, "A credential file is committed. Remove it from the repository and rotate anything it held.")
@@ -167,13 +186,13 @@ def check_secrets_and_privacy(report, base, path, rows):
             if rx.search(text) and not PLACEHOLDER.search(text):
                 report.add(True, "H1", path, ln, f"Looks like a {kind}. Remove it and rotate it; the value is not repeated here.")
         m = SECRET_ASSIGN.search(text)
-        if m and any(c.isdigit() for c in m.group(2)) and not PLACEHOLDER.search(text):
+        if m and looks_like_secret(m.group(2), m.group(3)) and not PLACEHOLDER.search(text):
             report.add(True, "H1", path, ln, "A secret or password value is assigned in plain text. Move it to a secret store and rotate it.")
         if PRIVATE_NOTES.search(text):
             report.add(True, "H2", path, ln, "Private notes link or permalink. Replace it with a public reference or remove it.")
         for m in EMAIL.finditer(text):
             email = m.group(0)
-            if email.lower().endswith(EMAIL_OK_DOMAINS) or exists_in_base(base, email):
+            if email_domain_ok(email) or exists_in_base(base, email):
                 continue
             report.add(True, "H3", path, ln, "An email address that is not already public in this repository. Remove it or use a placeholder.")
         if PHONE.search(text):

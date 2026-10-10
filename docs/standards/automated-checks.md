@@ -20,9 +20,9 @@ Standard: `sk-pr-review-standard`, version `1.0.0-draft`. The mechanical checks 
 |---|---|---|
 | H1 | Blocking | A secret or password value, a key block, a known token format, or a committed credential file |
 | H2 | Blocking | A link or permalink into the owner's private notes |
-| H3 | Blocking | An email address not already in the base branch, or a phone number |
+| H3 | Blocking | An email address not already in the base branch (the example domains and their subdomains are exempt), or a phone number in international, US or UK format |
 | H4 | Blocking | A local user home path |
-| H6 | Blocking | An internal host, a private network address, or a private session link |
+| H6 | Blocking | An internal host (with or without a scheme), a private IPv4 or IPv6 address, or a private session link |
 | STD | Blocking | A change to the standard, to `.sourcery.yaml`, or to this checker, its tests or workflow |
 | C5 | Blocking or non-blocking | A change to agent configuration; blocking when it adds a hook, command, tool or permission |
 | C1 | Blocking | A mount of the Docker socket |
@@ -34,6 +34,10 @@ Standard: `sk-pr-review-standard`, version `1.0.0-draft`. The mechanical checks 
 | S1 to S6 | Blocking | Skill frontmatter, name, description, length, nested references and provenance |
 | N5 | Non-blocking | `metadata.category` is missing |
 | CUR | Non-blocking | The stamp's fresh-until date has passed |
+
+## Known limits
+
+The pattern checks are heuristics. Phone numbers in other national formats, and secrets in unusual shapes, can slip through; secret scanning with push protection covers the known vendor formats. A secret assignment is flagged when its value is quoted, is 16 or more characters, or contains a digit, capital or symbol, so plain lowercase words in prose are left alone.
 
 ## What stays with Sourcery
 

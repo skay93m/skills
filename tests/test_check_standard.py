@@ -74,12 +74,47 @@ class SecretsAndPrivacy(unittest.TestCase):
         code, found = run_check({}, {"notes.txt": 'API_KEY = "changeme-please-1"\n'})
         self.assertNotIn("H1", ids(found))
 
-    def test_new_email_phone_and_path(self):
+    def test_new_email_is_blocking(self):
         email = "ingrid.solberg" + "@" + "fenwick-dataworks.net"
-        phone = "+44 7700 " + "900318"
-        path = "/Users/" + "anders.holm" + "/notes"
-        _, found = run_check({}, {"docs/contacts.md": f"{email}\n{phone}\n{path}\n"})
-        self.assertTrue({"H3", "H4"} <= ids(found, "BLOCKING"))
+        _, found = run_check({}, {"docs/contacts.md": email + "\n"})
+        self.assertEqual(ids(found, "BLOCKING"), {"H3"})
+
+    def test_international_phone_is_blocking(self):
+        _, found = run_check({}, {"docs/contacts.md": "+44 7700 " + "900318" + "\n"})
+        self.assertEqual(ids(found, "BLOCKING"), {"H3"})
+
+    def test_national_phone_formats_are_blocking(self):
+        for number in ("415 555 " + "0134", "(415) 555-" + "0134", "07700 " + "900123"):
+            with self.subTest(number=number):
+                _, found = run_check({}, {"docs/contacts.md": "Call " + number + " today\n"})
+                self.assertEqual(ids(found, "BLOCKING"), {"H3"})
+
+    def test_version_numbers_and_dates_are_not_phones(self):
+        _, found = run_check({}, {"docs/a.md": "Version 1.2.3, released 2026-10-10, build 20261010.\n"})
+        self.assertEqual(found, [])
+
+    def test_home_path_is_blocking(self):
+        _, found = run_check({}, {"docs/a.md": "/Users/" + "anders.holm" + "/notes\n"})
+        self.assertEqual(ids(found, "BLOCKING"), {"H4"})
+
+    def test_lookalike_email_domain_is_not_exempt(self):
+        email = "someone" + "@" + "notexample" + ".com"
+        _, found = run_check({}, {"docs/a.md": email + "\n"})
+        self.assertIn("H3", ids(found, "BLOCKING"))
+
+    def test_example_domain_and_subdomain_are_exempt(self):
+        text = "a" + "@" + "example.com\nb" + "@" + "mail.example.org\n"
+        _, found = run_check({}, {"docs/a.md": text})
+        self.assertNotIn("H3", ids(found))
+
+    def test_alphabetic_quoted_secret_is_blocking(self):
+        line = "DB_" + "PASSWORD" + ' = "correcthorsebattery"\n'
+        _, found = run_check({}, {"deploy/a.txt": line})
+        self.assertIn("H1", ids(found, "BLOCKING"))
+
+    def test_prose_about_tokens_is_not_a_secret(self):
+        _, found = run_check({}, {"docs/a.md": "token: description of the field\n"})
+        self.assertNotIn("H1", ids(found))
 
     def test_email_already_in_base_is_public(self):
         email = "owner" + "@" + "fenwick-dataworks.net"
@@ -95,6 +130,16 @@ class SecretsAndPrivacy(unittest.TestCase):
         host = "https://build." + "corp" + "/status"
         _, found = run_check({}, {"docs/a.md": f"{link}\n{host}\n"})
         self.assertTrue({"H2", "H6"} <= ids(found, "BLOCKING"))
+
+    def test_bare_internal_host_and_private_ipv6(self):
+        for text in ("build." + "corp", "http://wiki." + "internal/page", "fd" + "00::1", "fe" + "80::1ff:fe23"):
+            with self.subTest(text=text):
+                _, found = run_check({}, {"docs/a.md": "see " + text + " now\n"})
+                self.assertIn("H6", ids(found, "BLOCKING"))
+
+    def test_local_settings_file_name_is_not_a_host(self):
+        _, found = run_check({}, {"docs/a.md": "Edit .claude/settings.local.json and config.local.yaml.\n"})
+        self.assertNotIn("H6", ids(found))
 
     def test_credential_file_is_blocking(self):
         _, found = run_check({}, {".env": "A=1\n"})
