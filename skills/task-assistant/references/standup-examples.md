@@ -1,6 +1,6 @@
 # Standup examples (synthetic)
 
-All names, dates and notes below are invented fixtures. Scenarios mirror the acceptance cases for the `sk-task` standup. The confirmation rule in the skill's section 5 governs every write.
+All names, dates and notes below are invented fixtures. Scenarios mirror the acceptance cases for the `task-assistant` standup. The confirmation rule in the skill's section 5 governs every write.
 
 ## 1. Complete linked chain
 

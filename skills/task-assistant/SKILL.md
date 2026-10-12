@@ -1,5 +1,5 @@
 ---
-name: sk-task
+name: task-assistant
 description: >-
   Use when the user says "start the morning standup" or starts a Hermes conversation-first morning standup over canonical Wiki Tasks: review existing Tasks and verified planning links, agree one focus and next action with the user, then record a dated Commitment only after explicit confirmation.
 metadata:
@@ -13,7 +13,7 @@ metadata:
     Issue 42 holds the specification and issue 46 the first ticket.
 ---
 
-# sk-task (Adapter): morning standup
+# Task Assistant (Adapter): morning standup
 
 ## 1. Ingest upstream methodology
 
