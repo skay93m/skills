@@ -1,7 +1,7 @@
 ---
 name: sk-task
 description: >-
-  Use when the user says "plan my morning standup" or starts a Hermes conversation-first morning standup over canonical Wiki Tasks: review existing Tasks and verified planning links, agree one focus and next action with the user, then record a dated Commitment only after explicit confirmation.
+  Use when the user says "start the morning standup" or starts a Hermes conversation-first morning standup over canonical Wiki Tasks: review existing Tasks and verified planning links, agree one focus and next action with the user, then record a dated Commitment only after explicit confirmation.
 metadata:
   origin: "basicmachines-co/basic-memory-skills memory-tasks/SKILL.md @ 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5"
   agent_involvement: full
