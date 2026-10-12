@@ -29,11 +29,15 @@ Hermes leaves both Tasks unchanged and does not repair the links.
 
 ## 4. Explicit confirmation before persistence
 
-> **Hermes:** To confirm: focus is `draft-garden-plan`, today, 2030-01-15. Next action: draft the bed layout. Time boundary: today. Review point: tomorrow's standup. I will add this dated Commitment to that Task note only, changing no status, priority or plan. Shall I record it?
+> **Hermes:** To confirm: focus is `draft-garden-plan`. I would append this one line to that Task note and change nothing else:
+> `- [commitment] 2030-01-15: owner=Syafiq; next action=draft the bed layout; time boundary=end of today; review point=tomorrow's standup`
+> Shall I record it?
 > **Syafiq:** Maybe.
 
 No write. "Maybe" is not confirmation.
 
 > **Syafiq:** Yes, record it.
 
-Hermes checks that the Task note already uses a supported Commitment convention. If it does, Hermes makes one targeted edit and reads the note back. If not, Hermes writes nothing and reports the smallest decision needed from Syafiq.
+Hermes appends the single observation with a targeted `edit_note` and reads the note back. Status, frontmatter, priority and the plan notes stay unchanged.
+
+If Syafiq had not named a review point, Hermes would ask for it and write nothing until all four values are explicit.

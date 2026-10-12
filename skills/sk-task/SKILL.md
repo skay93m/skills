@@ -46,9 +46,13 @@ Name every missing, stale, ambiguous, conflicting or blocked item and its source
 
 Before any write, state in one message the Task, the date, the next action and exactly what will change, then ask for explicit confirmation. Silence, "maybe" or an answer to a different question is not confirmation.
 
-A Commitment is a Task with an explicit owner, next action, time boundary and review point. Record the dated Commitment on the existing Task only when the Task note already follows a supported convention that can hold it safely. Use a targeted `edit_note`, then read the note back. If none exists or it is ambiguous, write nothing and report the smallest decision needed from Syafiq; do not invent a field, section format or storage rule.
+A Commitment is a Task with an explicit owner, next action, time boundary and review point. After confirmation, append exactly one observation to the existing canonical Task, per the Wiki `schema/task` convention:
 
-The write never creates a Task, and never changes status, priority, `impact`, `due`, strategic standing or any planning note.
+`- [commitment] YYYY-MM-DD: owner=<...>; next action=<...>; time boundary=<...>; review point=<...>`
+
+Use the ISO date. All four values must be explicit; if one is missing, ask Syafiq for it and write nothing yet. Use a targeted `edit_note` append, then read the note back. If the `schema/task` note no longer carries this convention, write nothing and report the smallest decision needed. Do not invent a field, section or storage rule.
+
+The write never creates a Task, and never changes frontmatter or other Task fields, status, priority, `impact`, `due`, strategic standing or any planning note.
 
 ## 6. Out of scope
 
