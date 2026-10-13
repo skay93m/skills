@@ -27,7 +27,16 @@ Fixtures: Task `book-venue` is `blocked` ("waiting for quote"). Task `write-summ
 
 Hermes leaves both Tasks unchanged and does not repair the links.
 
-## 4. Explicit confirmation before persistence
+## 4. Recorded execution differs from the plan
+
+Fixtures: Task `draft-garden-plan` (`doing`, current step 2 of 4). Weekly plan `week-2030-w03` expects steps 2 and 3 done by Wednesday. Task `context` records "step 2 not started; waiting on soil survey" under a daily log dated 2030-01-14.
+
+> **Hermes:** `week-2030-w03` expects steps 2 and 3 done by Wednesday. The Task's own daily log (2030-01-14) says step 2 has not started and is waiting on a soil survey, so the evidence differs from the plan. I will not guess the cause or update either note. How would you like to proceed: keep this Task as today's focus, pick another, or leave the plan question for you to review?
+> **User:** Keep it, but only the survey request.
+
+Hermes proposes the one-line Commitment for that action and waits. Nothing is written until the user explicitly confirms the exact proposal, as the skill's section 5 requires. Neither the Task nor the weekly plan is edited.
+
+## 5. Explicit confirmation before persistence
 
 > **Hermes:** To confirm: focus is `draft-garden-plan`. I would append this one line to that Task note and change nothing else:
 > `- [commitment] 2030-01-15: owner=User; next action=draft the bed layout; time boundary=end of today; review point=tomorrow's standup`
