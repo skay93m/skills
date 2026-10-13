@@ -62,7 +62,7 @@ Do not delete `skills/sk-scheduled-ingest-lint` until the new contract passes ga
 - Verification: every write is checksum-guarded and reread; a conflict blocks that item only; an uncertain response is reread, never repeated. Items are ledgered only when all their applicable writes verified.
 - Budgets: `sources`, `mutations` (default 8), `lint_notes` (12) and `lint_extra` (5). Over-budget work is deferred, never dropped.
 - Proposals classify as `apply` only for `provenance_record`, `frontmatter_normalise`, `link_normalise` when reversible and non-semantic. Everything else, including unknown operations and task lifecycle, becomes a review finding.
-- Executable reference and tests: `scripts/knowledge_maintenance.py`, `tests/test_knowledge_maintenance.py` (38 tests). It makes no Basic Memory calls; callers inject `process`, `lint`, a store with `read`/`write(expected_checksum)`, and a `checkpoint` callable. Drive access is a capability flag, and Friday folder discovery is a tool-level step whose result feeds `index_drift_plan`.
+- Executable reference and tests: `scripts/knowledge_maintenance.py`, `tests/test_knowledge_maintenance.py` (39 tests). It makes no Basic Memory calls; callers inject `process`, `lint`, a store with `read`/`write(expected_checksum)`, and a `checkpoint` callable. Drive access is a capability flag, and Friday folder discovery is a tool-level step whose result feeds `index_drift_plan`.
 
 ### Dry run result
 The committed synthetic snapshot `tests/fixtures/dry_run_snapshot.json` runs the whole workflow read-only: `python3 scripts/knowledge_maintenance.py tests/fixtures/dry_run_snapshot.json` selects a changed, a new and a rotated source, lists the settled provenance write as would-apply, turns a novel relation and a task lifecycle proposal into review findings, caps lint scope, applies index policies (`repair_allowed`, `check_only`, `inspect_only`), reports missing Drive access, and writes nothing. `tests.test_knowledge_maintenance.DryRunFixture` asserts this output. Live observation:
@@ -91,7 +91,17 @@ The owner asked for the architect's answer, derived from the approved architectu
 4. **Authority:** exactly `provenance_record`, `frontmatter_normalise`, `link_normalise`, reversible and non-semantic. The first production runs operate in report-only (`would_apply`) mode until the controlled test in gate 5 passes and the owner approves writes.
 5. **Pinning:** the launcher passes the commit SHA of an owner-approved release tag as `approved_commit_sha`. The run fails closed on a missing, malformed or mismatched pin. Gemini has no role in the scheduled run.
 
-### Still unresolved (owner action, not decided here)
+### Owner mandate (2026-10-13): gates approved
+- Merge to `develop`, creation of `reports/knowledge-maintenance` and the ledger note in the live Wiki: approved.
+- First-run budgets are not throttled below the contract ceilings: 10 backlog sources plus 1 rotation slot, 8 mutations, 12 lint notes, 5 extra queued lint notes. Nothing above those ceilings is authorised.
+- Strict no-deletion: no delete, move-to-delete or source overwrite is ever applied; each is a review finding. Rollback is by version history (`list_note_versions`) or Git, as the owner decides.
+- `KM-` IDs sit beside `SEM-`/`SCHED-`; old IDs are neither migrated nor rewritten.
+- Folders without an index note, or with absent policy (`SCHED-007`), are treated as curated/report-only: dead-link checks only, no repair, one `missing_index_policy` review finding each. No policy is inferred.
+- The legacy `sk-scheduled-ingest-lint` automation is confirmed disabled by the owner. The skill file stays until the new path has a verified run.
+- Ledger seed is empty on purpose: earlier reports recorded no checksums, so pre-filling current checksums would falsely mark the whole backlog as ingested.
+- Not covered by the mandate: editing or enabling the ChatGPT automation prompt, which lives outside this repository and this session.
+
+### Still unresolved
 1. Creating the two Wiki notes and seeding the ledger (a live write).
 2. Answering `SCHED-007` and reconciling the 2026-10-11 and 2026-10-12 gaps.
 3. First-run budgets and the initial `lint_queue`.

@@ -156,20 +156,26 @@ def guarded_write(store, path, new_content):
 
 
 def index_drift_plan(folders, policies, due):
-    """Per-folder mode for the Friday pass. Absent or ambiguous policy: inspect only."""
+    """Per-folder mode for the Friday pass.
+
+    A folder with an absent or ambiguous policy, or no index note, is treated as
+    curated/report-only (dead-link checks only, no repair) and listed in
+    `unpoliced` so a review finding is logged. No policy is ever inferred.
+    """
     if not due:
-        return {"status": "skipped", "folders": {}}
-    plan = {}
+        return {"status": "skipped", "folders": {}, "unpoliced": []}
+    plan, unpoliced = {}, []
     for folder in sorted(folders):
         p = policies.get(folder) or {}
         scope, repair = p.get("index_scope"), p.get("scheduled_repair")
         if scope not in ("exhaustive", "curated", "pointer") or repair not in ("allowed", "report-only"):
-            plan[folder] = "inspect_only"
+            plan[folder] = "check_only"
+            unpoliced.append(folder)
         elif scope == "exhaustive" and repair == "allowed":
             plan[folder] = "repair_allowed"
         else:
             plan[folder] = "check_only"
-    return {"status": "due", "folders": plan}
+    return {"status": "due", "folders": plan, "unpoliced": unpoliced}
 
 
 STATE_FENCE = re.compile(r"```km-state\n(.*?)\n```", re.S)
@@ -206,6 +212,7 @@ def render_report(result):
     lines += ["Review: " + f for f in result["review_ids"]]
     lines.append("Lint index drift: " + result["index_drift"]["status"])
     lines += ["Index folder: %s %s" % kv for kv in result["index_drift"]["folders"].items()]
+    lines += ["Review: no index policy for " + f for f in result["index_drift"]["unpoliced"]]
     return "\n".join(lines) + "\n"
 
 
@@ -303,6 +310,9 @@ def run(request, capabilities, state, sources, process, lint, store=None,
     except Exception as exc:
         result["failed"].append({"id": "lint", "error": str(exc)})
     result["lint_scope"] = scope
+    for f in result["index_drift"]["unpoliced"]:
+        result["findings"].append({"kind": "missing_index_policy", "notes": [f],
+                                   "check": "index_scope/scheduled_repair absent; treated as curated/report-only"})
     result["findings"], result["review_ids"] = _dedupe(result["findings"])
     save()
     return result

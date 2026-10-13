@@ -120,6 +120,10 @@ class Dispositions(unittest.TestCase):
         self.assertEqual(km.classify({"op": "link_normalise", "reversible": False}), "review")
         self.assertEqual(km.classify({"op": "link_normalise", "reversible": True, "semantic": True}), "review")
 
+    def test_deletion_is_never_applied(self):
+        for op in ("delete", "move_delete", "overwrite_source"):
+            self.assertEqual(km.classify({"op": op, "reversible": True}), "review")
+
     def test_task_lifecycle_proposal_is_never_applied(self):
         self.assertEqual(km.classify({"op": "task_lifecycle", "reversible": True}), "review")
 
@@ -173,8 +177,10 @@ class IndexDrift(unittest.TestCase):
                "c": {"index_scope": "exhaustive"},
                "d": {"index_scope": "exhaustive", "scheduled_repair": "report-only"}}
         plan = km.index_drift_plan(["d", "c", "b", "a", "e"], pol, True)["folders"]
-        self.assertEqual(plan, {"a": "repair_allowed", "b": "check_only", "c": "inspect_only",
-                                "d": "check_only", "e": "inspect_only"})
+        self.assertEqual(plan, {"a": "repair_allowed", "b": "check_only", "c": "check_only",
+                                "d": "check_only", "e": "check_only"})
+        full = km.index_drift_plan(["d", "c", "b", "a", "e"], pol, True)
+        self.assertEqual(full["unpoliced"], ["c", "e"])  # logged, never inferred
         self.assertEqual(list(plan), ["a", "b", "c", "d", "e"])
 
 
@@ -352,10 +358,11 @@ class DryRunFixture(unittest.TestCase):
         self.assertEqual(res["completed"], ["raw/changed-note", "raw/new-note", "raw/old-b"])
         self.assertEqual([w["op"] for w in res["would_apply"]], ["provenance_record"])
         kinds = sorted(f["kind"] for f in res["findings"])
-        self.assertEqual(kinds, ["proposal:new_relation", "proposal:task_lifecycle", "stale_claim"])
+        self.assertEqual(kinds, ["missing_index_policy", "proposal:new_relation", "proposal:task_lifecycle", "stale_claim"])
         self.assertEqual(res["index_drift"]["folders"],
-                         {"projects": "repair_allowed", "systems": "inspect_only", "tasks": "check_only"})
+                         {"projects": "repair_allowed", "systems": "check_only", "tasks": "check_only"})
         self.assertIn("notes/stale-1", res["lint_scope"])
+        self.assertIn("missing_index_policy", [f["kind"] for f in res["findings"]])
 
 
 if __name__ == "__main__":
