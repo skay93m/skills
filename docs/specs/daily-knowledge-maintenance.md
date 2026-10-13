@@ -69,6 +69,12 @@ The committed synthetic snapshot `tests/fixtures/dry_run_snapshot.json` runs the
 
 Read-only inspection of the live Wiki, then the planner on a snapshot (109 `raw/` notes, no checksum ledger): with no pin the run is `blocked` and does nothing. With a placeholder pin it is `read_only`, selects 10 of 109 sources, defers 99, discards all mutations, and lists four reasons: no designated report, register or ledger, and unreconciled history. No Wiki write, scheduler change or Drive access occurred.
 
+### Extended live evidence (read-only, 2026-10-13)
+- `reports/` holds 21 notes (complete listing, `has_more` false). The latest ingest and lint reports are dated 2026-10-11 (blocked ingest); none exists for 2026-10-12. Confirms reconciliation is required.
+- `find` with `meta` and `fields` returns each index note's `index_scope` and `scheduled_repair` cheaply with an exact total. Result: 18 root folders, 16 `type: index` notes (one is the root index), 15 folder indexes, 3 root folders with no index note found, and 1 folder index (`SCHED-007`) without policy fields. Per the contract these four are inspect-only. Policy values found: exhaustive/allowed 1, exhaustive/report-only 1, curated/report-only 8, pointer/report-only 4. So the only folder where a scheduled repair is permitted today is one exhaustive/allowed index.
+- `read_note(include_content=false)` returns a note's checksum without its body, so the first-run ledger can be seeded for the 109 `raw/` notes at 109 cheap reads. Seeding is a Wiki write and needs owner approval of the ledger note first.
+- Not performed: any write, a controlled non-destructive test, or a scheduler change (all forbidden for this slice).
+
 ### Remaining gates before any production run
 1. Owner reviews this slice and merges to `develop` (not done here).
 2. Owner designates the rolling report, review register and checksum ledger notes, and approves the schema (including `KM-` IDs).
