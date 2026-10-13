@@ -66,7 +66,7 @@ Scheduled agents never delete dead entries, reorder curated material or replace 
 
 ## Production repair override
 
-None. The retired scheduled-ingest-lint contract once allowed path-normalising moves and curated-index appends. The current `daily-knowledge-maintenance` contract does not, so those repairs are report-only.
+None. The retired `sk-scheduled-ingest-lint` and `sk-scheduled-lint` once allowed path-normalising moves and curated-index appends. The current `daily-knowledge-maintenance` contract, run through `knowledge-lint`, does not, so those repairs are report-only.
 
 ## Protected control plane
 
