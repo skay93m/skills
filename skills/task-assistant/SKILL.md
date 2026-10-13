@@ -61,12 +61,12 @@ Never skip or reorder these steps. Names are Basic Memory Cloud tool calls on th
 1. PLAN. Immediately before writing, run `read_note(identifier=<canonical Task permalink>, project="wiki")` and `read_note(identifier="schema/task", project="wiki")`, and read the Task's linked GitHub issue or PR state read-only if it has one. Record each returned state and the Task's `revision_checksum`. Then write the exact ISO-dated observation and the complete `edit_note` argument object, with the canonical Task permalink, `project="wiki"`, `operation="append"`, `content="\n<exact observation>"`, and `expected_checksum` set to that checksum. Resolve every value before proceeding: the plan is invalid if it contains placeholders, ellipses or an unspecified checksum.
 2. VALIDATE. Inspect the concrete argument object from PLAN and state a pass or fail for each check. The call is not executable until every check passes; write nothing on any fail:
    - the user's confirmation matches this exact proposal;
-   - the Task is still eligible, with the same status, owner, focus and next action;
+   - the Task is still eligible, with the same status, owner, focus, next action, blockers and relevant execution context;
    - the `schema/task` convention is still present;
    - the linked GitHub item is still eligible; if it changed, closed, merged or cannot be verified, explain that and do not append;
    - all four values are explicit and hold no semicolon, CR or LF;
    - the concrete `edit_note` argument object contains no unresolved placeholders and its checksum and append target match the fresh reads.
-3. EXECUTE. Only after PLAN is fully populated and every VALIDATE check passes, call `edit_note` once with the exact argument object shown in PLAN; do not reconstruct or alter its arguments. Then `read_note` the Task and compare the exact observation. If relevant state changed but the work stays eligible, present the revised proposal and get fresh explicit confirmation first.
+3. EXECUTE. After PLAN and VALIDATE pass, immediately re-read the Task and `schema/task` and recheck linked GitHub eligibility. Stop if the Task checksum, schema convention or GitHub eligibility changed or cannot be verified; return to PLAN and obtain fresh confirmation if the proposal changes. Only then call `edit_note` once with the exact argument object shown in PLAN; do not reconstruct or alter its arguments. Then `read_note` the Task and compare the exact observation.
 
 On a checksum conflict or an uncertain result, re-read the Task and look for the exact observation. If present, the write is done; never append again. If absent, return to PLAN with a fresh checksum and fresh confirmation. Never retry blindly.
 

@@ -4,7 +4,7 @@ All names, dates and notes below are invented fixtures. Scenarios mirror the acc
 
 ## 1. Complete linked chain
 
-Fixtures: Task `draft-garden-plan` (`doing`, step 2 of 4, parent Project `garden-project`); Task `order-seeds` (`todo`, next action compare the saved seed list with stock); and a daily log saying step 1 of `draft-garden-plan` was completed yesterday. Weekly plan `week-2030-w03` links the Project. Monthly plan `month-2030-01` links the weekly plan. Yearly plan `year-2030` links the monthly plan. Life direction `life-direction-sample` links the yearly plan.
+Fixtures: Task `draft-garden-plan` (`doing`, step 2 of 4, parent Project `garden-project`); Task `order-seeds` (`todo`, next action compare the saved seed list with stock, estimated at 20 minutes); and a daily log saying step 1 of `draft-garden-plan` was completed yesterday. Weekly plan `week-2030-w03` links the Project. Monthly plan `month-2030-01` links the weekly plan. Yearly plan `year-2030` links the monthly plan. Life direction `life-direction-sample` links the yearly plan.
 
 > **Hermes:** 🌅 **Morning stand-up**
 >
@@ -17,9 +17,9 @@ Fixtures: Task `draft-garden-plan` (`doing`, step 2 of 4, parent Project `garden
 > **Hermes:** **Options that fit**
 >
 > - `draft-garden-plan` — `doing`, step 2 of 4. Next: draft the bed layout. It continues yesterday's completed step and fits your three-hour window (Task and daily log).
-> - `order-seeds` — `todo`. Next: compare the saved seed list with stock (Task). It may fit if you want a smaller task.
+> - `order-seeds` — `todo`. Next: compare the saved seed list with stock. The Task estimates 20 minutes, so it fits your available time if you want a shorter option.
 >
-> The first option follows the verified planning path above. Shall we make it today's focus, or would you rather choose the smaller task?
+> The first option follows the verified planning path above. Shall we make it today's focus, or would you rather choose the 20-minute task?
 > **User:** Yes, layout only.
 
 No write yet. Focus and action are agreed but unconfirmed.
