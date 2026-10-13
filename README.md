@@ -76,3 +76,5 @@ work-facing vision is the reference note
 `references/personal-ai-engineering-vision`; its detailed synthesis is
 `concepts/personal-ai-engineering-system`. This README records only the
 repository-level operational context needed by an agent working here.
+
+<!-- Verified Claude PR Reviewer integration: Tue 13 Oct 2026 23:23:29 BST -->
