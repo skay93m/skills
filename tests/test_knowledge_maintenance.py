@@ -46,6 +46,17 @@ class Preflight(unittest.TestCase):
             self.assertEqual(km.preflight(request(approved_commit_sha=bad, loaded_commit_sha=bad),
                                           CAPS, STATE)["mode"], "blocked")
 
+    def test_tracking_branch_with_loaded_sha_passes(self):
+        r = km.preflight(request(approved_commit_sha=None, tracking_branch="main",
+                                 loaded_commit_sha="a" * 40), CAPS, STATE)
+        self.assertEqual(r["mode"], "full")
+
+    def test_tracking_branch_without_valid_loaded_sha_blocks(self):
+        for bad in (None, "", "not-a-sha"):
+            r = km.preflight(request(approved_commit_sha=None, tracking_branch="main",
+                                     loaded_commit_sha=bad), CAPS, STATE)
+            self.assertEqual(r["mode"], "blocked")
+
     def test_loaded_revision_mismatch_blocks(self):
         self.assertEqual(km.preflight(request(loaded_commit_sha="b" * 40), CAPS, STATE)["mode"], "blocked")
 

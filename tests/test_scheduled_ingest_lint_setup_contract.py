@@ -22,8 +22,7 @@ class ScheduledIngestLintSetupContract(unittest.TestCase):
             "relation gaps and inconsistent links as report-only",
             "blocked or failed stage reports",
             "historical reconciliation",
-            "terminal status = read_only",
-            "Do not carry forward a previous blocked status",
+            "Tracking branch: main",
             "preserve dated historical reports",
             "prior ledger evidence",
             "current control-plane gate",
@@ -32,10 +31,8 @@ class ScheduledIngestLintSetupContract(unittest.TestCase):
             "Still paginate the raw inventory",
             "select bounded ingest candidates",
             "run bounded lint over the current scope",
-            "record would-apply changes and findings",
-            "do not skip ingest analysis or lint merely because historical reconciliation is incomplete",
+            "Apply zero meaning-changing repairs",
             "A previous blocked or unreconciled report is audit context, not a gate",
-            "Only after the approved pin matches",
             "unreconciled report gap, ledger state, or review state",
         ):
             self.assertIn(expected, self.text)
