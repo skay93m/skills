@@ -6,51 +6,38 @@ All names, dates and notes below are invented fixtures. Scenarios mirror the acc
 
 Fixtures: Task `draft-garden-plan` (`doing`, step 2 of 4, parent Project `garden-project`); Task `order-seeds` (`todo`, next action compare the saved seed list with stock, estimated at 20 minutes); and a daily log saying step 1 of `draft-garden-plan` was completed yesterday. Weekly plan `week-2030-w03` links the Project. Monthly plan `month-2030-01` links the weekly plan. Yearly plan `year-2030` links the monthly plan. Life direction `life-direction-sample` links the yearly plan.
 
-> **Hermes:** 🌅 **Morning stand-up**
->
-> **Planning path:** verified unbroken chain (daily focus → weekly plan `week-2030-w03` → monthly plan `month-2030-01` → yearly plan `year-2030` → life direction `life-direction-sample`), with no gaps found in the indexed horizons.
->
-> Quick pulse check — rough guesses are fine:
-> - **Time:** under 1h / 1–3h / 3h+ / not sure
-> - **Energy:** low / steady / high / not sure
-> - **Since yesterday:** finished something / got stuck / no big change / not sure
->
-> Reply with the closest fit; we’ll find one useful mission, not defeat the whole task list before breakfast.
+> **Hermes:** Morning! Your planning path looks unbroken from today up to your life direction. Quick pulse, rough guesses welcome:
+> - Time: under 1h / 1–3h / 3h+
+> - Energy: low / steady / high
+> - Since yesterday: finished something / got stuck / no big change / not sure
 >
 > **User:** About three hours. I finished step 1 yesterday.
 >
-> **Hermes:** **Options that fit**
+> **Hermes:** Nice, a finished step and three hours is a good start. Two fits: continue `draft-garden-plan` with the bed layout (step 2 of 4), or knock out `order-seeds` in about 20 minutes. Which one gets today?
 >
-> - `draft-garden-plan` — `doing`, step 2 of 4. Next: draft the bed layout. Planning path: `draft-garden-plan` → `garden-project` → `week-2030-w03` → `month-2030-01` → `year-2030` → `life-direction-sample` (verified in each note). It continues yesterday's completed step and fits your three-hour window (Task and daily log).
-> - `order-seeds` — `todo`. Next: compare the saved seed list with stock. The Task estimates 20 minutes, so it fits your available time if you want a shorter option.
+> **User:** Layout, I think.
 >
-> The first option follows the verified planning path above. Shall we make it today's focus, or would you rather choose the 20-minute task?
-> **User:** Yes, layout only.
+> **Hermes:** Good pick. What would "layout done" look like by lunchtime: a sketch, or the full plan?
+>
+> **User:** Just a sketch.
 
-No write yet. Focus and action are agreed but unconfirmed.
+No write yet. Focus and action are agreed but unconfirmed. The candidates' per-Task path (`draft-garden-plan` → `garden-project` → `week-2030-w03` → `month-2030-01` → `year-2030` → `life-direction-sample`, each link read) stays internal until the user asks or a Commitment is proposed.
+
+If the user had said "I'll do the seeds later, around 3pm", Hermes would answer "Parked for 3pm, I'll nudge you then" and still write nothing.
 
 ## 2. Missing horizon notes
 
 Fixtures: Task `renew-sample-licence` links `admin-project`. A weekly plan exists. No monthly or yearly note is indexed.
 
-> **Hermes:** 🌅 **Morning stand-up**
->
-> **Planning path:** found a clear trail up through `admin-project` into `week-2030-w03`, but the higher horizons went quiet — no monthly or yearly plan in the indexed notes, and no upward links from the week.
->
-> Missing from indexed notes isn't proof they don't exist, and I won't just pretend a quarterly plan fits the slot. Is there a monthly or yearly note I should pull in before we pick today's target?
+> **Hermes:** Morning! The trail runs up to this week's plan, then goes quiet: no monthly or yearly note in what I can see. That's not proof they don't exist, and I won't stretch a quarterly plan to fit. Is there one I should pull in first?
 
 ## 3. Blocked Task, stale link and changed capacity
 
 Fixtures: Task `book-venue` is `blocked` ("waiting for quote"). Task `write-summary` links a weekly plan marked as last week's, and its Project lists a different parent Task. The user reports two hours, not four.
 
-> **Hermes:** 🌅 **Morning stand-up**
+> **User:** Only two hours today, not four.
 >
-> Quick reality check on the board today:
->
-> - `book-venue` is currently blocked waiting on an external quote, so I’m keeping that off your plate for active work. Worth a quick poke on the quote, or let it sit?
-> - `write-summary` is pointing at last week's plan, and its Project points to a different parent Task. No guessing games on which link is right.
->
-> With a solid two-hour window today instead of four, where would you like to put the energy?
+> **Hermes:** Two it is. `book-venue` is blocked on a quote, so it stays off the active list, and `write-summary` points at last week's plan with a Project naming a different parent Task. I won't guess which link is right. Should we pick something else for your two hours, or sort out that link first?
 
 Hermes leaves both Tasks unchanged and does not repair the links.
 
@@ -58,11 +45,8 @@ Hermes leaves both Tasks unchanged and does not repair the links.
 
 Fixtures: Task `draft-garden-plan` (`doing`, current step 2 of 4). Weekly plan `week-2030-w03` expects steps 2 and 3 done by Wednesday. Task `context` records "step 2 not started; waiting on soil survey" under a daily log dated 2030-01-14.
 
-> **Hermes:** 🌅 **Morning stand-up**
+> **Hermes:** Reality and the calendar parted ways a bit: the week expected steps 2 and 3 by Wednesday, but yesterday's log says step 2 is waiting on the soil survey. Plans drift, no drama. Nudge the survey, pick something unblocked, or revisit the plan?
 >
-> Here’s where reality and the calendar parted ways: `week-2030-w03` had steps 2 and 3 pegged for Wednesday, but yesterday's daily log (2030-01-14) notes step 2 hasn't kicked off yet while waiting on the soil survey.
->
-> Plans drift and that’s completely fine — I won't speculate on why or silently edit either note. How do you want to play it today: keep this Task and nudge the survey, pick another unblocked candidate, or step back and look at the plan?
 > **User:** Keep it, but only the survey request.
 
 Hermes proposes the one-line Commitment for that action and waits. Nothing is written until the user explicitly confirms the exact proposal, as the skill's section 5 requires. Neither the Task nor the weekly plan is edited.
