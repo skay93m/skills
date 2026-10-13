@@ -10,7 +10,12 @@ Fixtures: Task `draft-garden-plan` (`doing`, step 2 of 4, parent Project `garden
 >
 > **Planning path:** `draft-garden-plan` → `garden-project` → `week-2030-w03` → `month-2030-01` → `year-2030` → `life-direction-sample` (each link verified in the note named).
 >
-> How much focused time and energy do you have today, and what actually moved yesterday?
+> Quick pulse check — rough guesses are fine:
+> - **Time:** under 1h / 1–3h / 3h+ / not sure
+> - **Energy:** low / steady / high / not sure
+> - **Since yesterday:** finished something / got stuck / no big change / not sure
+>
+> Reply with the closest fit; we’ll find one useful mission, not defeat the whole task list before breakfast.
 >
 > **User:** About three hours. I finished step 1 yesterday.
 >
