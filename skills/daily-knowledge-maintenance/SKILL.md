@@ -15,7 +15,7 @@ Orchestrate `knowledge-ingest` and `knowledge-lint`; do not implement their deci
 ## Preflight
 1. Require an explicit approved Git commit SHA supplied by the launcher; verify that the loaded skill files correspond to that revision. If unavailable, stop without mutations.
 2. Verify Basic Memory Cloud project `wiki`, complete paginated reads, write permissions, current schemas and policy, and persistent ledger/report accessibility. Never substitute old Wiki-local skill paths.
-3. Reconcile unresolved historical ledger/checkpoint/review entries before selecting work. If reconciliation is incomplete, operate read-only and report the gap.
+3. Reconcile historical ledger/checkpoint/review entries where possible; an unreconciled historical gap or missing prior report is reported as deferred audit context, not a gate that blocks ingest or lint. If control plane or write guards are unavailable, operate read-only and report the gap.
 4. Obtain Europe/London run date, stable run ID and budgets from the launcher. Friday adds index drift. Do not infer permission from the schedule itself.
 
 ## Execute
