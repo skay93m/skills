@@ -1,6 +1,10 @@
 ---
 name: daily-knowledge-maintenance
 description: Use when running the approved daily Wiki ingestion and lint maintenance workflow.
+metadata:
+  origin: original
+  agent_involvement: partial
+  category: orchestration
 ---
 
 # Daily knowledge maintenance
@@ -20,6 +24,9 @@ Orchestrate `knowledge-ingest` and `knowledge-lint`; do not implement their deci
 3. Load `knowledge-lint`; check affected notes plus independent structural queue; Friday includes index drift.
 4. Verify, checkpoint and update one rolling operational report and deduplicated review queue. Do not generate per-run report proliferation.
 5. On conflict, re-read and stop only the affected item; continue independent eligible work. Never blindly retry an uncertain write.
+
+## Basic Memory contract
+Verified tool behaviour (2026-10-13): `read_note` returns a revision checksum; `write_note` with `overwrite` and `expected_checksum`, and `edit_note` with `expected_checksum`, refuse a stale revision; `write_note` without `overwrite` refuses an existing note, which is the exclusive create. `list_directory` reports `total` and `has_more`; `search_notes` reports `total_is_exact: false`, so only listings may prove completeness. There is no tool that reads a Git revision or locks a note: the launcher supplies and verifies the pin, and concurrent writers are caught only by the checksum guard. Decision rules are executable in `scripts/knowledge_maintenance.py`.
 
 ## Budget and safety
 Use configured hard ceilings for time, notes, mutations and tokens; ensure minimum progress for ingest, enrichment and lint when eligible. No automatic expensive-model escalation. Do not change task lifecycle, delete notes, change schemas, or edit skill/control-plane contracts. No external source capture from Drive. No scheduler activation or user notification is authorised by this skill.

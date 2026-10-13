@@ -1,6 +1,10 @@
 ---
 name: knowledge-lint
 description: Use when checking Wiki structural and semantic integrity with bounded authorised repairs.
+metadata:
+  origin: original
+  agent_involvement: partial
+  category: knowledge
 ---
 
 # Knowledge lint
