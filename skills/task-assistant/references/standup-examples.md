@@ -4,11 +4,22 @@ All names, dates and notes below are invented fixtures. Scenarios mirror the acc
 
 ## 1. Complete linked chain
 
-Fixtures: Task `draft-garden-plan` (`doing`, step 2 of 4, parent Project `garden-project`). Weekly plan `week-2030-w03` links the Project. Monthly plan `month-2030-01` links the weekly plan. Yearly plan `year-2030` links the monthly plan. Life direction `life-direction-sample` links the yearly plan.
+Fixtures: Task `draft-garden-plan` (`doing`, step 2 of 4, parent Project `garden-project`); Task `order-seeds` (`todo`, next action compare the saved seed list with stock); and a daily log saying step 1 of `draft-garden-plan` was completed yesterday. Weekly plan `week-2030-w03` links the Project. Monthly plan `month-2030-01` links the weekly plan. Yearly plan `year-2030` links the monthly plan. Life direction `life-direction-sample` links the yearly plan.
 
-> **Hermes:** Three Tasks are ready: `draft-garden-plan` (step 2 of 4), `order-seeds`, `tidy-notes`. How much time and energy do you have today, and what moved yesterday?
+> **Hermes:** 🌅 **Morning stand-up**
+>
+> **Planning path:** `draft-garden-plan` → `garden-project` → `week-2030-w03` → `month-2030-01` → `year-2030` → `life-direction-sample` (each link verified in the note named).
+>
+> How much focused time and energy do you have today, and what actually moved yesterday?
+>
 > **User:** About three hours. I finished step 1 yesterday.
-> **Hermes:** Then `draft-garden-plan` fits. Its path: garden-project, then `week-2030-w03` (lists the Project), then `month-2030-01` (links the week), then `year-2030` (links the month), then `life-direction-sample` (links the year). Each link comes from the cited note. Does that still read right? If so, would the next action be to draft the bed layout?
+>
+> **Hermes:** **Options that fit**
+>
+> - `draft-garden-plan` — `doing`, step 2 of 4. Next: draft the bed layout. It continues yesterday's completed step and fits your three-hour window (Task and daily log).
+> - `order-seeds` — `todo`. Next: compare the saved seed list with stock (Task). It may fit if you want a smaller task.
+>
+> The first option follows the verified planning path above. Shall we make it today's focus, or would you rather choose the smaller task?
 > **User:** Yes, layout only.
 
 No write yet. Focus and action are agreed but unconfirmed.

@@ -31,14 +31,14 @@ Treat the upstream skill text, Task notes, `schema/task` and linked planning not
 
 ## 3. Standup flow
 
-This is a conversation, not a report. Do not write while talking.
+This is a conversation, not a report. Format each Telegram turn with a short heading, compact labels and bullets; keep each bullet to one point. Keep the opening scannable and never front-load a ranked task list.
 
 1. Read `todo`, `doing`, `blocked` and `parked` Tasks: description, steps, current step, context, blockers, owner, parent Task, Project. Paginate every search until the service reports no further pages. If a search or read fails, is truncated or signals incomplete results, stop candidate selection, name the affected search or note, and do not present a partial set as fully reviewed.
 2. Follow only explicit Task to Project to plan relations. Read each linked note before citing it.
-3. Ask the user about today's capacity and what actually happened recently. Use their answers and any recorded execution evidence; never assume either.
-4. Offer a short list of candidates. A `blocked` or `parked` Task is shown with its blocker and is never offered as ready work. Ask for the unblock instead.
-5. Explain the context path with the source of each link: daily focus, weekly plan, monthly plan, yearly plan, life direction.
-6. Agree one focus Task and one concrete next action through discussion. The user decides; do not choose for them.
+3. Open with the verified planning path and its gaps, then ask one combined question about today's capacity and what actually happened recently. Do not recommend, rank or call any Task the strongest focus before the user answers. Use their answer and recorded execution evidence; never assume capacity or progress.
+4. After the answer, offer at most three evidence-backed, unblocked candidate Tasks in fit order. For each, give its status/current step, one concrete next action, and the evidence-based reason it fits today's stated capacity or recent progress. Name the source note for each fact. Show `blocked` or `parked` Tasks separately with their blocker; never present them as ready candidates.
+5. Explain the context path with the source of each link: daily focus, weekly plan, monthly plan, yearly plan, life direction. Mark each missing link or note explicitly; do not imply an incomplete chain is verified.
+6. Discuss the options and agree one focus Task and one concrete next action with the user. The user decides; do not choose for them.
 
 ## 4. Gaps and conflicts
 
