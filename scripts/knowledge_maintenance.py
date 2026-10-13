@@ -172,57 +172,161 @@ def index_drift_plan(folders, policies, due):
     return {"status": "due", "folders": plan}
 
 
-def run(request, capabilities, state, sources, process, lint, store=None):
-    """Plan and execute one bounded run against injected callables.
+STATE_FENCE = re.compile(r"```km-state\n(.*?)\n```", re.S)
 
-    process(source_id) and lint(note_ids) return {"mutations": [...], "findings": [...]}
-    and may raise. An ingest failure never stops lint. In read_only mode neither
-    callable may mutate: they are still called for evidence, and any mutation
-    they return is discarded and reported.
+
+def dump_state(state):
+    """Render the durable checkpoint as ordinary Markdown for the ledger note."""
+    keep = {k: state.get(k) for k in ("run_id", "ledger", "cursor", "deferred", "lint_queue", "done")}
+    return "```km-state\n" + json.dumps(keep, sort_keys=True, indent=1) + "\n```\n"
+
+
+def load_state(text):
+    """Parse a ledger note. Anything unparseable fails closed (raises ValueError)."""
+    m = STATE_FENCE.search(text or "")
+    if not m:
+        raise ValueError("no km-state block")
+    data = json.loads(m.group(1))
+    if not isinstance(data.get("ledger"), dict):
+        raise ValueError("ledger missing")
+    return data
+
+
+def render_report(result):
+    """One rolling operational report body: ordinary Markdown, one line per item."""
+    lines = ["# Daily knowledge maintenance", "",
+             "Run: %s. Mode: %s. Revision: %s." % (result["run_id"], result["mode"], result.get("revision"))]
+    for key in ("reasons", "limitations"):
+        lines += ["Blocked: " + r if key == "reasons" else "Limitation: " + r for r in result[key]]
+    for label, key in (("Completed", "completed"), ("Deferred", "deferred"), ("Would apply", "would_apply")):
+        lines += ["%s: %s" % (label, x if isinstance(x, str) else x["path"]) for x in result[key]]
+    lines += ["Failed: %s (%s)" % (f["id"], f["error"]) for f in result["failed"]]
+    lines += ["Blocked item: %s" % b for b in result["blocked_items"]]
+    lines += ["Mutation: %(path)s %(before)s -> %(after)s" % m for m in result["mutations"]]
+    lines += ["Review: " + f for f in result["review_ids"]]
+    lines.append("Lint index drift: " + result["index_drift"]["status"])
+    lines += ["Index folder: %s %s" % kv for kv in result["index_drift"]["folders"].items()]
+    return "\n".join(lines) + "\n"
+
+
+def _apply(store, proposals, mode, budget_left, result, item_id):
+    """Apply classified proposals. Returns True when the item may be ledgered."""
+    ok = True
+    for pr in proposals:
+        if classify(pr) == "review":
+            result["findings"].append({"kind": "proposal:" + str(pr.get("op")),
+                                       "notes": [pr.get("path", item_id)],
+                                       "check": pr.get("reason", "")})
+            continue
+        if mode != "full":
+            result["would_apply"].append({"path": pr["path"], "op": pr["op"]})
+        elif budget_left["mutations"] <= 0:
+            result["deferred"].append(item_id)
+            ok = False
+        else:
+            out = guarded_write(store, pr["path"], pr["content"])
+            if out["outcome"] == "written":
+                budget_left["mutations"] -= 1
+                result["mutations"].append(out)
+            elif out["outcome"] == "conflict":
+                result["blocked_items"].append(item_id)
+                ok = False
+            elif out["outcome"] == "failed":
+                result["failed"].append({"id": item_id, "error": "write not verified"})
+                ok = False
+    return ok
+
+
+def run(request, capabilities, state, sources, process, lint, store=None,
+        checkpoint=None, index=None):
+    """One bounded, resumable run against injected callables.
+
+    process(source_id) -> {"proposals": [...], "findings": [...]}; may raise.
+    lint(note_ids) -> same shape; may raise. A failed or conflicting ingest item
+    never stops lint or other items. checkpoint(state) is called after every
+    item so a crash resumes from the last completed item. In read_only mode the
+    store is never written; apply-class proposals are listed as would_apply.
     """
     pre = preflight(request, capabilities, state)
     result = {"mode": pre["mode"], "reasons": pre["reasons"], "run_id": request.get("run_id"),
-              "completed": [], "failed": [], "deferred": [], "mutations": [],
-              "findings": [], "discarded_mutations": 0, "cursor": state.get("cursor"),
-              "ledger": dict(state.get("ledger", {}))}
+              "revision": request.get("approved_commit_sha"), "completed": [], "failed": [],
+              "deferred": [], "blocked_items": [], "mutations": [], "would_apply": [],
+              "findings": [], "limitations": [], "review_ids": [],
+              "cursor": state.get("cursor"), "ledger": dict(state.get("ledger", {})),
+              "index_drift": index_drift_plan(*(index or ([], {}, False))),
+              "lint_queue": list(state.get("lint_queue", []))}
     if pre["mode"] == "blocked":
         return result
-    budget = request["budgets"]["sources"]
-    selected, deferred, cursor = select_sources(
-        sources, state.get("ledger", {}), state.get("cursor"), budget)
-    result["deferred"], result["cursor"] = deferred, cursor
+    if not capabilities.get("drive_read"):
+        result["limitations"].append("Drive access unavailable; no external source scan or capture")
+    b = request["budgets"]
+    left = {"mutations": b.get("mutations", 8)}
+    resumed = state.get("run_id") == request.get("run_id")
+    done = set(state.get("done", [])) if resumed else set()
+    selected, deferred, _ = select_sources(
+        [s for s in sources if s["id"] not in done], result["ledger"], state.get("cursor"), b["sources"])
+    result["deferred"] = list(deferred)
     checksums = {s["id"]: s["checksum"] for s in sources}
     touched = []
+
+    def save():
+        if checkpoint and pre["mode"] == "full":
+            checkpoint({"run_id": result["run_id"], "ledger": result["ledger"],
+                        "cursor": result["cursor"], "deferred": result["deferred"],
+                        "lint_queue": result["lint_queue"], "done": sorted(done)})
+
     for item in selected:
+        sid = item["id"]
         try:
-            out = process(item["id"])
+            out = process(sid)
         except Exception as exc:
-            result["failed"].append({"id": item["id"], "error": str(exc)})
+            result["failed"].append({"id": sid, "error": str(exc)})
             continue
-        if pre["mode"] == "read_only":
-            result["discarded_mutations"] += len(out.get("mutations", []))
-        else:
-            result["mutations"].extend(out.get("mutations", []))
-            result["ledger"][item["id"]] = checksums[item["id"]]
         result["findings"].extend(out.get("findings", []))
-        result["completed"].append(item["id"])
-        touched.append(item["id"])
+        if _apply(store, out.get("proposals", []), pre["mode"], left, result, sid):
+            if pre["mode"] == "full":
+                result["ledger"][sid] = checksums[sid]
+            if item["reason"] == "historical_rotation" and pre["mode"] == "full":
+                result["cursor"] = sid
+            done.add(sid)
+            result["completed"].append(sid)
+            touched.append(sid)
+        save()
+    # lint: touched notes first, then oldest queued concerns, hard cap on unique notes
+    cap, extra = b.get("lint_notes", 12), b.get("lint_extra", 5)
+    scope = list(dict.fromkeys(touched + result["lint_queue"][:extra]))[:cap]
     try:
-        out = lint(touched)
+        out = lint(scope)
         result["findings"].extend(out.get("findings", []))
-        if pre["mode"] == "read_only":
-            result["discarded_mutations"] += len(out.get("mutations", []))
-        else:
-            result["mutations"].extend(out.get("mutations", []))
+        _apply(store, out.get("proposals", []), pre["mode"], left, result, "lint")
+        result["lint_queue"] = [n for n in result["lint_queue"] if n not in scope]
     except Exception as exc:
         result["failed"].append({"id": "lint", "error": str(exc)})
+    result["lint_scope"] = scope
+    result["findings"], result["review_ids"] = _dedupe(result["findings"])
+    save()
     return result
 
 
+def _dedupe(findings):
+    seen, out, ids = set(), [], []
+    for f in findings:
+        fid = finding_id(f["kind"], f["notes"], f["check"])
+        if fid not in seen:
+            seen.add(fid)
+            out.append(dict(f, id=fid))
+            ids.append(fid)
+    return out, ids
+
+
 if __name__ == "__main__":
-    # Dry-run entry point: read a JSON snapshot, print the plan. Never writes.
+    # Dry-run entry point: read a JSON snapshot, print the plan and report. Never writes.
     snap = json.load(open(sys.argv[1]))
+    plans = snap.get("proposals", {})
     res = run(snap["request"], snap["capabilities"], snap["state"], snap["sources"],
-              lambda i: {"mutations": [], "findings": []},
-              lambda n: {"mutations": [], "findings": []})
-    print(json.dumps(res, indent=2, sort_keys=True))
+              lambda i: {"proposals": plans.get(i, []), "findings": []},
+              lambda n: {"proposals": [], "findings": snap.get("lint_findings", [])},
+              index=(snap.get("folders", []), snap.get("policies", {}), snap.get("index_drift_due", False)))
+    print(render_report(res))
+    print(json.dumps({k: res[k] for k in ("mode", "completed", "deferred", "would_apply",
+                                          "lint_scope", "review_ids", "cursor")}, sort_keys=True))

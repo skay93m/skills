@@ -178,16 +178,39 @@ class IndexDrift(unittest.TestCase):
         self.assertEqual(list(plan), ["a", "b", "c", "d", "e"])
 
 
+def prop(path="n1", op="link_normalise", content="new", **kw):
+    return dict({"path": path, "op": op, "content": content, "reversible": True}, **kw)
+
+
+class WikiStore:
+    """Dict-backed store with checksum compare-and-swap, for whole-run tests."""
+    def __init__(self, notes):
+        self.notes = {k: [v, 0] for k, v in notes.items()}
+        self.log = []
+
+    def read(self, path):
+        return {"content": self.notes[path][0], "checksum": "v%d" % self.notes[path][1]}
+
+    def write(self, path, content, expected_checksum):
+        if expected_checksum != "v%d" % self.notes[path][1]:
+            raise km.Conflict()
+        self.notes[path] = [content, self.notes[path][1] + 1]
+        self.log.append(path)
+
+
 class Run(unittest.TestCase):
     sources = [src("a", "x"), src("b", "y")]
 
     @staticmethod
     def ok(i):
-        return {"mutations": [{"target": i}], "findings": []}
+        return {"proposals": [prop(i)], "findings": []}
 
     @staticmethod
     def lint_ok(notes):
-        return {"mutations": [], "findings": [{"kind": "k", "notes": notes, "check": "c"}]}
+        return {"proposals": [], "findings": [{"kind": "k", "notes": notes, "check": "c"}]}
+
+    def store(self):
+        return WikiStore({"a": "old", "b": "old"})
 
     def test_blocked_run_touches_nothing(self):
         calls = []
@@ -195,43 +218,144 @@ class Run(unittest.TestCase):
                      lambda i: calls.append(i), lambda n: calls.append(n))
         self.assertEqual((res["mode"], calls, res["mutations"]), ("blocked", [], []))
 
-    def test_read_only_discards_mutations_and_keeps_ledger(self):
+    def test_read_only_never_writes_and_lists_would_apply(self):
+        st = self.store()
         res = km.run(request(), CAPS, dict(STATE, history_reconciled=False), self.sources,
-                     self.ok, self.lint_ok)
-        self.assertEqual(res["mode"], "read_only")
-        self.assertEqual((res["mutations"], res["ledger"]), ([], {}))
-        self.assertEqual(res["discarded_mutations"], 2)
-        self.assertEqual(len(res["findings"]), 1)
+                     self.ok, self.lint_ok, store=st)
+        self.assertEqual((res["mode"], res["mutations"], res["ledger"], st.log), ("read_only", [], {}, []))
+        self.assertEqual(sorted(w["path"] for w in res["would_apply"]), ["a", "b"])
+
+    def test_full_run_writes_verifies_and_ledgers(self):
+        st = self.store()
+        res = km.run(request(), CAPS, STATE, self.sources, self.ok, self.lint_ok, store=st)
+        self.assertEqual(sorted(st.log), ["a", "b"])
+        self.assertEqual(res["ledger"], {"a": "x", "b": "y"})
+        self.assertTrue(all(m["before"] != m["after"] for m in res["mutations"]))
+
+    def test_semantic_proposal_becomes_review_not_write(self):
+        st = self.store()
+        res = km.run(request(), CAPS, STATE, self.sources,
+                     lambda i: {"proposals": [prop(i, op="new_relation")], "findings": []},
+                     self.lint_ok, store=st)
+        self.assertEqual(st.log, [])
+        self.assertTrue(any(f["kind"] == "proposal:new_relation" for f in res["findings"]))
+
+    def test_conflict_blocks_only_that_item(self):
+        st = self.store()
+        st.notes["a"][1] = 5  # concurrent edit after the planner read? simulate stale expected
+        orig = st.read
+        st.read = lambda p: dict(orig(p), checksum="stale") if p == "a" else orig(p)
+        res = km.run(request(), CAPS, STATE, self.sources, self.ok, self.lint_ok, store=st)
+        self.assertEqual(res["blocked_items"], ["a"])
+        self.assertEqual(res["completed"], ["b"])
+        self.assertNotIn("a", res["ledger"])
 
     def test_ingest_failure_does_not_stop_lint(self):
         def process(i):
             if i == "a":
                 raise RuntimeError("boom")
             return self.ok(i)
-        res = km.run(request(), CAPS, STATE, self.sources, process, self.lint_ok)
+        res = km.run(request(), CAPS, STATE, self.sources, process, self.lint_ok, store=self.store())
         self.assertEqual([f["id"] for f in res["failed"]], ["a"])
-        self.assertEqual(res["completed"], ["b"])
-        self.assertEqual(res["findings"][0]["notes"], ["b"])
+        self.assertEqual(res["lint_scope"], ["b"])
         self.assertNotIn("a", res["ledger"])
 
     def test_repeat_run_is_idempotent(self):
-        first = km.run(request(), CAPS, STATE, self.sources, self.ok, self.lint_ok)
+        st = self.store()
+        first = km.run(request(), CAPS, STATE, self.sources, self.ok, self.lint_ok, store=st)
         state2 = dict(STATE, ledger=first["ledger"], cursor=first["cursor"])
-        second = km.run(request(), CAPS, state2, self.sources, self.ok, self.lint_ok)
-        self.assertEqual(sorted(first["ledger"]), ["a", "b"])
+        second = km.run(request(run_id="run-2"), CAPS, state2, self.sources, self.ok, self.lint_ok, store=st)
         self.assertEqual(second["ledger"], first["ledger"])
-        self.assertEqual([s for s in second["completed"] if s in ("a", "b")],
-                         second["completed"])
-        self.assertEqual(len(second["completed"]), 1)  # only the rotation slot
-        reg, _ = km.merge_findings([], first["findings"])
-        reg2, added = km.merge_findings(reg, first["findings"])
-        self.assertEqual((reg2, added), (reg, []))
+        self.assertEqual(len(second["completed"]), 1)  # rotation slot only
+        self.assertEqual(second["mutations"], [])      # content already applied
+        self.assertEqual(sorted(st.log), ["a", "b"])
+        self.assertEqual(first["review_ids"], km.run(request(), CAPS, STATE, self.sources, self.ok,
+                                                      self.lint_ok, store=self.store())["review_ids"])
 
-    def test_budget_exhaustion_reports_deferred(self):
+    def test_crash_resume_skips_done_items_in_same_run(self):
+        saved = []
+        st = self.store()
+
+        class Crash(Exception):
+            pass
+
+        def cp(s):
+            saved.append(s)
+            if len(saved) == 1:
+                raise Crash()
+        with self.assertRaises(Crash):
+            km.run(request(), CAPS, STATE, self.sources, self.ok, self.lint_ok, store=st, checkpoint=cp)
+        resume = dict(STATE, **saved[0])
+        seen = []
+        res = km.run(request(), CAPS, resume, self.sources,
+                     lambda i: (seen.append(i), self.ok(i))[1], self.lint_ok, store=st)
+        self.assertNotIn(saved[0]["done"][0], seen)
+        self.assertEqual(sorted(res["ledger"]), ["a", "b"])
+        self.assertEqual(sorted(st.log), ["a", "b"])
+
+    def test_budget_exhaustion_defers_and_mutation_cap(self):
         many = [src("s%d" % i, created="2026-01-%02d" % (i + 1)) for i in range(6)]
-        res = km.run(request(budgets={"sources": 2}), CAPS, STATE, many, self.ok, self.lint_ok)
+        st = WikiStore({"s%d" % i: "old" for i in range(6)})
+        res = km.run(request(budgets={"sources": 4, "mutations": 2}), CAPS, STATE, many,
+                     self.ok, self.lint_ok, store=st)
+        self.assertEqual(len(st.log), 2)
         self.assertEqual(len(res["completed"]), 2)
-        self.assertEqual(len(res["deferred"]), 4)
+        self.assertEqual(sorted(res["deferred"]), ["s2", "s3", "s4", "s5"])
+
+    def test_lint_scope_is_capped_and_queue_drains(self):
+        many = [src("s%d" % i, created="2026-01-%02d" % (i + 1)) for i in range(15)]
+        st = WikiStore({"s%d" % i: "old" for i in range(15)})
+        seen = []
+        res = km.run(request(budgets={"sources": 15, "mutations": 99, "lint_notes": 12}), CAPS,
+                     dict(STATE, lint_queue=["q1", "q2"]), many, self.ok,
+                     lambda n: (seen.append(n), {"findings": []})[1], store=st)
+        self.assertEqual(len(seen[0]), 12)
+        self.assertEqual(len(set(seen[0])), 12)
+
+    def test_missing_drive_is_reported_not_fatal(self):
+        res = km.run(request(), CAPS, STATE, self.sources, self.ok, self.lint_ok, store=self.store())
+        self.assertTrue(any("Drive" in x for x in res["limitations"]))
+        self.assertEqual(res["mode"], "full")
+
+
+class Persistence(unittest.TestCase):
+    def test_state_round_trip_and_fail_closed(self):
+        s = {"run_id": "r", "ledger": {"a": "x"}, "cursor": "a", "deferred": [], "lint_queue": [], "done": ["a"]}
+        self.assertEqual(km.load_state(km.dump_state(s)), s)
+        for bad in ("", "no block", "```km-state\n{}\n```", "```km-state\nnot json\n```"):
+            with self.assertRaises((ValueError, KeyError)):
+                km.load_state(bad)
+
+    def test_report_is_plain_markdown_with_required_facts(self):
+        res = km.run(request(), CAPS, STATE, [src("a", "x")], lambda i: {"proposals": [prop(i)]},
+                     lambda n: {"findings": []}, store=WikiStore({"a": "old"}))
+        text = km.render_report(res)
+        for needle in ("run-1", SHA, "Mutation: a v0 -> v1", "Limitation: Drive", "Lint index drift"):
+            self.assertIn(needle, text)
+        self.assertNotIn("[[", text)
+
+
+class DryRunFixture(unittest.TestCase):
+    """The committed synthetic snapshot exercises the whole workflow read-only."""
+
+    def test_fixture_dry_run(self):
+        import json
+        snap = json.load(open(_path.parent.parent / "tests" / "fixtures" / "dry_run_snapshot.json"))
+        plans = snap["proposals"]
+        res = km.run(snap["request"], snap["capabilities"], snap["state"], snap["sources"],
+                     lambda i: {"proposals": plans.get(i, [])},
+                     lambda n: {"findings": snap["lint_findings"]}, store=None,
+                     index=(snap["folders"], snap["policies"], True))
+        self.assertEqual(res["mode"], "read_only")
+        self.assertEqual(res["mutations"], [])
+        self.assertEqual(res["cursor"], snap["state"]["cursor"])
+        self.assertEqual(res["completed"], ["raw/changed-note", "raw/new-note", "raw/old-b"])
+        self.assertEqual([w["op"] for w in res["would_apply"]], ["provenance_record"])
+        kinds = sorted(f["kind"] for f in res["findings"])
+        self.assertEqual(kinds, ["proposal:new_relation", "proposal:task_lifecycle", "stale_claim"])
+        self.assertEqual(res["index_drift"]["folders"],
+                         {"projects": "repair_allowed", "systems": "inspect_only", "tasks": "check_only"})
+        self.assertIn("notes/stale-1", res["lint_scope"])
 
 
 if __name__ == "__main__":
