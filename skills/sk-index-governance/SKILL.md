@@ -66,12 +66,7 @@ Scheduled agents never delete dead entries, reorder curated material or replace 
 
 ## Production repair override
 
-The production scheduled-ingest-lint contract permits two additional deterministic repairs when the evidence is unambiguous and the mutation is fully logged:
-
-- normalise a note filename or path to the Wiki kebab-case convention by moving the note while preserving content, permalink and source history;
-- append a clearly fitting concept or reference to an existing curated index section without reordering or rewriting existing entries.
-
-These repairs remain bounded by the run budget and must include before and after checksums plus a reversal method. They do not permit deletion, arbitrary relocation, semantic rewriting or changes to schemas, skills or `AGENTS.md`.
+None. The retired scheduled-ingest-lint contract once allowed path-normalising moves and curated-index appends. The current `daily-knowledge-maintenance` contract does not, so those repairs are report-only.
 
 ## Protected control plane
 

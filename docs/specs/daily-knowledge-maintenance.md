@@ -34,7 +34,7 @@ Existing dated reports, raw source checksums, review queue, index policies and p
 5. Obtain explicit owner approval before editing the disabled ChatGPT automation prompt or enabling it.
 
 ## Legacy migration
-Do not delete `skills/sk-scheduled-ingest-lint` until the new contract passes gates. Avoid two simultaneously active entry points. Old Wiki-local bootstrap references are obsolete. No change to the separate supervised ingestion method or original-source capture authority.
+`skills/sk-scheduled-ingest-lint` was retired on owner instruction on 2026-10-13 (recoverable from Git history), so only one entry point exists. Old Wiki-local bootstrap references are obsolete. No change to the separate supervised ingestion method or original-source capture authority.
 
 ## Audit and dry run (2026-10-13, read-only)
 
@@ -81,7 +81,7 @@ Read-only inspection of the live Wiki, then the planner on a snapshot (109 `raw/
 3. Reconcile historical reports and the review register, including the missing 2026-10-12 run and the blocked 2026-10-11 run.
 4. Launcher supplies a verified pinned release or commit; confirm how the ChatGPT automation obtains skill files at that revision.
 5. Controlled non-destructive test on a copy or a single approved note, with checksum guard and reversal verified.
-6. Owner approves editing and enabling the disabled automation; retire `sk-scheduled-ingest-lint` only afterwards.
+6. Owner approves editing and enabling the disabled automation; `sk-scheduled-ingest-lint` is already retired.
 
 ### Decisions taken on owner delegation (2026-10-13)
 The owner asked for the architect's answer, derived from the approved architecture in #49 (Wiki owns state and review decisions, GitHub owns contracts, fail closed, one rolling report, no new authority). Paths are decided but the notes are **not yet created**; creating them is a Wiki write under gate 4.
@@ -97,7 +97,7 @@ The owner asked for the architect's answer, derived from the approved architectu
 - Strict no-deletion: no delete, move-to-delete or source overwrite is ever applied; each is a review finding. Rollback is by version history (`list_note_versions`) or Git, as the owner decides.
 - `KM-` IDs sit beside `SEM-`/`SCHED-`; old IDs are neither migrated nor rewritten.
 - Folders without an index note, or with absent policy (`SCHED-007`), are treated as curated/report-only: dead-link checks only, no repair, one `missing_index_policy` review finding each. No policy is inferred.
-- The legacy `sk-scheduled-ingest-lint` automation is confirmed disabled by the owner. The skill file stays until the new path has a verified run.
+- The legacy `sk-scheduled-ingest-lint` automation is confirmed disabled by the owner. Retired on 2026-10-13 on owner instruction; the owner accepts Git as the backup. `sk-index-governance` lost its production repair override (path moves and curated-index appends) with it, so those repairs are report-only.
 - Ledger seed is empty on purpose: earlier reports recorded no checksums, so pre-filling current checksums would falsely mark the whole backlog as ingested.
 - Not covered by the mandate: editing or enabling the ChatGPT automation prompt, which lives outside this repository and this session.
 
