@@ -1,0 +1,108 @@
+{
+ "request": {
+  "approved_commit_sha": "1111111111111111111111111111111111111111",
+  "loaded_commit_sha": "1111111111111111111111111111111111111111",
+  "wiki_project": "wiki",
+  "run_id": "dry-run-fixture",
+  "budgets": {
+   "sources": 3,
+   "mutations": 8,
+   "lint_notes": 12
+  }
+ },
+ "capabilities": {
+  "checksum_read": true,
+  "guarded_overwrite": true,
+  "exclusive_create": true,
+  "listing_total": true,
+  "drive_read": false
+ },
+ "state": {
+  "report_note": "reports/rolling",
+  "review_register": "tasks/register",
+  "ledger_note": "reports/ledger",
+  "history_reconciled": false,
+  "ledger": {
+   "raw/changed-note": "c2a",
+   "raw/old-a": "c3",
+   "raw/old-b": "c4"
+  },
+  "cursor": "raw/old-a",
+  "lint_queue": [
+   "notes/stale-1"
+  ]
+ },
+ "sources": [
+  {
+   "id": "raw/new-note",
+   "checksum": "c1",
+   "created": "2026-10-12"
+  },
+  {
+   "id": "raw/changed-note",
+   "checksum": "c2b",
+   "created": "2026-10-01"
+  },
+  {
+   "id": "raw/old-a",
+   "checksum": "c3",
+   "created": "2026-09-20"
+  },
+  {
+   "id": "raw/old-b",
+   "checksum": "c4",
+   "created": "2026-09-21"
+  }
+ ],
+ "proposals": {
+  "raw/new-note": [
+   {
+    "path": "raw/new-note",
+    "op": "provenance_record",
+    "content": "x",
+    "reversible": true
+   },
+   {
+    "path": "concepts/x",
+    "op": "new_relation",
+    "content": "y",
+    "reversible": true,
+    "reason": "novel relation"
+   }
+  ],
+  "raw/changed-note": [
+   {
+    "path": "tasks/t1",
+    "op": "task_lifecycle",
+    "content": "done",
+    "reversible": true,
+    "reason": "lifecycle proposal"
+   }
+  ]
+ },
+ "lint_findings": [
+  {
+   "kind": "stale_claim",
+   "notes": [
+    "notes/stale-1"
+   ],
+   "check": "claim-1"
+  }
+ ],
+ "folders": [
+  "projects",
+  "systems",
+  "tasks"
+ ],
+ "policies": {
+  "projects": {
+   "index_scope": "exhaustive",
+   "scheduled_repair": "allowed"
+  },
+  "tasks": {
+   "index_scope": "curated",
+   "scheduled_repair": "report-only"
+  }
+ },
+ "index_drift_due": true
+}
