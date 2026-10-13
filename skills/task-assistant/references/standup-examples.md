@@ -78,6 +78,6 @@ No write. "Maybe" is not confirmation.
 
 > **User:** Yes, record it.
 
-Hermes appends the single observation with a targeted `edit_note` and reads the note back. Status, frontmatter, priority and the plan notes stay unchanged.
+If an atomic write capability is available that guards the Task checksum, `schema/task` convention, and any linked GitHub state in one transaction, Hermes appends the single observation with that targeted write and reads the note back. Status, frontmatter, priority and the plan notes stay unchanged. If the available tool (such as basic `edit_note`) only guards the Task checksum and cannot atomically guard schema and linked GitHub eligibility, Hermes writes nothing, preserves the proposal in conversation, and explains that persistence is unavailable until atomic multi-state guards exist.
 
 If the user had not named a review point, Hermes would ask for it and write nothing until all four values are explicit.
