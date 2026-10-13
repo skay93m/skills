@@ -83,9 +83,17 @@ Read-only inspection of the live Wiki, then the planner on a snapshot (109 `raw/
 5. Controlled non-destructive test on a copy or a single approved note, with checksum guard and reversal verified.
 6. Owner approves editing and enabling the disabled automation; retire `sk-scheduled-ingest-lint` only afterwards.
 
-### Unresolved design decisions (recorded, not decided)
-1. Where the rolling report, review register and ledger live, and whether `KM-` IDs replace `SEM-`/`SCHED-`.
-2. How the unattended agent obtains skill files at a pinned revision, and whether it can verify `loaded_commit_sha` itself.
-3. Who owns the cursor and `lint_queue` seeding for the first run, and the first-run budgets.
-4. Whether the settled operation list (`provenance_record`, `frontmatter_normalise`, `link_normalise`) matches the intended authority; any addition needs owner approval.
-5. How a low-cost model is selected and verified at run time; this slice only guarantees that no escalation is requested.
+### Decisions taken on owner delegation (2026-10-13)
+The owner asked for the architect's answer, derived from the approved architecture in #49 (Wiki owns state and review decisions, GitHub owns contracts, fail closed, one rolling report, no new authority). Paths are decided but the notes are **not yet created**; creating them is a Wiki write under gate 4.
+1. **Report:** one rolling note, `reports/knowledge-maintenance`. Dated per-run ingest/lint reports stop once it exists; existing dated reports stay as history.
+2. **Ledger:** a separate machine-state note, `reports/knowledge-maintenance-ledger`, holding only the `km-state` block. It is kept apart from the human-edited register so checkpoint writes do not contend with owner edits.
+3. **Review register:** the existing `tasks/wiki-semantic-lint-review.md`. New findings use `KM-` IDs and `awaiting-response`; existing `SEM-`/`SCHED-` items are never renumbered or edited.
+4. **Authority:** exactly `provenance_record`, `frontmatter_normalise`, `link_normalise`, reversible and non-semantic. The first production runs operate in report-only (`would_apply`) mode until the controlled test in gate 5 passes and the owner approves writes.
+5. **Pinning:** the launcher passes the commit SHA of an owner-approved release tag as `approved_commit_sha`. The run fails closed on a missing, malformed or mismatched pin. Gemini has no role in the scheduled run.
+
+### Still unresolved (owner action, not decided here)
+1. Creating the two Wiki notes and seeding the ledger (a live write).
+2. Answering `SCHED-007` and reconciling the 2026-10-11 and 2026-10-12 gaps.
+3. First-run budgets and the initial `lint_queue`.
+4. How the run-time model is selected and verified; this slice only guarantees no escalation is requested.
+5. Whether the automation can load skill files at the pinned tag and verify `loaded_commit_sha` itself.
