@@ -34,7 +34,7 @@ Existing dated reports, raw source checksums, review queue, index policies and p
 5. Obtain explicit owner approval before editing the disabled ChatGPT automation prompt or enabling it.
 
 ## Legacy migration
-`skills/sk-scheduled-ingest-lint` was retired on owner instruction on 2026-10-13 (recoverable from Git history), so only one entry point exists. Old Wiki-local bootstrap references are obsolete. No change to the separate supervised ingestion method or original-source capture authority.
+`skills/sk-scheduled-ingest-lint` and `skills/sk-scheduled-lint` were retired on 2026-10-13 (recoverable from Git history), so scheduled lint has one entry point: `daily-knowledge-maintenance`, which loads `knowledge-lint`. The interactive `sk-semantic-lint` is unchanged. `sk-unsupervised-ingest` is the older scheduled ingest counterpart of `knowledge-ingest`; its retirement is an open owner decision. Old Wiki-local bootstrap references are obsolete. No change to the separate supervised ingestion method or original-source capture authority.
 
 ## Audit and dry run (2026-10-13, read-only)
 
@@ -97,7 +97,7 @@ The owner asked for the architect's answer, derived from the approved architectu
 - Strict no-deletion: no delete, move-to-delete or source overwrite is ever applied; each is a review finding. Rollback is by version history (`list_note_versions`) or Git, as the owner decides.
 - `KM-` IDs sit beside `SEM-`/`SCHED-`; old IDs are neither migrated nor rewritten.
 - Folders without an index note, or with absent policy (`SCHED-007`), are treated as curated/report-only: dead-link checks only, no repair, one `missing_index_policy` review finding each. No policy is inferred.
-- The legacy `sk-scheduled-ingest-lint` automation is confirmed disabled by the owner. Retired on 2026-10-13 on owner instruction; the owner accepts Git as the backup. `sk-index-governance` lost its production repair override (path moves and curated-index appends) with it, so those repairs are report-only.
+- The legacy `sk-scheduled-ingest-lint` automation is confirmed disabled by the owner. Retired on 2026-10-13 on owner instruction; the owner accepts Git as the backup. `sk-index-governance` lost its production repair override (and `sk-scheduled-lint` was removed for the same reason) (path moves and curated-index appends) with it, so those repairs are report-only.
 - Ledger seed is empty on purpose: earlier reports recorded no checksums, so pre-filling current checksums would falsely mark the whole backlog as ingested.
 - Not covered by the mandate: editing or enabling the ChatGPT automation prompt, which lives outside this repository and this session.
 
