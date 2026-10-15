@@ -105,6 +105,28 @@ class ExtensionsAndCrossingRule(Verdict):
             with self.subTest(name=name):
                 self.assertFails(run(lambda e, n=name: e["extensions"].update({n: 1})), "not-permitted")
 
+    def test_extension_may_not_collide_with_or_imitate_core_vocabulary(self):
+        names = ["apply", "delete-ok", "new-value", "capability", "counts", "version", "run-reference",
+                 "seam-version", "grant-reference", "mutation-summary", "propose-change", "write-report",
+                 "extensions", "error-category", "approval-state", "applied", "refused"]
+        for name in names:
+            with self.subTest(name=name):
+                self.assertFails(run(lambda e, n=name: e["extensions"].update({"org.example.demo." + n: 1})),
+                                 "not-permitted")
+
+    def test_extension_namespace_may_not_widen(self):
+        for key in ("org.grant.demo.size", "org.example.apply.size", "com.mode.skills.size"):
+            with self.subTest(key=key):
+                self.assertFails(run(lambda e, k=key: e["extensions"].update({k: 1})), "not-permitted")
+
+    def test_extension_namespace_must_be_well_formed_reverse_dns(self):
+        bad = ["demo.size", "org.size", "org..demo.size", ".org.example.size", "org.example.demo.", "org.-example.demo.size",
+               "org.example-.demo.size", "org.exa--mple.demo.size", "Org.example.demo.size", "org.example.demo.size\n",
+               "org.1example.demo.size"]
+        for key in bad:
+            with self.subTest(key=key):
+                self.assertFails(run(lambda e, k=key: e["extensions"].update({k: 1})), "invalid-request")
+
     def test_extension_value_cannot_be_text_or_structure(self):
         self.assertFails(run(lambda e: e["extensions"].update({"org.example.demo.note": "free text"})), "invalid-request")
         self.assertFails(run(lambda e: e["extensions"].update({"org.example.demo.rows": [1]})), "invalid-request")

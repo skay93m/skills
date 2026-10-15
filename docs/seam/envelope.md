@@ -45,9 +45,9 @@ Default-deny. Only closed vocabulary values, SW-generated opaque references, cou
 
 ## 6. Extensions
 
-- Key form `<namespace>.<name>` with a reverse-DNS namespace owned by its definer. The SS namespace `com.syafiqkay.skills` is provisional.
+- Key form `<namespace>.<name>`, with a reverse-DNS namespace owned by its definer. **Proposed:** the check requires at least two namespace labels plus a name (three or more dot-separated labels in all); each label is lowercase letters, digits and single hyphens, starts with a letter and does not end with a hyphen. Anything else is rejected with `invalid-request`. The SS namespace `com.syafiqkay.skills` is provisional.
 - Unknown extensions are ignored, never an error.
-- An extension may not add a vocabulary value, grant permission or change the meaning of a core field. The conformance check rejects names that try (for example names containing grant, permission, allow, vocabulary, mode or the core field names) with `not-permitted`.
+- An extension may not add a vocabulary value, grant permission or change the meaning of a core field. **Proposed:** the check splits the whole key (namespace included) on `.` and `-` and rejects it with `not-permitted` when any token is a core word, or when the key contains one of the substrings `grant`, `permission`, `allow`, `vocab` (so `vocabulary`), `override`, `disposition` or `approval`. Core words: `mode`, `status`, `error`, `category`, `value`, `values`, `seam`, `version`, `capability`, `run`, `reference`, `count`, `counts`, `mutation`, `summary`, `extensions`, `state`, the operation-class words `read`, `write`, `report`, `propose`, `change`, `apply`, `delete`, and the count and summary keys `seen`, `reported`, `proposed`, `applied`, `skipped`, `failed`, `requested`, `granted`, `refused`. This is a deliberately conservative name filter, not a proof of intent.
 - Extensions obey the crossing rule. **Proposed:** an extension value is a non-negative integer, a boolean or an opaque reference; free text and nested structures are rejected.
 
 ## 7. Versioning
@@ -62,7 +62,7 @@ The seam is versioned `0.x`. Any breaking change, including any vocabulary chang
 | Counts shape | Closed named integer keys (section 4). | Free keys invite content leaks; a closed set can be checked mechanically. |
 | Error category on `succeeded` | Empty string `""`. | Matches "empty" in #90; no null handling for consumers. |
 
-The same proposed status applies to the `refused`-implies-`not-permitted` pairing and the extension value rule, which tighten but do not add to #90.
+The same proposed status applies to these tightenings, which do not add a value, field or permission to #90: the `refused`-implies-`not-permitted` pairing; a non-empty error category on `failed`; the arithmetic constraints in section 3; the reference formats in `tokens.md`; the mode-to-operation-class map in `profiles.md`; the extension value rule; and the extension key and name rules in section 6.
 
 ## 9. Example (synthetic)
 

@@ -33,14 +33,23 @@ REF_RUN = re.compile(r"run-[a-z2-7]{26}")
 REF_GRANT = re.compile(r"grant-[a-z2-7]{26}")
 VERSION = re.compile(r"0\.\d+\.\d+")
 CAPABILITY = re.compile(r"[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+")
-EXT_KEY = re.compile(r"([a-z][a-z0-9-]*\.)+[a-z][a-z0-9-]*")
+# Reverse-DNS namespace of at least two labels, then a name; labels are lowercase
+# alphanumerics joined by single hyphens, starting with a letter.
+LABEL = r"[a-z][a-z0-9]*(-[a-z0-9]+)*"
+EXT_KEY = re.compile(r"(%s\.){2,}%s" % (LABEL, LABEL))
 # Key names that would carry something the crossing rule keeps private.
 CROSSING_DENY = re.compile(
     r"(?i)(^|[-_.])(checksum|hash|digest|permalink|id|uuid|drive|content|body|text|source|query|"
     r"answer|target|path|url|title|before|after|diagnostic|diagnostics|trace|approval-record|record)($|[-_.])")
-# Extension names that try to widen authority or the closed vocabularies.
-WIDENING_NAME = re.compile(r"(?i)(grant|permission|allow|vocabulary|vocab|mode|override|status|"
-                           r"disposition|approval|error)")
+# Extension keys that try to widen authority or imitate the closed vocabularies.
+# Every dot- or hyphen-separated token of the whole key (namespace included) is
+# tested. WIDENING_NAME is a substring list; RESERVED_TOKENS are whole tokens
+# (core field names, operation classes, mode words, count and summary keys).
+WIDENING_NAME = re.compile(r"(?i)(grant|permission|allow|vocabulary|vocab|override|disposition|approval)")
+RESERVED_TOKENS = frozenset(
+    "mode status error category value values seam version capability run reference counts count "
+    "mutation summary extensions state read write report propose change apply delete "
+    "seen reported proposed applied skipped failed requested granted refused".split())
 
 
 class Fail(Exception):
@@ -97,7 +106,8 @@ def check_extensions(env):
     for key, value in env["extensions"].items():
         _need(isinstance(key, str) and EXT_KEY.fullmatch(key), "extension-key")
         _need(not CROSSING_DENY.search(key), "crossing-rule")
-        _need(not WIDENING_NAME.search(key.rsplit(".", 1)[1]), "extension-widens", "not-permitted")
+        _need(not WIDENING_NAME.search(key) and not RESERVED_TOKENS & set(re.split(r"[.-]", key)),
+              "extension-widens", "not-permitted")
         ok_ref = isinstance(value, str) and (REF_RUN.fullmatch(value) or REF_GRANT.fullmatch(value))
         _need(_int(value) or isinstance(value, bool) or ok_ref, "extension-value")
 
