@@ -122,6 +122,21 @@ class LoadedRevision(unittest.TestCase):
                 self.assertEqual((res["mutations"], store.writes), ([], 0))
                 self.assertNotIn("Revision: " + SHA, km.render_report(res))
 
+    def test_sha_with_trailing_newline_is_not_a_full_sha(self):
+        nl = SHA + "\n"
+        for kw in (dict(tracking_branch="main", approved_commit_sha=nl, loaded_commit_sha=SHA),
+                   dict(tracking_branch="main", approved_commit_sha=None, loaded_commit_sha=nl)):
+            res, store = self.go(**kw)
+            self.assertEqual(res["mode"], "blocked")
+            self.assertEqual((res["mutations"], store.writes), ([], 0))
+
+    def test_blocked_report_does_not_present_an_unloaded_value_as_the_revision(self):
+        for bad in ("not-a-sha", "main", SHA + "\n"):
+            res, _ = self.go(tracking_branch="main", approved_commit_sha=None, loaded_commit_sha=bad)
+            self.assertEqual(res["mode"], "blocked")
+            self.assertIsNone(res["revision"])
+            self.assertNotIn("Revision: " + bad, km.render_report(res))
+
     def test_recorded_revision_is_the_loaded_one_without_tracking(self):
         res, _ = self.go()
         self.assertEqual(res["revision"], SHA)

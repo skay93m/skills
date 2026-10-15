@@ -13,7 +13,7 @@ import json
 import re
 import sys
 
-SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+SHA_RE = re.compile(r"[0-9a-f]{40}")
 
 # Operations a scheduled run may apply. Everything else becomes a review item.
 SETTLED_OPS = {"provenance_record", "frontmatter_normalise", "link_normalise"}
@@ -44,10 +44,10 @@ def preflight(request, capabilities, state):
     tracking_branch = request.get("tracking_branch")
     # An owner-set override wins over Tracking: it must be a full SHA and equal
     # the Loaded revision, whether or not a tracking branch is set.
-    if approved and not SHA_RE.match(str(approved)):
+    if approved and not SHA_RE.fullmatch(str(approved)):
         return {"mode": "blocked", "reasons": ["approved_commit_sha override is not a full SHA"]}
     if tracking_branch or approved:
-        if not loaded or not SHA_RE.match(str(loaded)):
+        if not loaded or not SHA_RE.fullmatch(str(loaded)):
             return {"mode": "blocked", "reasons": ["loaded_commit_sha missing or not a full SHA"]}
         if approved and loaded != approved:
             return {"mode": "blocked", "reasons": ["loaded_commit_sha does not match approved_commit_sha override"]}
@@ -264,8 +264,10 @@ def run(request, capabilities, state, sources, process, lint, store=None,
     store is never written; apply-class proposals are listed as would_apply.
     """
     pre = preflight(request, capabilities, state)
+    loaded = request.get("loaded_commit_sha")
     result = {"mode": pre["mode"], "reasons": pre["reasons"], "run_id": request.get("run_id"),
-              "revision": request.get("loaded_commit_sha"), "completed": [], "failed": [],
+              "revision": loaded if isinstance(loaded, str) and SHA_RE.fullmatch(loaded) else None,
+              "completed": [], "failed": [],
               "deferred": [], "blocked_items": [], "mutations": [], "would_apply": [],
               "findings": [], "limitations": [], "review_ids": [],
               "cursor": state.get("cursor"), "ledger": dict(state.get("ledger", {})),
