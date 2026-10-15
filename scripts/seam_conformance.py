@@ -90,10 +90,21 @@ def check_shape(env):
     return env
 
 
+def check_extensions(env):
+    """Unknown extensions are ignored; ones that widen authority or leak are not."""
+    for key, value in env["extensions"].items():
+        _need(isinstance(key, str) and EXT_KEY.fullmatch(key), "extension-key")
+        _need(not PRIVATE_KEY.search(key), "crossing-rule")
+        _need(not WIDENING_NAME.search(key.rsplit(".", 1)[1]), "extension-widens", "not-permitted")
+        ok_ref = isinstance(value, str) and (REF_RUN.fullmatch(value) or REF_GRANT.fullmatch(value))
+        _need(_int(value) or isinstance(value, bool) or ok_ref, "extension-value")
+
+
 def check(envelope, profile, grants):
     """Return {"result", "error-category", "rule", "conformance-status"}."""
     try:
         check_shape(envelope)
+        check_extensions(envelope)
     except Fail as f:
         return _verdict(f)
     return _verdict(None)
