@@ -1,0 +1,8 @@
+{
+  "grant-reference": "grant-abcdefghijklmnopqrstuvwxyz",
+  "mode": "report-only",
+  "grants": [
+    {"capability": "knowledge.ingest", "operation-class": "read"},
+    {"capability": "knowledge.ingest", "operation-class": "write-report"}
+  ]
+}

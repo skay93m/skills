@@ -1,0 +1,20 @@
+{
+  "seam-version": "0.1.0",
+  "capability": "knowledge.ingest",
+  "capability-version": "0.1.0",
+  "run-reference": "run-abcdefghijklmnopqrstuvwxyz",
+  "status": "succeeded",
+  "disposition": "reported",
+  "approval-state": "not-required",
+  "error-category": "",
+  "grant-reference": "grant-abcdefghijklmnopqrstuvwxyz",
+  "counts": {"seen": 3, "reported": 3, "proposed": 0, "applied": 0, "skipped": 0, "failed": 0},
+  "mutation-summary": {
+    "read": {"requested": 3, "granted": 3, "applied": 3, "refused": 0},
+    "write-report": {"requested": 1, "granted": 1, "applied": 1, "refused": 0},
+    "propose-change": {"requested": 0, "granted": 0, "applied": 0, "refused": 0},
+    "apply-change": {"requested": 0, "granted": 0, "applied": 0, "refused": 0},
+    "delete": {"requested": 0, "granted": 0, "applied": 0, "refused": 0}
+  },
+  "extensions": {}
+}
