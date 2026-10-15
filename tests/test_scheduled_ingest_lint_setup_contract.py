@@ -49,6 +49,12 @@ class ScheduledIngestLintSetupContract(unittest.TestCase):
         self.assertIn("it takes precedence over tracking", self.text)
         self.assertIn("Record the loaded commit SHA in all reports", self.text)
 
+    def test_prompt_does_not_block_an_override_for_not_matching_main(self):
+        # A rollback override loads an old SHA that by definition is not main.
+        self.assertNotIn("does not match main", self.text)
+        self.assertIn("the loaded revision must equal that override exactly", self.text)
+        self.assertIn("otherwise it must equal the resolved latest commit of main", self.text)
+
 
 if __name__ == "__main__":
     unittest.main()
