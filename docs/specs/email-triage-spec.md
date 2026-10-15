@@ -172,7 +172,7 @@ The caller (an interactive session or a thin launcher; the latter is #51's conce
 | `mode` | `read_only`, `supervised` or `unattended` (see Permissions) |
 | `run_id` | Unique per run. Used for resume and idempotency |
 | `accounts` | The mail accounts in scope. An account missing here is out of scope, not empty |
-| `approved_commit_sha` and `loaded_commit_sha` | Same pin semantics as #49. Missing, malformed or mismatched means `read_only` with no mutations (A6) |
+| `approved_commit_sha` and `loaded_commit_sha` | Same Tracking and Loaded revision semantics as the daily maintenance contract (#49, #106): an optional owner override must equal the Loaded revision. A missing or malformed Loaded revision, or an override that is malformed or differs from it, gives `blocked` with no mutations (A6) |
 | `budgets` | Threads read, durable writes, mailbox mutations |
 | `capabilities` | Which tools are authorised: mail read, mail mutate, Wiki read, Wiki write, task contract, knowledge handoff |
 
@@ -193,7 +193,7 @@ Per-thread records hold no message body, no addresses and no attachments.
 | `closed` | All dependent writes verified, and the closing mailbox value verified applied |
 | `open_gated` | Waiting for the owner. Thread left unread or snoozed with a visible reason |
 | `partial` | Some writes verified and others not. Thread not closed. Verified writes are recorded so a retry does not repeat them |
-| `blocked` | A precondition failed (account, pin, capability, verification). No mutation |
+| `blocked` | A precondition failed (account, loaded revision, capability, verification). No mutation |
 | `deferred` | Budget exhausted. Cursor retained |
 
 ## Permissions
@@ -405,7 +405,7 @@ Checks the cutover must pass: the repository standard (S1 to S6), no remaining r
 
 ### With #51
 
-#51 is blocked by this issue and reuses the module. This specification gives #51: the input contract (`run_kind`, `mode`, `accounts`, pin, budgets, capabilities), the run report shape, the trigger inventory, and the cutover order. #51 must not redefine dispositions. The three existing Inbox Zero automations are untouched until #51.
+#51 is blocked by this issue and reuses the module. This specification gives #51: the input contract (`run_kind`, `mode`, `accounts`, loaded revision and optional override, budgets, capabilities), the run report shape, the trigger inventory, and the cutover order. #51 must not redefine dispositions. The three existing Inbox Zero automations are untouched until #51.
 
 ## Open assumptions for owner reconciliation
 
@@ -418,7 +418,7 @@ Contracts under #49 are not final, and `knowledge-review` does not exist. Each i
 | A3 | `knowledge-review` will provide review findings and approval principles that email gates can reuse, without forcing every email decision through one reviewer | issue text | Define the interface, finding identifiers and the approval record |
 | A4 | The principle "no module may infer user approval from an agent's analysis" applies to email gates | `daily-knowledge-maintenance` | Confirm |
 | A5 | `task-assistant` is a standup adapter that appends a Commitment. It does not create Tasks and it excludes email. This spec assumes Task creation goes through the upstream `memory-tasks` method under the Wiki schema, and that exclusive create plus reread is the guard | `task-assistant`, `task` schema | Decide whether `task-assistant` is extended, or `memory-tasks` is called directly |
-| A6 | The launcher pin semantics from #49 (`approved_commit_sha`, `loaded_commit_sha`, fail closed) apply to email runs | `daily-knowledge-maintenance` | Confirm how an automation obtains skill files at a pinned revision |
+| A6 | The Tracking and Loaded revision semantics from #49 and #106 (`approved_commit_sha`, `loaded_commit_sha`, fail closed) apply to email runs | `daily-knowledge-maintenance` | Confirm how an automation obtains skill files at a pinned revision |
 | A7 | Mode names differ: #49 uses `blocked`, `read_only` and `full`; this spec uses `read_only`, `supervised` and `unattended`, plus `blocked` as a closure state | both | Choose one vocabulary |
 | A8 | The Basic Memory capabilities observed in the #49 audit (checksum, guarded edit, exclusive create, listing totals, no transactions) still hold. Not re-tested here | `daily-knowledge-maintenance` | Re-run the audit before implementation |
 | A9 | Review findings from email need a register. Whether they join the existing review register or a new place is undecided, as is an identifier prefix distinct from the maintenance prefix | `daily-knowledge-maintenance` | Decide |
