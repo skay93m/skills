@@ -233,6 +233,32 @@ class ProfileChecks(Verdict):
         self.assertEqual(run(lambda e: e.update({"capability-version": "0.3.0"}), profile_mutate=bump)["result"], "pass")
 
 
+class PublishedExamples(unittest.TestCase):
+    """The examples a task is told to copy must themselves conform."""
+
+    def blocks(self, *parts):
+        import re
+        with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+            return [json.loads(b) for b in re.findall(r"```json\n(.*?)```", f.read(), re.S)]
+
+    def test_skill_reference_examples_conform(self):
+        ok, refused = self.blocks("skills", "seam-adapter", "references", "envelope-reference.md")
+        _, prof, grants = base()
+        self.assertEqual(sc.check(ok, prof, grants)["result"], "pass")
+        grants["grants"] = [x for x in grants["grants"] if x["operation-class"] != "write-report"]
+        self.assertEqual(sc.check(refused, prof, grants)["result"], "pass")
+
+    def test_envelope_doc_example_conforms(self):
+        (example,) = self.blocks("docs", "seam", "envelope.md")
+        _, prof, grants = base()
+        self.assertEqual(sc.check(example, prof, grants)["result"], "pass")
+
+    def test_adapter_skill_names_no_backend(self):
+        for parts in (("skills", "seam-adapter", "SKILL.md"), ("skills", "seam-adapter", "references", "envelope-reference.md")):
+            with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+                self.assertNotRegex(f.read().lower(), r"basic.?memory|permalink:|wiki")
+
+
 class CommandLine(unittest.TestCase):
     def test_exit_status_and_output(self):
         import subprocess

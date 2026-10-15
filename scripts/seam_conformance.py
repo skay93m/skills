@@ -35,7 +35,7 @@ VERSION = re.compile(r"0\.\d+\.\d+")
 CAPABILITY = re.compile(r"[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+")
 EXT_KEY = re.compile(r"([a-z][a-z0-9-]*\.)+[a-z][a-z0-9-]*")
 # Key names that would carry something the crossing rule keeps private.
-PRIVATE_KEY = re.compile(
+CROSSING_DENY = re.compile(
     r"(?i)(^|[-_.])(checksum|hash|digest|permalink|id|uuid|drive|content|body|text|source|query|"
     r"answer|target|path|url|title|before|after|diagnostic|diagnostics|trace|approval-record|record)($|[-_.])")
 # Extension names that try to widen authority or the closed vocabularies.
@@ -96,7 +96,7 @@ def check_extensions(env):
     """Unknown extensions are ignored; ones that widen authority or leak are not."""
     for key, value in env["extensions"].items():
         _need(isinstance(key, str) and EXT_KEY.fullmatch(key), "extension-key")
-        _need(not PRIVATE_KEY.search(key), "crossing-rule")
+        _need(not CROSSING_DENY.search(key), "crossing-rule")
         _need(not WIDENING_NAME.search(key.rsplit(".", 1)[1]), "extension-widens", "not-permitted")
         ok_ref = isinstance(value, str) and (REF_RUN.fullmatch(value) or REF_GRANT.fullmatch(value))
         _need(_int(value) or isinstance(value, bool) or ok_ref, "extension-value")
