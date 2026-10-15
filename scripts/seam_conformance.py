@@ -77,6 +77,8 @@ def check_shape(env):
         _need(env["error-category"] == "", "status-error-category")
     else:
         _need(env["status"] == "partial" or env["error-category"] != "", "status-error-category")
+    # refused means the operation was not allowed to run, so only not-permitted fits.
+    _need(env["status"] != "refused" or env["error-category"] == "not-permitted", "status-error-category")
     counts = env["counts"]
     _need(isinstance(counts, dict) and set(counts) == set(COUNT_KEYS) and all(_int(v) for v in counts.values()), "counts-shape")
     summary = env["mutation-summary"]
@@ -100,11 +102,72 @@ def check_extensions(env):
         _need(_int(value) or isinstance(value, bool) or ok_ref, "extension-value")
 
 
+def _str_list(value, allowed=None):
+    return isinstance(value, list) and all(isinstance(x, str) and (allowed is None or x in allowed) for x in value)
+
+
+def check_profile(profile, env):
+    fields = ("seam-versions", "capability", "capability-version", "execution-modes", "supported-extensions",
+              "allowed-operation-classes", "backend-constraint-tokens", "conformance-status")
+    _need(isinstance(profile, dict) and all(f in profile for f in fields), "profile-shape")
+    _need(profile["conformance-status"] in CONFORMANCE, "profile-conformance-status")
+    _need(_str_list(profile["seam-versions"]) and all(VERSION.fullmatch(v) for v in profile["seam-versions"]), "profile-shape")
+    _need(_str_list(profile["execution-modes"], MODES), "profile-shape")
+    _need(_str_list(profile["allowed-operation-classes"], OPERATION_CLASSES), "profile-shape")
+    _need(_str_list(profile["supported-extensions"]) and _str_list(profile["backend-constraint-tokens"]), "profile-shape")
+    # No profile may open apply or delete in seam 0.1.0.
+    _need("apply" not in profile["execution-modes"], "profile-mode", "not-permitted")
+    _need(not {"apply-change", "delete"} & set(profile["allowed-operation-classes"]), "profile-operation-class", "not-permitted")
+    _need(profile["capability"] == env["capability"] and profile["capability-version"] == env["capability-version"]
+          and env["seam-version"] in profile["seam-versions"], "profile-mismatch")
+
+
+def effective_classes(profile, grants, env):
+    """Classes a run may use: granted AND inside the mode AND allowed by the profile."""
+    _need(isinstance(grants, dict) and isinstance(grants.get("grants"), list), "grant-set-shape")
+    ref = grants.get("grant-reference")
+    _need(isinstance(ref, str) and (ref == "" or REF_GRANT.fullmatch(ref)), "grant-set-shape")
+    mode = grants.get("mode")
+    _need(mode in MODES, "mode-unknown")
+    _need(mode in profile["execution-modes"], "mode-not-in-profile", "not-permitted")
+    granted = set()
+    for entry in grants["grants"]:
+        _need(isinstance(entry, dict) and entry.get("operation-class") in OPERATION_CLASSES
+              and isinstance(entry.get("capability"), str), "grant-set-shape")
+        _need(entry["operation-class"] != "delete", "delete-never-granted", "not-permitted")
+        if entry["capability"] == env["capability"]:
+            granted.add(entry["operation-class"])
+    _need(granted <= set(profile["allowed-operation-classes"]), "grant-outside-profile", "not-permitted")
+    return granted & set(MODE_CLASSES.get(mode, ())) & set(profile["allowed-operation-classes"]), ref
+
+
+def check_permissions(env, profile, grants):
+    allowed, ref = effective_classes(profile, grants, env)
+    summary = env["mutation-summary"]
+    refusal_needed = False
+    for op, row in summary.items():
+        if op in allowed:
+            continue
+        _need(row["granted"] == 0 and row["applied"] == 0, "outside-grant", "not-permitted")
+        if row["requested"] > 0:
+            refusal_needed = True
+            _need(row["refused"] == row["requested"], "outside-grant", "not-permitted")
+    if refusal_needed:
+        _need(env["status"] == "refused" and env["error-category"] == "not-permitted", "outside-grant", "not-permitted")
+    _need(env["disposition"] != "applied" or "apply" in profile["execution-modes"], "applied-not-offered", "not-permitted")
+    _need(env["counts"]["applied"] == 0 or "apply" in profile["execution-modes"], "applied-not-offered", "not-permitted")
+    any_granted = any(row["granted"] > 0 for row in summary.values())
+    expected = ref if any_granted else ""
+    _need(env["grant-reference"] == expected, "grant-reference", "not-permitted")
+
+
 def check(envelope, profile, grants):
     """Return {"result", "error-category", "rule", "conformance-status"}."""
     try:
         check_shape(envelope)
         check_extensions(envelope)
+        check_profile(profile, envelope)
+        check_permissions(envelope, profile, grants)
     except Fail as f:
         return _verdict(f)
     return _verdict(None)
