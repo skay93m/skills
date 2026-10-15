@@ -43,10 +43,10 @@ CROSSING_DENY = re.compile(
     r"answer|target|path|url|title|before|after|diagnostic|diagnostics|trace|approval-record|record)($|[-_.])")
 # Extension keys that try to widen authority or imitate the closed vocabularies.
 # Every dot- or hyphen-separated token of the whole key (namespace included) is
-# tested. WIDENING_NAME is a substring list; RESERVED_TOKENS are whole tokens
+# tested. WIDENING_NAME is a substring list; RESERVED_WORDS are whole tokens
 # (core field names, operation classes, mode words, count and summary keys).
 WIDENING_NAME = re.compile(r"(?i)(grant|permission|allow|vocabulary|vocab|override|disposition|approval)")
-RESERVED_TOKENS = frozenset(
+RESERVED_WORDS = frozenset(
     "mode status error category value values seam version capability run reference counts count "
     "mutation summary extensions state read write report propose change apply delete "
     "seen reported proposed applied skipped failed requested granted refused".split())
@@ -106,7 +106,7 @@ def check_extensions(env):
     for key, value in env["extensions"].items():
         _need(isinstance(key, str) and EXT_KEY.fullmatch(key), "extension-key")
         _need(not CROSSING_DENY.search(key), "crossing-rule")
-        _need(not WIDENING_NAME.search(key) and not RESERVED_TOKENS & set(re.split(r"[.-]", key)),
+        _need(not WIDENING_NAME.search(key) and not RESERVED_WORDS & set(re.split(r"[.-]", key)),
               "extension-widens", "not-permitted")
         ok_ref = isinstance(value, str) and (REF_RUN.fullmatch(value) or REF_GRANT.fullmatch(value))
         _need(_int(value) or isinstance(value, bool) or ok_ref, "extension-value")
