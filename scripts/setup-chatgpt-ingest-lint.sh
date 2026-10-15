@@ -82,23 +82,9 @@ finish() {
 # STAGES — author this section. One stage() per step the human takes.
 # ──────────────────────────────────────────────────────────────────────────
 
-TOTAL_STAGES=7
+TOTAL_STAGES=6
 
 banner "ChatGPT daily Wiki ingest/lint cutover"
-
-stage "Merge the release pull request"
-say "The owner must merge the approved develop-to-main pull request before the release can be pinned."
-open_url "https://github.com/skay93m/syafiq-kay-skills/pull/61"
-step "Review the checks and merge PR #61 from develop into main."
-step "After the merge completes, copy the full 40-character commit SHA at the top of main."
-ask MERGE_SHA "Paste the merged main commit SHA:"
-if [[ ! "$MERGE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
-  warn "That is not a full 40-character commit SHA. The release cannot be verified yet."
-  SKIPPED+=("Merge PR #61 and capture a full main commit SHA")
-else
-  note "Recorded the public main commit SHA for this cutover: $MERGE_SHA"
-fi
-pause "When the merge is visible on main, press Enter."
 
 stage "Create the v0.1.0 release"
 say "Create the first semantic release from the merged main commit."
@@ -146,7 +132,7 @@ say "Run the task manually once while it remains paused from the schedule. This 
 open_url "https://chatgpt.com/"
 step "Use the task's Run now action. Do not enable the schedule yet."
 step "Wait for a terminal result; a disappearing page is not evidence of success."
-step "Open the Basic Memory web app."
+step "Open Basic Memory and select the wiki project."
 step "In project wiki, reread reports/knowledge-maintenance and reports/knowledge-maintenance-ledger."
 step "Confirm the run ID, pinned SHA, terminal status, dated reports, verification result, and zero substantive mutations."
 step "If there are no candidates, confirm complete pagination is recorded; an unproven empty search is not success."
