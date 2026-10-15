@@ -42,13 +42,17 @@ def preflight(request, capabilities, state):
     approved = request.get("approved_commit_sha") or request.get("approved_revision")
     loaded = request.get("loaded_commit_sha")
     tracking_branch = request.get("tracking_branch")
-    if tracking_branch:
+    # An owner-set override wins over Tracking: it must be a full SHA and equal
+    # the Loaded revision, whether or not a tracking branch is set.
+    if approved and not SHA_RE.match(str(approved)):
+        return {"mode": "blocked", "reasons": ["approved_commit_sha override is not a full SHA"]}
+    if tracking_branch or approved:
         if not loaded or not SHA_RE.match(str(loaded)):
-            return {"mode": "blocked", "reasons": ["loaded_commit_sha missing or not a full SHA when tracking branch"]}
-    elif not approved or not SHA_RE.match(str(approved)):
-        return {"mode": "blocked", "reasons": ["approved_commit_sha missing or not a full SHA"]}
-    elif loaded != approved:
-        return {"mode": "blocked", "reasons": ["loaded skills do not match approved_commit_sha"]}
+            return {"mode": "blocked", "reasons": ["loaded_commit_sha missing or not a full SHA"]}
+        if approved and loaded != approved:
+            return {"mode": "blocked", "reasons": ["loaded_commit_sha does not match approved_commit_sha override"]}
+    else:
+        return {"mode": "blocked", "reasons": ["no revision to load: set a tracking branch or an approved_commit_sha override"]}
     if request.get("wiki_project") != "wiki":
         return {"mode": "blocked", "reasons": ["wiki_project is not the canonical project"]}
     for cap in REQUIRED_CAPABILITIES:
@@ -261,7 +265,7 @@ def run(request, capabilities, state, sources, process, lint, store=None,
     """
     pre = preflight(request, capabilities, state)
     result = {"mode": pre["mode"], "reasons": pre["reasons"], "run_id": request.get("run_id"),
-              "revision": request.get("approved_commit_sha"), "completed": [], "failed": [],
+              "revision": request.get("loaded_commit_sha"), "completed": [], "failed": [],
               "deferred": [], "blocked_items": [], "mutations": [], "would_apply": [],
               "findings": [], "limitations": [], "review_ids": [],
               "cursor": state.get("cursor"), "ledger": dict(state.get("ledger", {})),
