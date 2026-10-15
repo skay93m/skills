@@ -39,10 +39,15 @@ def preflight(request, capabilities, state):
     blocked: no tool call at all. read_only: reads and reports, no mutation.
     """
     reasons = []
-    approved, loaded = request.get("approved_commit_sha"), request.get("loaded_commit_sha")
-    if not approved or not SHA_RE.match(str(approved)):
+    approved = request.get("approved_commit_sha") or request.get("approved_revision")
+    loaded = request.get("loaded_commit_sha")
+    tracking_branch = request.get("tracking_branch")
+    if tracking_branch:
+        if not loaded or not SHA_RE.match(str(loaded)):
+            return {"mode": "blocked", "reasons": ["loaded_commit_sha missing or not a full SHA when tracking branch"]}
+    elif not approved or not SHA_RE.match(str(approved)):
         return {"mode": "blocked", "reasons": ["approved_commit_sha missing or not a full SHA"]}
-    if loaded != approved:
+    elif loaded != approved:
         return {"mode": "blocked", "reasons": ["loaded skills do not match approved_commit_sha"]}
     if request.get("wiki_project") != "wiki":
         return {"mode": "blocked", "reasons": ["wiki_project is not the canonical project"]}
