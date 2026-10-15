@@ -43,10 +43,9 @@ public-surface review. Do not silently copy an upstream skill into this repo.
 
 ## Repository conventions
 
-- `develop` is the development branch.
-- Work is developed and reviewed on `develop`.
-- Ready production changes are merged from `develop` into `main`.
-- `main` is the production-ready branch.
+- `main` is the only long-lived branch and is always production-ready.
+- Work happens on short-lived branches, reviewed in a pull request into `main`
+  and squash-merged. Delete the branch after merge.
 - Skills should be small, composable, and progressively disclosed. Supporting
   scripts and references should be added only when they materially improve
   reliability or reduce repeated instructions.
