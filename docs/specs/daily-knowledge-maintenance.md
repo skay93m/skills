@@ -102,6 +102,12 @@ The owner asked for the architect's answer, derived from the approved architectu
 - Ledger seed is empty on purpose: earlier reports recorded no checksums, so pre-filling current checksums would falsely mark the whole backlog as ingested.
 - Not covered by the mandate: editing or enabling the ChatGPT automation prompt, which lives outside this repository and this session.
 
+### Proposed wizard prompt decisions (go-live #109, best guess, awaiting Syafiq)
+The wizard prompt for the first runs states the following. None of it edits the ChatGPT task; Syafiq pastes the prompt himself.
+1. **Proposed:** the first runs are report-only with zero substantive Wiki mutations until Syafiq approves writes, consistent with #63 and the owner mandate above. The 8-mutation ceiling stays only as the contract limit for a later approved full mode, not an authorisation for these runs.
+2. **Proposed:** the task loads `skills/seam-adapter/SKILL.md` from the same loaded commit and ends its result with one envelope that conforms to `docs/seam/envelope.md` (`knowledge.ingest` 0.1.0, `report-only`). `run-reference` and `grant-reference` come from the SW binding; until it supplies them the task says so and invents nothing.
+3. **Proposed:** the owner override lives in the task prompt as the line `Owner commit SHA override: none`, which only Syafiq edits.
+
 ### Still unresolved
 1. Creating the two Wiki notes and seeding the ledger (a live write).
 2. Answering `SCHED-007` and reconciling the 2026-10-11 and 2026-10-12 gaps.

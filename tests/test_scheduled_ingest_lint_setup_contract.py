@@ -55,6 +55,19 @@ class ScheduledIngestLintSetupContract(unittest.TestCase):
         self.assertIn("the loaded revision must equal that override exactly", self.text)
         self.assertIn("otherwise it must equal the resolved latest commit of main", self.text)
 
+    # Proposed (best guess, #109): first runs are report-only and speak the seam.
+    def test_prompt_makes_first_runs_report_only_with_mutation_ceiling_for_later(self):
+        self.assertIn("report-only with zero substantive Wiki mutations until Syafiq approves writes", self.text)
+        self.assertIn("contract limit for a later approved full mode, not an authorisation for these runs", self.text)
+
+    def test_prompt_loads_seam_adapter_from_same_revision_and_ends_with_envelope(self):
+        self.assertIn("skills/seam-adapter/SKILL.md from the same loaded commit", self.text)
+        self.assertIn("end the run result with one seam envelope that conforms to docs/seam/envelope.md", self.text)
+
+    def test_prompt_states_where_the_owner_override_is_set(self):
+        self.assertIn("Owner commit SHA override: none", self.text)
+        self.assertIn("Syafiq sets an override by replacing", self.text)
+
 
 if __name__ == "__main__":
     unittest.main()
