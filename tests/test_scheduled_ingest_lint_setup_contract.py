@@ -37,6 +37,18 @@ class ScheduledIngestLintSetupContract(unittest.TestCase):
         ):
             self.assertIn(expected, self.text)
 
+    def test_setup_tracks_main_without_a_release_stage(self):
+        for gone in ("v0.1.0", "RELEASE_SHA", "releases/new", "pinned", "pin the"):
+            self.assertNotIn(gone, self.text)
+
+    def test_stage_count_matches_declared_total(self):
+        stages = [l for l in self.text.splitlines() if l.startswith("stage ")]
+        self.assertIn("TOTAL_STAGES=%d\n" % len(stages), self.text)
+
+    def test_prompt_honours_override_and_records_loaded_commit(self):
+        self.assertIn("it takes precedence over tracking", self.text)
+        self.assertIn("Record the loaded commit SHA in all reports", self.text)
+
 
 if __name__ == "__main__":
     unittest.main()
