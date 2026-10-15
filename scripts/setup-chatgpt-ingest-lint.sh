@@ -146,7 +146,7 @@ say "Run the task manually once while it remains paused from the schedule. This 
 open_url "https://chatgpt.com/"
 step "Use the task's Run now action. Do not enable the schedule yet."
 step "Wait for a terminal result; a disappearing page is not evidence of success."
-open_url "https://app.basicmemory.com/"
+step "Open the Basic Memory web app."
 step "In project wiki, reread reports/knowledge-maintenance and reports/knowledge-maintenance-ledger."
 step "Confirm the run ID, pinned SHA, terminal status, dated reports, verification result, and zero substantive mutations."
 step "If there are no candidates, confirm complete pagination is recorded; an unproven empty search is not success."
