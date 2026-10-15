@@ -26,6 +26,16 @@ The future command-line interface to manage, verify, update, and heal agent skil
 A skill that lives in an Authorised Skill Repository other than this one. A skill here that overlaps one should extend it and record how it differs.
 _Avoid_: external skill, third-party skill
 
+### Skill revision
+
+**Tracking**:
+The launcher follows `main` and resolves its latest commit SHA at run start.
+_Avoid_: pin, approved pin
+
+**Loaded revision**:
+The full commit SHA the run actually loaded, the one that should be recorded.
+_Avoid_: pin, approved pin
+
 ### Pull request review standard
 
 **Standard**:
