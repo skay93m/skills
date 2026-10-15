@@ -5,7 +5,7 @@ name: standard-checks
 # docs/standards/automated-checks.md.
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [main]
 
 permissions:
   contents: read

@@ -330,7 +330,7 @@ def run(base, today):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--base", default="origin/develop", help="base ref to diff against")
+    ap.add_argument("--base", default="origin/main", help="base ref to diff against")
     ap.add_argument("--today", default=None, help="override today's date (YYYY-MM-DD), for tests")
     args = ap.parse_args()
     today = datetime.date.fromisoformat(args.today) if args.today else datetime.date.today()

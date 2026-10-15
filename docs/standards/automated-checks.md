@@ -3,7 +3,7 @@
 Standard: `sk-pr-review-standard`, version `1.0.0-draft`. The mechanical checks of the standard run as a script on every pull request, so they do not depend on Sourcery's review rules. Sourcery keeps the checks that need judgement.
 
 - Script: `scripts/check-standard.py` (Python standard library only).
-- Workflow: `.github/workflows/standard-checks.yml`, run on pull requests to `develop` and `main`.
+- Workflow: `.github/workflows/standard-checks.yml`, run on pull requests to `main`.
 - Tests: `tests/test_check_standard.py`. Run them with `python3 -m unittest discover -s tests`.
 
 ## How it behaves
