@@ -19,7 +19,7 @@ Variables: `RUN` = run id; `START` = `start_time_utc` from the start marker; `DA
 
 P1. Read the start marker.
 `bm tool read-note operations/${RUN}-start --project sk-wiki --cloud --include-frontmatter --json`
-Expect: exit 0, `permalink` non-null, frontmatter with `run_id` equal to `RUN`, `start_time_utc`, `derived_snapshot_name`, `approved_skill_sha`. Null `permalink` means the marker is missing: set `record_set_complete=false`. Then the diff window cannot be fixed: the snapshot lookup in P4 is provisional (date taken from the run id) and V2 is "not verifiable".
+Expect: exit 0, `permalink` non-null, frontmatter with `run_id` equal to `RUN`, `start_time_utc`, `derived_snapshot_name`, `loaded_revision`, `approved_revision` (the SW spec calls this field `approved_skill_sha`). Null `permalink` means the marker is missing: set `record_set_complete=false`. Then the diff window cannot be fixed: the snapshot lookup in P4 is provisional (date taken from the run id) and V2 is "not verifiable".
 Set `START` from the marker, then `DAY` from `START`, never from `RUN`. If the date in `RUN`, the date in `derived_snapshot_name` and the date of `START` differ, flag it.
 
 P2. Read the run note.
@@ -52,8 +52,11 @@ PLAN passes when P1 to P3 are readable and either P4 to P7 succeeded or the miss
 
 V1. Record set. `record_set_complete` is true only if the marker and run note both exist, `RUN` is consistent in titles, permalinks and `run_id`, and the audit note does not yet exist. When false, the final status is `flagged`.
 
+V1b. Revision pin (unattended runs). Read `loaded_revision` and `approved_revision` from the start marker and the run note. Each must be a full 40-hex SHA and `loaded_revision` must equal `approved_revision`, in both notes. Mismatch or absence: `revision_pin_check=false`, flagged. Unreadable notes: `pending`. Do not infer a SHA from the run id or the repository.
+
 V2. Independent diff versus the snapshot. Never trust the manifest for the list.
-- Normalise identity first. Snapshot object paths and current Cloud file paths differ: Cloud can keep the title with spaces and capitals while the permalink is a slug. Make one key for both: drop the workspace and project prefix and the `.md` suffix, lowercase, turn spaces and underscores into single hyphens. If two paths in one inventory collapse to one key, or a path appears only on one side but its key matches a path on the other side under a different spelling, do not call it a create or delete. Report `manifest_verified` as `pending` (not verifiable) and list the ambiguous pairs.
+- Normalise identity first. Snapshot object paths and current Cloud file paths differ: Cloud can keep the title with spaces and capitals while the permalink is a slug. Make one key for both: drop the workspace and project prefix (strip any leading `<workspace>/` and `sk-wiki/` segments: older root notes such as index and log have permalinks without the workspace prefix, for example `sk-wiki/index`, while newer notes have it, so both forms must collapse to one key) and the `.md` suffix, lowercase, turn spaces and underscores into single hyphens. If two paths in one inventory collapse to one key, or a path appears only on one side but its key matches a path on the other side under a different spelling, do not call it a create or delete. Report `manifest_verified` as `pending` (not verifiable) and list the ambiguous pairs.
+- Permalink form. Check that the manifest and `audit_result` permalinks use the form the tool returns for that note (read it with `read_note`), not a hand-built prefix. Set `permalink_form_check` false and list the rows otherwise. Normalisation is for comparing only; it does not excuse a wrong form.
 - Limit: "modified = different size" misses edits that keep the size. State this under "Not verifiable" whenever a modification check relies on size alone.
 - created = keys in `NOW_PATHS` not in `SNAP_PATHS`; deleted = keys in `SNAP_PATHS` not in `NOW_PATHS`; modified = same key with a different size.
 - Window. Created and modified entries should also be in `CHANGED`. An entry that differs from the snapshot but is missing from `CHANGED` is not dropped: report it as a candidate (modification time unverified, possible index lag). Keep every deleted key.
@@ -80,6 +83,8 @@ V5. Scope. Collect the paths in the diff.
 V6. Authorship. Do not use `created_by`. A change in the window that is not in the manifest is "unmanifested, author unknown". It may be a human edit. Flag it for the owner without concluding who wrote it.
 
 ## EXECUTE
+
+Duration. When the start marker and run note timestamps are both available, derive duration from `start_time_utc` and the run note's write time; the run may report none. If either is missing, write "not available".
 
 E1. Build the note body in `$W/audit.md` from the template in `checks.md`. Include the snapshot id, the window (`START` to the audit time), what was not verifiable, and the flags. Use hedged wording.
 

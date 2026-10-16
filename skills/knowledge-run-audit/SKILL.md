@@ -38,11 +38,13 @@ Each maps to one field in the audit note. Evidence rules are in `references/chec
 - Deletions only on the allowlist, each with permalink, rule and before-checksum.
 - No stored status or trust field, and no trust-asserting or absolute wording, in notes the run wrote.
 - Provenance on every written note: `authored_by`, `agent_model`, `run_id`.
+- Revision pin. For an unattended run, `loaded_revision` equals `approved_revision` (both full 40-hex SHAs); a mismatch or a missing field is flagged.
 - Writes within scope. While the first-run limit holds, the only creates are `operations/<run-id>-start` and `operations/<run-id>`.
 
 ## Limits to state in the note
 - Snapshot browse lists paths and sizes, not note bodies, and restore is forbidden. Before-content comes from note version history where it exists. Anything not retrievable is reported as not verifiable, never as passed.
 - Calls are slow and run one at a time. Record any call that timed out.
+- Duration comes from record timestamps (`-start` `start_time_utc` versus the run note) when available; the run itself may report none. Otherwise state it as not available.
 
 ## Output
 One audit note, plus a short reply: status, flagged checks, unverifiable checks, the audit note permalink.
