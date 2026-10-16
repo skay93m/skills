@@ -4,14 +4,13 @@
   "capability-version": "0.1.0",
   "execution-modes": ["report-only", "propose-only", "apply"],
   "supported-extensions": [],
-  "allowed-operation-classes": ["read", "write-report", "propose-change", "apply-change", "delete"],
+  "allowed-operation-classes": ["read", "write-report", "propose-change", "apply-change"],
   "backend-constraint-tokens": [
     "bc-exclusive-create",
     "bc-expected-checksum",
     "bc-readback-after-write",
     "bc-no-blind-retry",
     "bc-append-only-compile",
-    "bc-deletion-allowlist",
     "bc-no-stored-trust",
     "bc-snapshot-precondition"
   ],
