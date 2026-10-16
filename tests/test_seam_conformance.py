@@ -499,6 +499,21 @@ class RcHardening(Verdict):
                 env, prof, grants = lint_apply_run(approval=state, delete_applied=5)
                 self.assertEqual(sc.check(env, prof, grants, rc=True)["result"], "pass")
 
+    def test_check_permissions_rc_flag_is_off_by_default(self):
+        """Direct call: the rc-only envelope rule must not fire unless rc=True is passed."""
+        for state in ("denied", "pending"):
+            with self.subTest(state=state):
+                env, prof, grants = base()
+                env["approval-state"] = state
+                env["mutation-summary"]["delete"].update({"requested": 5, "granted": 5, "applied": 5})
+                with self.assertRaises(sc.Fail) as default:
+                    sc.check_permissions(env, prof, grants)
+                self.assertEqual(default.exception.rule, "outside-grant")
+                self.assertNotEqual(default.exception.rule, "rc-envelope-approval")
+                with self.assertRaises(sc.Fail) as flagged:
+                    sc.check_permissions(env, prof, grants, rc=True)
+                self.assertEqual(flagged.exception.rule, "rc-envelope-approval")
+
     def test_applied_counts_alone_also_require_approval(self):
         env, prof, grants = base()
         open_apply(prof)

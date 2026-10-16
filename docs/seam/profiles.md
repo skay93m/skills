@@ -49,7 +49,7 @@ Only these rules change under `--rc`:
 - A profile may list `delete` only if its capability is `knowledge.lint` and it carries the same two approval fields. Any other capability keeps `delete` rejected, and a `delete` grant is accepted only for `knowledge.lint`.
 - In the `apply` mode, the mode permits every class; the grant and the profile still decide.
 
-- If the envelope reports anything applied (a `mutation-summary` row or `counts.applied` above zero), its `approval-state` must be `approved` or `not-required`; `pending` or `denied` is rejected as `rc-envelope-approval`.
+- If the envelope reports anything applied (a `mutation-summary` row or `counts.applied` above zero), its `approval-state` must be `approved` or `not-required`; `pending` or `denied` is rejected as `rc-envelope-approval`. This holds for any applied count, including `read` rows.
 - A `delete` grant must be for `knowledge.lint` and for the run's own capability.
 
 Only the exact flag `--rc` enables the mode (no abbreviations, no `--rc=value`). In the library, `rc` is keyword-only and only the boolean `True` enables it. An `--rc` result carries an extra key, `"check": "rc-draft"`; default-mode output is unchanged and has no such key. **An rc pass must never be copied into a profile's `conformance-status`**, and CI must never run `--rc` on production profiles (a test guards the workflows and `scripts/check-standard.py`).
