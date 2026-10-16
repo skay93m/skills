@@ -37,4 +37,16 @@ The conformance check reads a synthetic grant set: `grant-reference` (opaque or 
 
 ## Running the check
 
-`python3 scripts/seam_conformance.py --envelope E.json --profile P.json --grants G.json` prints one JSON line with `result`, `error-category`, `rule` and `conformance-status`, and exits 0 on pass. The `rule` value names the failed rule and carries no data from the input.
+`python3 scripts/seam_conformance.py --envelope E.json --profile P.json --grants G.json` prints one JSON line with `result`, `error-category`, `rule` and `conformance-status`, and exits 0 on pass. The `rule` value names the failed rule and carries no data from the input. Without a flag this default check is strict: it rejects `apply` and the `apply-change` and `delete` classes in any profile.
+
+## Draft release-candidate check (`--rc`)
+
+Draft, opt-in and explicit. Add `--rc` to run the same check on a draft release-candidate profile that may carry mutation grants. The flag is never detected from a file name or from content. The check prints a banner on standard error that it is a DRAFT check; it does not verify that an approval is genuine, and the owner decides the allowlist.
+
+Only these rules change under `--rc`:
+
+- A profile may list the `apply` mode or the `apply-change` class only if it carries `approval-state: approved` and an `approval-reference`. The reference is opaque: `approval-` followed by 26 characters from `a-z2-7` (**Proposed**, same style as the grant reference; the format is open).
+- A profile may list `delete` only if its capability is `knowledge.lint` and it carries the same two approval fields. Any other capability keeps `delete` rejected, and a `delete` grant is accepted only for `knowledge.lint`.
+- In the `apply` mode, the mode permits every class; the grant and the profile still decide.
+
+Everything else still applies: closed vocabularies, extension and leak rules, and the `0.x.y` version patterns (no `-rc.N` suffix). The two approval fields are the only approval data a public profile carries; the approval record stays private. The checker cannot tell a real approval from a made-up reference.

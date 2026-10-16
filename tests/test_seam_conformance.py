@@ -27,7 +27,7 @@ def base():
             load(os.path.join(FIX, "grants-report-only.json")))
 
 
-def run(mutate=None, profile_mutate=None, grants_mutate=None):
+def run(mutate=None, profile_mutate=None, grants_mutate=None, rc=False):
     env, prof, grants = base()
     if mutate:
         mutate(env)
@@ -35,7 +35,7 @@ def run(mutate=None, profile_mutate=None, grants_mutate=None):
         profile_mutate(prof)
     if grants_mutate:
         grants_mutate(grants)
-    return sc.check(env, prof, grants)
+    return sc.check(env, prof, grants, rc=True) if rc else sc.check(env, prof, grants)
 
 
 class Verdict(unittest.TestCase):
@@ -253,6 +253,181 @@ class ProfileChecks(Verdict):
         def bump(p):
             p["capability-version"] = "0.3.0"
         self.assertEqual(run(lambda e: e.update({"capability-version": "0.3.0"}), profile_mutate=bump)["result"], "pass")
+
+
+APPROVAL_REF = "approval-" + "a" * 26
+
+
+def approve(p):
+    p.update({"approval-state": "approved", "approval-reference": APPROVAL_REF})
+
+
+def open_apply(p):
+    p["execution-modes"].append("apply")
+    p["allowed-operation-classes"].append("apply-change")
+
+
+def open_delete(p):
+    p["allowed-operation-classes"].append("delete")
+
+
+def rc1_shape(capability, delete):
+    """Synthetic profile with the shape of the draft rc.1 profiles (no approval fields)."""
+    classes = ["read", "write-report", "propose-change", "apply-change"] + (["delete"] if delete else [])
+    return {"seam-versions": ["0.1.0"], "capability": capability, "capability-version": "0.1.0",
+            "execution-modes": ["report-only", "propose-only", "apply"], "supported-extensions": [],
+            "allowed-operation-classes": classes, "backend-constraint-tokens": ["bc-exclusive-create"],
+            "conformance-status": "not-tested"}
+
+
+class DefaultModeStaysStrict(Verdict):
+    """No flag: apply, apply-change and delete stay rejected, even with approval fields."""
+
+    def test_default_rejects_apply_mode_even_when_approved(self):
+        self.assertFails(run(profile_mutate=lambda p: (approve(p), p["execution-modes"].append("apply"))), "not-permitted")
+
+    def test_default_rejects_apply_change_and_delete_even_when_approved(self):
+        for op in ("apply-change", "delete"):
+            with self.subTest(op=op):
+                self.assertFails(run(profile_mutate=lambda p, o=op: (approve(p), p["allowed-operation-classes"].append(o))),
+                                 "not-permitted")
+
+    def test_default_rejects_delete_grant_for_any_capability(self):
+        self.assertFails(run(grants_mutate=lambda g: g["grants"].append(
+            {"capability": "knowledge.lint", "operation-class": "delete"})), "not-permitted")
+
+    def test_default_rejects_rc1_shaped_profiles(self):
+        for capability, delete in (("knowledge.ingest", False), ("knowledge.lint", True)):
+            with self.subTest(capability=capability):
+                env, _, grants = base()
+                env["capability"] = capability
+                for g in grants["grants"]:
+                    g["capability"] = capability
+                self.assertFails(sc.check(env, rc1_shape(capability, delete), grants), "not-permitted")
+
+
+class RcMode(Verdict):
+    """--rc is explicit and opt-in; it only relaxes the apply and delete profile rules."""
+
+    def lint(self, profile_mutate=None, grants_mutate=None):
+        def prof(p):
+            p["capability"] = "knowledge.lint"
+            if profile_mutate:
+                profile_mutate(p)
+
+        def env(e):
+            e["capability"] = "knowledge.lint"
+
+        def grants(g):
+            for x in g["grants"]:
+                x["capability"] = "knowledge.lint"
+            if grants_mutate:
+                grants_mutate(g)
+        return run(env, prof, grants, rc=True)
+
+    def test_report_only_profile_passes_in_both_modes(self):
+        self.assertEqual(run()["result"], "pass")
+        self.assertEqual(run(rc=True)["result"], "pass")
+
+    def test_apply_without_approval_is_rejected(self):
+        self.assertFails(run(profile_mutate=open_apply, rc=True), "not-permitted")
+        self.assertFails(run(profile_mutate=lambda p: p["allowed-operation-classes"].append("apply-change"), rc=True),
+                         "not-permitted")
+
+    def test_approval_state_other_than_approved_is_rejected(self):
+        for state in ("pending", "denied", "not-required", "", "Approved"):
+            with self.subTest(state=state):
+                def prof(p, s=state):
+                    open_apply(p)
+                    approve(p)
+                    p["approval-state"] = s
+                self.assertFails(run(profile_mutate=prof, rc=True), "not-permitted")
+
+    def test_approved_with_valid_reference_is_accepted(self):
+        def prof(p):
+            open_apply(p)
+            approve(p)
+        self.assertEqual(run(profile_mutate=prof, rc=True)["result"], "pass")
+
+    def test_malformed_approval_reference_is_rejected(self):
+        bad = ["", " ", "approval-short", "approval-" + "a" * 27, "approval-" + "A" * 26, "approval-" + "a" * 25 + "1",
+               APPROVAL_REF + "\n", "approval-" + "a" * 12 + " " + "a" * 13, "grant-" + "a" * 26, None, 7, ["x"]]
+        for ref in bad:
+            with self.subTest(ref=ref):
+                def prof(p, r=ref):
+                    open_apply(p)
+                    approve(p)
+                    p["approval-reference"] = r
+                self.assertFails(run(profile_mutate=prof, rc=True), "not-permitted")
+
+    def test_missing_approval_reference_is_rejected(self):
+        def prof(p):
+            open_apply(p)
+            approve(p)
+            del p["approval-reference"]
+        self.assertFails(run(profile_mutate=prof, rc=True), "not-permitted")
+
+    def test_delete_on_knowledge_ingest_is_rejected_even_when_approved(self):
+        def prof(p):
+            open_delete(p)
+            approve(p)
+        self.assertFails(run(profile_mutate=prof, rc=True), "not-permitted")
+
+    def test_delete_grant_for_non_lint_capability_is_rejected_in_rc(self):
+        def prof(p):
+            open_apply(p)
+            approve(p)
+        for cap in ("knowledge.ingest", "knowledge.other"):
+            with self.subTest(capability=cap):
+                add = lambda g, c=cap: g["grants"].append({"capability": c, "operation-class": "delete"})  # noqa: E731
+                self.assertFails(run(profile_mutate=prof, grants_mutate=add, rc=True), "not-permitted")
+
+    def test_delete_on_knowledge_lint_approved_is_accepted(self):
+        self.assertEqual(self.lint(lambda p: (open_delete(p), approve(p)))["result"], "pass")
+
+    def test_delete_on_knowledge_lint_without_approval_is_rejected(self):
+        self.assertFails(self.lint(open_delete), "not-permitted")
+
+    def test_rc_still_applies_the_other_rules(self):
+        def prof(p):
+            open_apply(p)
+            approve(p)
+        self.assertFails(run(profile_mutate=prof, rc=True, mutate=lambda e: e.update({"status": "done"})), "invalid-request")
+        self.assertFails(run(profile_mutate=prof, rc=True, mutate=lambda e: e["extensions"].update(
+            {"org.example.demo.grant-delete": 1})), "not-permitted")
+        self.assertFails(run(profile_mutate=lambda p: (prof(p), p.update({"seam-versions": ["0.1.0-rc.1"]})), rc=True),
+                         "invalid-request")
+        self.assertFails(run(profile_mutate=lambda p: (prof(p), p.update({"capability-version": "0.1.0-rc.1"})), rc=True,
+                             mutate=lambda e: e.update({"capability-version": "0.1.0-rc.1"})), "invalid-request")
+
+    def test_rc_apply_mode_permits_an_approved_apply_change_grant(self):
+        def prof(p):
+            open_apply(p)
+            approve(p)
+
+        def grants(g):
+            g["mode"] = "apply"
+            g["grants"].append({"capability": "knowledge.ingest", "operation-class": "apply-change"})
+
+        def env(e):
+            e["mutation-summary"]["apply-change"].update({"requested": 1, "granted": 1, "applied": 1})
+            e["disposition"] = "applied"
+        self.assertEqual(run(env, prof, grants, rc=True)["result"], "pass")
+        # Without --rc the same inputs fail.
+        self.assertFails(run(env, prof, grants), "not-permitted")
+
+    def test_rc_banner_is_printed_only_with_the_flag(self):
+        import subprocess
+        script = os.path.join(ROOT, "scripts", "seam_conformance.py")
+        args = ["--envelope", os.path.join(FIX, "envelope-report-only.json"), "--profile", PROFILE,
+                "--grants", os.path.join(FIX, "grants-report-only.json")]
+        plain = subprocess.run([sys.executable, script, *args], capture_output=True, text=True)
+        self.assertEqual(plain.stderr, "")
+        rc = subprocess.run([sys.executable, script, "--rc", *args], capture_output=True, text=True)
+        self.assertEqual(rc.returncode, 0)
+        self.assertIn("DRAFT", rc.stderr)
+        self.assertIn("does not verify that an approval is genuine", rc.stderr)
+        self.assertEqual(json.loads(rc.stdout)["result"], "pass")
 
 
 class PublishedExamples(unittest.TestCase):
