@@ -12,7 +12,7 @@ A check that could not be completed is never set to true. Record it under "Not v
 | Field | True when |
 |---|---|
 | `record_set_complete` | The start marker and run note exist, ids are consistent, and no audit note existed before this one |
-| `snapshot_verified` | The snapshot named `auto-daily-auto-YYYYMMDD-000000` (date from `start_time_utc`) exists and was created before the `-start` time |
+| `snapshot_verified` | False when the `-start` note is missing (the date cannot be fixed; list it under "Not verifiable"). Otherwise true when the snapshot named `auto-daily-auto-YYYYMMDD-000000` (date from `start_time_utc`) exists and was created before the `-start` time |
 | `manifest_verified` | The manifest and the independent diff list the same changes (runbook V2); `pending` if not verifiable |
 | `status_trust_check` | No stored status or trust field and no trust-asserting wording (V4) |
 | `provenance_check` | Every written note has `authored_by`, `agent_model`, `run_id`, and compiled notes have provenance links (V4) |
@@ -25,7 +25,6 @@ A check that could not be completed is never set to true. Record it under "Not v
 ---
 title: <run-id>-audit
 type: operation-audit
-permalink: <workspace>/sk-wiki/operations/<run-id>-audit
 run_id: audit-<YYYY-MM-DD>-<seq>
 target_run_id: <run-id>
 auditor: <auditor tool and model>
@@ -60,4 +59,4 @@ Each check or item that could not be completed, with the reason.
 Authorship was not used (the account owner appears as author for ChatGPT writes).
 ```
 
-Keep the body free of absolute and trust wording. Do not add a trust or confirmation field.
+Do not write a `permalink` field: the tool assigns it from the title and folder, as the run records do. The SW spec lists `permalink` as required, so this is a conflict for the owner to settle. Keep the body free of absolute and trust wording. Do not add a trust or confirmation field.

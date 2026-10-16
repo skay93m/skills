@@ -7,7 +7,7 @@
 - Mirrors the seam draft on the `feat/109-go-live` branch at commit `c7efc6581f85aac6e91ff1b684981f6e8daa1242` (it contains the `feat/109-seam` work up to `3441ecf7d7229b7286ba3dfa78816de1bb7d0f7f`). Those files are not on `main` yet: `docs/seam/envelope.md`, `profiles.md`, `terms.md`, `tokens.md`, `profiles/knowledge-ingest-0.1.0.json`, `scripts/seam_conformance.py`, `tests/test_seam_conformance.py`.
 - This draft sits beside them without editing them. When those files reach `main`, rebase this branch, then fold the changes in section 8 into `envelope.md` and `profiles.md` and delete the duplicated wording here.
 - Profile files here use the same JSON format as `profiles/knowledge-ingest-0.1.0.json` and the suffix `-rc.1` so they do not collide with it.
-- Wiki-specific identifiers, checksums, approvals and backend details stay private to the Wiki side. Examples below are synthetic.
+- Wiki-specific identifiers, checksums, approvals and non-public backend details stay private to the Wiki side. Examples below are synthetic.
 
 ## 1. Namespace
 
@@ -40,13 +40,13 @@ An `apply` run under these profiles must follow every rule. A request that break
 8. **No stored trust or status.** No note carries a trust, confirmation or authority field. Compiled wording is attributed and hedged, with no absolute claims. Operational run status on run records is a technical state, not trust.
 9. **Provenance.** Every written note records its author, model and run reference.
 10. **Index and log.** The log is append-only, one entry per run, with a presence check. The index is append-only except a guarded stale-index rewrite. If an index or log edit fails after the content write, the run records "index/log pending" and does not retry blindly.
-11. **First-run limit.** While the owner's first-run limit holds, the only writes are the run's start marker and run record. The limit lifts when the owner says so or after an audit passes.
+11. **First-run limit.** While the owner's first-run limit holds, the only writes are the run's start marker and run record. The owner lifts the limit, after an audit passes or earlier on instruction. It does not lift by itself.
 
 Checksums, permalinks and note content never cross the public seam (see the crossing rule in `envelope.md`). The guard values are private; only the tokens in section 2 are public.
 
 ## 4. Snapshot precondition
 
-- The backend takes a daily automatic snapshot of the whole store on a published schedule, before the run window. The snapshot name is derived from the UTC date by a rule the Wiki side owns and keeps private.
+- The backend takes a daily automatic snapshot of the whole store on a published schedule, before the run window. The name follows a published pattern (`auto-daily-auto-YYYYMMDD-000000` on the current backend), derived from the UTC date; which backend and which time stay with the Wiki side.
 - A scheduled run starts after the snapshot time plus a safety margin and aborts before any write if the UTC clock is earlier or unavailable. It derives the snapshot name from the UTC date it read, and records it.
 - The run cannot create, list or verify snapshots. It must not claim that it did. An independent auditor checks that the snapshot exists and was taken before the run started, and flags the run if it is missing.
 - Restoring from a snapshot is never done by a run or an auditor. It is a human action, by path.
