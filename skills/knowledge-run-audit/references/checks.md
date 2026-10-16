@@ -19,7 +19,7 @@ A check that could not be completed is never set to true. Record it under "Not v
 | `non_absolute_wording_check` | No unhedged absolute wording in written notes (V4) |
 | `deletion_allowlist_check` | Every deletion matches the allowlist with a complete manifest row (V3); true when there are no deletions |
 | `out_of_scope_writes_check` | No write outside the scope for the first-run flag (V5) |
-| `revision_pin_check` | For an unattended run, `loaded_revision` and `approved_revision` are both present as full 40-hex SHAs in the start marker and run note, and equal (V1b). False on mismatch or absence; `pending` if the notes cannot be read |
+| `revision_pin_check` | Consistency of `supervised`, `loaded_revision` and `approved_revision` (V1b). Unattended (`supervised: false`, or not `true`): both present as full 40-hex SHAs in the start marker and run note, and equal; false on a missing or unequal `approved_revision`. Supervised: `approved_revision` may be `none`. `pending` if the notes or the `supervised` value cannot be read |
 | `permalink_form_check` | Manifest and `audit_result` permalinks use the form the tool returns for the same note, not a hand-built prefix (V2) |
 
 ## Template

@@ -11,7 +11,7 @@ metadata:
 
 Draft. Not reviewed, not ratified. Run it only after the owner has approved the audit procedure.
 
-An independent CLI agent runs this once after each scheduled run on the `sk-wiki` project. It checks what the run did, then records the result in one new note. It never changes anything it audits.
+An independent CLI agent runs this once after each Run (one scheduled execution; its record set is `<run-id>-start`, `<run-id>`, `<run-id>-audit`; lint and ingest are Operations inside it) on the `sk-wiki` project. It checks what the run did, then records the result in one new note. It never changes anything it audits.
 
 ## Hard rules
 - Read-only on every audited note. Never edit, restore, move or delete any note, snapshot or project. Never run `bm cloud restore`.
@@ -21,7 +21,7 @@ An independent CLI agent runs this once after each scheduled run on the `sk-wiki
 - Do not infer authorship. ChatGPT writes show `created_by` as the account owner, so authorship cannot identify the run. Attribute by the run's manifest and the time window only.
 
 ## Inputs
-Run id (`YYYY-MM-DD-<op>-<seq>`), project `sk-wiki`, the first-run scope flag (`first-run-limited` or `lifted`), and the auditor's own model id.
+Run id (`YYYY-MM-DD-<run-type>-<seq>`, for example `2026-10-16-daily-01`), project `sk-wiki`, the first-run scope flag (`first-run-limited` or `lifted`), the launcher's `supervised` value (`false` for an unattended run; the owner supplies it, and the start marker's preflight declarations should repeat it), and the auditor's own model id.
 
 ## Procedure
 Follow `references/runbook.md` in PLAN, VALIDATE, EXECUTE order. If PLAN fails in a way that prevents a diff, still write an audit note with status `pending` or `flagged`.
@@ -38,7 +38,7 @@ Each maps to one field in the audit note. Evidence rules are in `references/chec
 - Deletions only on the allowlist, each with permalink, rule and before-checksum.
 - No stored status or trust field, and no trust-asserting or absolute wording, in notes the run wrote.
 - Provenance on every written note: `authored_by`, `agent_model`, `run_id`.
-- Revision pin. For an unattended run, `loaded_revision` equals `approved_revision` (both full 40-hex SHAs); a mismatch or a missing field is flagged.
+- Revision pin and supervision. Take `supervised` from the Inputs (the launcher value) and from the start marker's preflight declarations. An unattended run (`supervised: false`, or absent: anything but `true` is unattended) needs `loaded_revision` and `approved_revision` as full 40-hex SHAs and equal; a missing or unequal `approved_revision` is flagged. Only a supervised run may record `approved_revision: none`.
 - Writes within scope. While the first-run limit holds, the only creates are `operations/<run-id>-start` and `operations/<run-id>`.
 
 ## Limits to state in the note

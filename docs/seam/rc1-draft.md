@@ -84,11 +84,15 @@ Extensions sit in one container, and an extension is identified by its namespace
 
 An extension may not redefine or shadow a core field, add a vocabulary value or widen a grant. The name and value rules in `envelope.md` section 6 still apply. For rc.1 the container keeps flat `<namespace>.<name>` keys with scalar values; required extensions are deferred.
 
+## Approval fields
+
+The two rc.1 profile files intentionally carry no `approval-state` and no `approval-reference`. Those fields assert that the owner approved the allowlist, and only the owner can issue that approval; an agent or a draft must not write it. As committed, `seam_conformance.py --rc` therefore rejects both files with rule `rc-approval-state` until the owner issues an approval reference, and the default check rejects them by design (they open `apply`, `apply-change` and, for lint, `delete`). `tests/test_rc1_profiles.py` loads both files, asserts both rejections, and builds in-memory copies with a clearly labelled placeholder approval (never written to disk) to show that the approval is the only remaining gap. The `--rc` check does not verify that an approval is genuine. The decision is recorded in `docs/adr/0001-guarded-unattended-mutation-profiles.md` (Proposed).
+
 ## 7. Open points, with defaults applied (owner to confirm)
 
 - `unsupported` is not in the closed error-category list. Default applied: it maps to `invalid-request` in rc.1; a new value would be a breaking change.
 - Required and optional markers, and a container keyed by namespace, are not in `envelope.md`. Default applied: keep flat scalar keys and defer required extensions.
-- `seam_conformance.py` rejects any profile with the `apply` mode or the `apply-change` or `delete` classes, and rejects a `delete` grant. These profiles fail it by design. No test was added or changed.
+- Default `seam_conformance.py` rejects any profile with the `apply` mode or the `apply-change` or `delete` classes, and rejects a `delete` grant. These profiles fail the default check by design. The opt-in `--rc` mode (see "Approval fields" below) accepts such a profile only with an owner-issued approval.
 - An rc suffix on versions is not accepted by the checker. Default applied: keep `0.1.0` values and tell the files apart by name; the checker change belongs on the `feat/109` branches, later.
 - First run: default applied, no log or index entry.
 - ADR 0002 says the next run aborts when a `-start` has no run note; the decisions record says the run records it and proceeds. This draft and the prompts follow the decisions record. Owner to confirm, and the ADR wording may need amending.
