@@ -49,4 +49,11 @@ Only these rules change under `--rc`:
 - A profile may list `delete` only if its capability is `knowledge.lint` and it carries the same two approval fields. Any other capability keeps `delete` rejected, and a `delete` grant is accepted only for `knowledge.lint`.
 - In the `apply` mode, the mode permits every class; the grant and the profile still decide.
 
+- If the envelope reports anything applied (a `mutation-summary` row or `counts.applied` above zero), its `approval-state` must be `approved` or `not-required`; `pending` or `denied` is rejected as `rc-envelope-approval`.
+- A `delete` grant must be for `knowledge.lint` and for the run's own capability.
+
+Only the exact flag `--rc` enables the mode (no abbreviations, no `--rc=value`). In the library, `rc` is keyword-only and only the boolean `True` enables it. An `--rc` result carries an extra key, `"check": "rc-draft"`; default-mode output is unchanged and has no such key. **An rc pass must never be copied into a profile's `conformance-status`**, and CI must never run `--rc` on production profiles (a test guards the workflows and `scripts/check-standard.py`).
+
+Limits of the check: the approval reference is format-only. It is not tied to a capability, a version or a grant set, so one reference can be reused across profiles. The checker also cannot enforce the deletion-allowlist rules of the rc.1 draft (near-duplicates, scratch notes, empty fixtures); those stay with the backend and the owner.
+
 Everything else still applies: closed vocabularies, extension and leak rules, and the `0.x.y` version patterns (no `-rc.N` suffix). The two approval fields are the only approval data a public profile carries; the approval record stays private. The checker cannot tell a real approval from a made-up reference.

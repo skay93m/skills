@@ -134,7 +134,8 @@ def check_rc_approval(profile):
     _need(isinstance(ref, str) and REF_APPROVAL.fullmatch(ref), "rc-approval-reference", "not-permitted")
 
 
-def check_profile(profile, env, rc=False):
+def check_profile(profile, env, *, rc=False):
+    rc = rc is True  # only the real boolean True enables rc
     fields = ("seam-versions", "capability", "capability-version", "execution-modes", "supported-extensions",
               "allowed-operation-classes", "backend-constraint-tokens", "conformance-status")
     _need(isinstance(profile, dict) and all(f in profile for f in fields), "profile-shape")
@@ -158,8 +159,9 @@ def check_profile(profile, env, rc=False):
           and env["seam-version"] in profile["seam-versions"], "profile-mismatch")
 
 
-def effective_classes(profile, grants, env, rc=False):
+def effective_classes(profile, grants, env, *, rc=False):
     """Classes a run may use: granted AND inside the mode AND allowed by the profile."""
+    rc = rc is True
     _need(isinstance(grants, dict) and isinstance(grants.get("grants"), list), "grant-set-shape")
     ref = grants.get("grant-reference")
     _need(isinstance(ref, str) and (ref == "" or REF_GRANT.fullmatch(ref)), "grant-set-shape")
@@ -170,9 +172,11 @@ def effective_classes(profile, grants, env, rc=False):
     for entry in grants["grants"]:
         _need(isinstance(entry, dict) and entry.get("operation-class") in OPERATION_CLASSES
               and isinstance(entry.get("capability"), str), "grant-set-shape")
-        # Default mode: delete is never granted. --rc: the profile check already gated it.
+        # Default mode: delete is never granted. --rc: a delete grant must be for knowledge.lint
+        # AND for this run's own capability; the profile check gates the profile side separately.
         _need(rc or entry["operation-class"] != "delete", "delete-never-granted", "not-permitted")
-        _need(not rc or entry["operation-class"] != "delete" or entry["capability"] == RC_DELETE_CAPABILITY,
+        _need(not rc or entry["operation-class"] != "delete"
+              or (entry["capability"] == RC_DELETE_CAPABILITY and entry["capability"] == env["capability"]),
               "delete-never-granted", "not-permitted")
         if entry["capability"] == env["capability"]:
             granted.add(entry["operation-class"])
@@ -181,9 +185,13 @@ def effective_classes(profile, grants, env, rc=False):
     return granted & set(mode_classes.get(mode, ())) & set(profile["allowed-operation-classes"]), ref
 
 
-def check_permissions(env, profile, grants, rc=False):
-    allowed, ref = effective_classes(profile, grants, env, rc)
+def check_permissions(env, profile, grants, *, rc=False):
+    rc = rc is True
+    allowed, ref = effective_classes(profile, grants, env, rc=rc)
     summary = env["mutation-summary"]
+    if rc and (env["counts"]["applied"] > 0 or any(row["applied"] > 0 for row in summary.values())):
+        # --rc only: something was applied, so the envelope must not say the approval is pending or denied.
+        _need(env["approval-state"] in ("approved", "not-required"), "rc-envelope-approval", "not-permitted")
     refusal_needed = False
     for op, row in summary.items():
         if op in allowed:
@@ -201,13 +209,23 @@ def check_permissions(env, profile, grants, rc=False):
     _need(env["grant-reference"] == expected, "grant-reference", "not-permitted")
 
 
-def check(envelope, profile, grants, rc=False):
-    """Return {"result", "error-category", "rule", "conformance-status"}."""
+def check(envelope, profile, grants, *, rc=False):
+    """Return {"result", "error-category", "rule", "conformance-status"}.
+
+    rc is keyword-only and only the boolean True enables it. An rc result carries an
+    extra key, "check": "rc-draft", so it is never mistaken for a default-mode result.
+    """
+    rc = rc is True
+    result = _check(envelope, profile, grants, rc)
+    return dict(result, check="rc-draft") if rc else result
+
+
+def _check(envelope, profile, grants, rc):
     try:
         check_shape(envelope)
         check_extensions(envelope)
-        check_profile(profile, envelope, rc)
-        check_permissions(envelope, profile, grants, rc)
+        check_profile(profile, envelope, rc=rc)
+        check_permissions(envelope, profile, grants, rc=rc)
     except Fail as f:
         return _verdict(f)
     return _verdict(None)
@@ -220,7 +238,7 @@ def _verdict(fail):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0], allow_abbrev=False)
     ap.add_argument("--envelope", required=True)
     ap.add_argument("--profile", required=True)
     ap.add_argument("--grants", required=True)

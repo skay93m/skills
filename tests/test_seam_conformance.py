@@ -377,10 +377,28 @@ class RcMode(Verdict):
         def prof(p):
             open_apply(p)
             approve(p)
-        for cap in ("knowledge.ingest", "knowledge.other"):
-            with self.subTest(capability=cap):
-                add = lambda g, c=cap: g["grants"].append({"capability": c, "operation-class": "delete"})  # noqa: E731
-                self.assertFails(run(profile_mutate=prof, grants_mutate=add, rc=True), "not-permitted")
+        add = lambda g: g["grants"].append({"capability": "knowledge.other", "operation-class": "delete"})  # noqa: E731
+        result = run(profile_mutate=prof, grants_mutate=add, rc=True)
+        self.assertFails(result, "not-permitted")
+        self.assertEqual(result["rule"], "delete-never-granted")
+
+    def test_delete_grant_on_knowledge_ingest_run_is_rejected_in_rc(self):
+        def prof(p):
+            open_apply(p)
+            approve(p)
+        add = lambda g: g["grants"].append({"capability": "knowledge.ingest", "operation-class": "delete"})  # noqa: E731
+        result = run(profile_mutate=prof, grants_mutate=add, rc=True)
+        self.assertFails(result, "not-permitted")
+        self.assertEqual(result["rule"], "delete-never-granted")
+
+    def test_lint_delete_grant_inside_an_ingest_run_is_rejected_in_rc(self):
+        def prof(p):
+            open_apply(p)
+            approve(p)
+        add = lambda g: g["grants"].append({"capability": "knowledge.lint", "operation-class": "delete"})  # noqa: E731
+        result = run(profile_mutate=prof, grants_mutate=add, rc=True)
+        self.assertFails(result, "not-permitted")
+        self.assertEqual(result["rule"], "delete-never-granted")
 
     def test_delete_on_knowledge_lint_approved_is_accepted(self):
         self.assertEqual(self.lint(lambda p: (open_delete(p), approve(p)))["result"], "pass")
@@ -428,6 +446,130 @@ class RcMode(Verdict):
         self.assertIn("DRAFT", rc.stderr)
         self.assertIn("does not verify that an approval is genuine", rc.stderr)
         self.assertEqual(json.loads(rc.stdout)["result"], "pass")
+
+
+def lint_apply_run(mode="apply", approval="approved", delete_applied=1):
+    """(envelope, profile, grants) for a knowledge.lint run that applies a delete."""
+    env, prof, grants = base()
+    for d in (env, prof):
+        d["capability"] = "knowledge.lint"
+    open_apply(prof)
+    open_delete(prof)
+    approve(prof)
+    grants["mode"] = mode
+    grants["grants"] = [{"capability": "knowledge.lint", "operation-class": c} for c in ("read", "write-report", "delete")]
+    env["approval-state"] = approval
+    env["disposition"] = "applied"
+    env["counts"]["applied"] = delete_applied
+    env["mutation-summary"]["delete"].update({"requested": delete_applied, "granted": delete_applied, "applied": delete_applied})
+    return env, prof, grants
+
+
+class RcHardening(Verdict):
+    def test_rc_must_be_the_boolean_true_and_keyword_only(self):
+        env, prof, grants = base()
+        open_apply(prof)
+        approve(prof)
+        for bad in ("false", "0", "true", "", [0], [1], 1, "rc", {}):
+            with self.subTest(rc=bad):
+                self.assertFails(sc.check(env, prof, grants, rc=bad), "not-permitted")
+        self.assertEqual(sc.check(env, prof, grants, rc=True)["result"], "pass")
+        with self.assertRaises(TypeError):
+            sc.check(env, prof, grants, True)
+        for fn in (sc.check_profile, sc.effective_classes, sc.check_permissions):
+            with self.subTest(fn=fn.__name__):
+                with self.assertRaises(TypeError):
+                    fn(prof, env, True) if fn is sc.check_profile else fn(prof, grants, env, True)
+
+    def test_default_stdout_is_pinned_and_rc_is_marked(self):
+        self.assertEqual(run(), {"result": "pass", "error-category": "", "rule": "", "conformance-status": "passed"})
+        self.assertEqual(run(rc=True)["check"], "rc-draft")
+        self.assertNotIn("check", run(profile_mutate=open_apply))
+        self.assertEqual(run(profile_mutate=open_apply, rc=True)["check"], "rc-draft")
+
+    def test_applied_requires_envelope_approval_in_rc(self):
+        for state in ("denied", "pending"):
+            with self.subTest(state=state):
+                env, prof, grants = lint_apply_run(approval=state, delete_applied=5)
+                result = sc.check(env, prof, grants, rc=True)
+                self.assertFails(result, "not-permitted")
+                self.assertEqual(result["rule"], "rc-envelope-approval")
+        for state in ("approved", "not-required"):
+            with self.subTest(state=state):
+                env, prof, grants = lint_apply_run(approval=state, delete_applied=5)
+                self.assertEqual(sc.check(env, prof, grants, rc=True)["result"], "pass")
+
+    def test_applied_counts_alone_also_require_approval(self):
+        env, prof, grants = base()
+        open_apply(prof)
+        approve(prof)
+        env["counts"]["applied"] = 1
+        env["approval-state"] = "denied"
+        self.assertEqual(sc.check(env, prof, grants, rc=True)["rule"], "rc-envelope-approval")
+
+    def test_lint_delete_run_passes_in_apply_mode_only(self):
+        env, prof, grants = lint_apply_run()
+        self.assertEqual(sc.check(env, prof, grants, rc=True)["result"], "pass")
+        env, prof, grants = lint_apply_run(mode="propose-only")
+        self.assertFails(sc.check(env, prof, grants, rc=True), "not-permitted")
+        env, prof, grants = lint_apply_run()
+        self.assertFails(sc.check(env, prof, grants), "not-permitted")  # default mode
+
+
+class RcCommandLine(unittest.TestCase):
+    SCRIPT = os.path.join(ROOT, "scripts", "seam_conformance.py")
+
+    def invoke(self, profile, *flags):
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            pp = os.path.join(d, "profile.json")
+            with open(pp, "w", encoding="utf-8") as f:
+                json.dump(profile, f)
+            return subprocess.run(
+                [sys.executable, self.SCRIPT, *flags, "--envelope", os.path.join(FIX, "envelope-report-only.json"),
+                 "--profile", pp, "--grants", os.path.join(FIX, "grants-report-only.json")],
+                capture_output=True, text=True)
+
+    def test_approved_apply_profile_needs_the_flag(self):
+        _, prof, _ = base()
+        open_apply(prof)
+        approve(prof)
+        plain = self.invoke(prof)
+        self.assertEqual(plain.returncode, 1)
+        self.assertEqual(json.loads(plain.stdout)["rule"], "profile-mode")
+        self.assertNotIn("check", json.loads(plain.stdout))
+        flagged = self.invoke(prof, "--rc")
+        self.assertEqual(flagged.returncode, 0)
+        self.assertEqual(json.loads(flagged.stdout)["check"], "rc-draft")
+
+    def test_report_only_profile_passes_both_ways(self):
+        _, prof, _ = base()
+        self.assertEqual(self.invoke(prof).returncode, 0)
+        self.assertEqual(self.invoke(prof, "--rc").returncode, 0)
+
+    def test_only_the_exact_flag_enables_rc(self):
+        _, prof, _ = base()
+        open_apply(prof)
+        approve(prof)
+        for flag in ("--r", "--rc=1", "--rc=true", "-rc", "--RC", "--rcx"):
+            with self.subTest(flag=flag):
+                done = self.invoke(prof, flag)
+                self.assertEqual(done.returncode, 2)
+                self.assertNotIn("rc-draft", done.stdout)
+
+
+class CiNeverRunsRc(unittest.TestCase):
+    def test_no_workflow_or_standard_check_invokes_rc(self):
+        paths = [os.path.join(ROOT, "scripts", "check-standard.py")]
+        wf = os.path.join(ROOT, ".github", "workflows")
+        if os.path.isdir(wf):
+            paths += [os.path.join(wf, n) for n in sorted(os.listdir(wf))]
+        for path in paths:
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+            if "seam_conformance" in text:
+                self.assertNotIn("--rc", text, path)
 
 
 class PublishedExamples(unittest.TestCase):
