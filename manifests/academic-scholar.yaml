@@ -1,0 +1,26 @@
+name: academic-scholar
+description: Academic scholarship and postgraduate supervisory coach enforcing strict student-authored prose, OSCOLA legal citation verification, and rigorous ethical-legal argument analysis. Use when preparing academic essays, verifying primary legal authorities, analyzing mental health law, or reviewing ethical arguments.
+disable-model-invocation: true
+user-invoked: true
+version: 0.2.0
+provenance: original
+budgets:
+  line-budget: 100
+  token-budget: 700
+references:
+  - student-authored-invariant.md
+  - legal-citation-standards.md
+scripts: []
+artifacts:
+  produces: true
+  contracts:
+    - name: supervisory-feedback
+      template: templates/supervisory-feedback.template.md
+      example: examples/supervisory-feedback.example.md
+router:
+  domain: scholarship
+  intents:
+    - "academic scholar"
+    - "msc supervisory coaching"
+    - "legal citation check"
+    - "student authored invariant"

@@ -1,0 +1,26 @@
+name: thinking-partner
+description: Oxford tutorial Socratic sparring partner and cognitive challenger stress-testing assumptions, exploring failure modes, and formulating Architecture Decision Records. Use when evaluating hard decisions, stress-testing system architecture, surfacing hidden risks, or authoring ADRs.
+disable-model-invocation: true
+user-invoked: true
+version: 0.2.0
+provenance: original
+budgets:
+  line-budget: 100
+  token-budget: 700
+references:
+  - socratic-sparring-method.md
+  - adr-formulation-guide.md
+scripts: []
+artifacts:
+  produces: true
+  contracts:
+    - name: concept-adr
+      template: templates/concept-adr.template.md
+      example: examples/concept-adr.example.md
+router:
+  domain: cognition
+  intents:
+    - "thinking partner"
+    - "socratic sparring"
+    - "stress test assumptions"
+    - "formulate adr"
