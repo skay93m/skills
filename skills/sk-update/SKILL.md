@@ -1,28 +1,29 @@
 ---
 name: sk-update
-description: Runs the deterministic terminal script to update all agent skills and auto-heal any configuration drift.
+description: Retired legacy skill. Superseded by agent-ecosystem. Retained as a fail-closed tombstone through v0.3.0. Use when migrating legacy workflows to agent-ecosystem.
+disable-model-invocation: true
+user-invoked: true
+metadata:
+  origin: original
+  agent_involvement: full
+  category: tombstone
 ---
 
-# sk-update
+# SAFE TOMBSTONE: sk-update (RETIRED)
 
-This skill delegates the task of updating centralized repositories and verifying configuration integrity to the deterministic bash script located at `~/.local/bin/skills`. 
+> **Status**: RETIRED / DEPRECATED  
+> **Successor Module**: `agent-ecosystem`  
+> **Tombstone Policy**: Retained through Extended Tombstone Period (at least v0.3.0).
 
-This is incredibly token-efficient, as the agent does not need to perform complex git operations or read multiple configuration files manually.
+## Fail-Closed Notice
+This legacy skill has been retired and performs **zero mutations** and executes **zero scripts**.
 
-## Trigger
-
-Run this skill when:
-- The user requests to "update skills".
-- The user invokes `/sk-update`.
-- The user wants to repair configuration drift across their local agents.
-
-## Instructions
-
-When invoked, execute the following command in the terminal:
-
+## Migration
+To install and use the successor deep module:
 ```bash
-skills update --heal
+npx skills add skay93m/skills --skill agent-ecosystem
 ```
 
-### Reporting
-After the command completes, output the exact terminal response to the user. That's it!
+### Successor Mapping
+- **Retired capability**: Centralized skill updating and synchronization from golden repository manifests.
+- **Successor deep module**: `agent-ecosystem`
