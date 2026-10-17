@@ -1,0 +1,26 @@
+name: wiki-ops
+description: Karpathy-style compiled knowledge engine enforcing Basic Memory MCP compliance, structural and semantic linting, and bounded reconciliation. Use when operating on persistent knowledge, ingesting sources, running knowledge lints, or reconciling notes.
+disable-model-invocation: true
+user-invoked: true
+version: 0.2.0
+provenance: original
+budgets:
+  line-budget: 100
+  token-budget: 700
+references:
+  - basic-memory-contracts.md
+  - reconciliation-policy.md
+scripts: []
+artifacts:
+  produces: true
+  contracts:
+    - name: knowledge-report
+      template: templates/knowledge-report.template.md
+      example: examples/knowledge-report.example.md
+router:
+  domain: knowledge
+  intents:
+    - "wiki ops"
+    - "compile knowledge"
+    - "basic memory operations"
+    - "knowledge lint"
