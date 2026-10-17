@@ -6,13 +6,13 @@ Status: draft implementation contract for review, with the 2026-10-13 audit and 
 Replace the broken monolithic scheduled Wiki ingest/lint contract with three independently reviewable skills and a thin launcher. No Inbox Zero or task-assistant changes in this slice.
 
 ## Interface
-The launcher supplies `approved_commit_sha`, `run_id`, `local_date`, `index_drift_due`, `wiki_project`, `budgets` and explicitly authorised tool capabilities. The orchestrator loads two deep modules. Each module returns verified mutations, checkpoints, deferrals, failures and review findings. No module may infer user approval from an agent's analysis.
+The launcher supplies `tracking_branch` (`main`), `loaded_commit_sha` (the full commit SHA it resolved and loaded for this run; the run should record it, see the gap under Interface resolutions), an optional `approved_commit_sha` (an owner-set override for rollback or incidents), `run_id`, `local_date`, `index_drift_due`, `wiki_project`, `budgets` and explicitly authorised tool capabilities. The orchestrator loads two deep modules. Each module returns verified mutations, checkpoints, deferrals, failures and review findings. No module may infer user approval from an agent's analysis.
 
 ## Persistent state to reconcile
 Existing dated reports, raw source checksums, review queue, index policies and prior run state. Before a production run, designate one canonical rolling report, one review register and durable queue/ledger storage in the Wiki, with exact schema and write guards verified against available Basic Memory operations. Do not invent new Wiki paths merely because this draft names a conceptual store.
 
 ## Test matrix
-- Missing/unapproved Git pin: no mutation.
+- `main` unreachable or its SHA unresolvable (the launcher supplies no valid `loaded_commit_sha`), or, on the non-tracking path, an override SHA malformed or different from the loaded revision: no mutation.
 - Incomplete Wiki search pagination: no false all-clear.
 - Unchanged raw source: incremental skip but eventual historical rotation.
 - New/changed raw source: provenance retained and checksum recorded.
@@ -28,7 +28,7 @@ Existing dated reports, raw source checksums, review queue, index policies and p
 
 ## Deployment gates
 1. Review this spec and skill contracts.
-2. Confirm real tool support for pinned revision, guarded writes and durable state.
+2. Confirm real tool support for resolving and recording the loaded revision, guarded writes and durable state.
 3. Add deterministic tests and run a read-only dry run.
 4. Reconcile historical Wiki state and perform a controlled non-destructive test.
 5. Obtain explicit owner approval before editing the disabled ChatGPT automation prompt or enabling it.
@@ -47,7 +47,7 @@ Existing dated reports, raw source checksums, review queue, index policies and p
 | Complete listing | `list_directory` returns `total`, `has_more` | Only proof of completeness |
 | Search completeness | `search_notes` reports `total_is_exact: false` | Never use search for an all-clear |
 | Version history | `list_note_versions` | Reversal source |
-| Git pin, locks, multi-note transactions | Absent | Pin is launcher-verified; cross-note writes are not atomic |
+| Git revision, locks, multi-note transactions | Absent | The loaded revision is launcher-resolved and verified; cross-note writes are not atomic |
 
 ### Persistence gaps (not resolved by this slice; owner designation needed)
 1. No rolling operational report exists. Today's ledger is dated `reports/YYYY-MM-DD-ingest.md` and `-lint.md` notes with frontmatter `run_id`, `status`, `index_drift_due`. They record no per-source checksums, so no checksum ledger can be reconstructed from them.
@@ -56,7 +56,7 @@ Existing dated reports, raw source checksums, review queue, index policies and p
 4. Index policy fields were found missing on at least one root folder (`SCHED-007`, awaiting response).
 
 ### Interface resolutions
-- `request` fields: `approved_commit_sha`, `loaded_commit_sha`, `wiki_project`, `run_id`, `budgets.sources`. A pin that is absent, not a 40-character SHA, or different from the loaded revision blocks the run with no tool calls.
+- `request` fields: `tracking_branch`, `loaded_commit_sha`, optional `approved_commit_sha`, `wiki_project`, `run_id`, `budgets.sources`. By default the launcher tracks `main`, resolves its latest commit SHA at run start and supplies it as `loaded_commit_sha`. If `main` cannot be fetched or its SHA cannot be resolved, the launcher fails closed by not supplying a valid `loaded_commit_sha`. `preflight` does not fetch anything and does not check that `tracking_branch` is `main`; it enforces only that `loaded_commit_sha` is a 40-character lowercase hex SHA when `tracking_branch` is set, and otherwise blocks with no tool calls. An explicit `approved_commit_sha` is an owner-set override for rollback or incidents. Today `preflight` enforces it only on the non-tracking path (`tracking_branch` absent): it must be a valid SHA and equal `loaded_commit_sha`, else the run is `blocked`. When `tracking_branch` is set the override is ignored, including a malformed or mismatched one. Open question for the owner: should an override take precedence over tracking, or should a supplied override be validated even in a tracking run? Known gap (follow-up, not fixed in this wording-only change): the run should record `loaded_commit_sha` in its result and report, but the code sets `revision` from `approved_commit_sha`, so a tracking run reports `Revision: None`.
 - Modes: `blocked` (no calls), `read_only` (evidence and reporting; mutations discarded and counted), `full`. Missing checksum, guarded-write, exclusive-create or listing-total support, an undesignated report, register or ledger, or unreconciled history all force `read_only`.
 - Resume: the ledger note holds a `km-state` fenced JSON block (`run_id`, `ledger`, `cursor`, `deferred`, `lint_queue`, `done`), written through `checkpoint` after every item. `load_state` fails closed on anything unparseable. A crashed run with the same `run_id` skips `done` items; a new run skips unchanged checksums and advances only the rotation cursor.
 - Verification: every write is checksum-guarded and reread; a conflict blocks that item only; an uncertain response is reread, never repeated. Items are ledgered only when all their applicable writes verified.
@@ -67,7 +67,7 @@ Existing dated reports, raw source checksums, review queue, index policies and p
 ### Dry run result
 The committed synthetic snapshot `tests/fixtures/dry_run_snapshot.json` runs the whole workflow read-only: `python3 scripts/knowledge_maintenance.py tests/fixtures/dry_run_snapshot.json` selects a changed, a new and a rotated source, lists the settled provenance write as would-apply, turns a novel relation and a task lifecycle proposal into review findings, caps lint scope, applies index policies (`repair_allowed`, `check_only`, `inspect_only`), reports missing Drive access, and writes nothing. `tests.test_knowledge_maintenance.DryRunFixture` asserts this output. Live observation:
 
-Read-only inspection of the live Wiki, then the planner on a snapshot (109 `raw/` notes, no checksum ledger): with no pin the run is `blocked` and does nothing. With a placeholder pin it is `read_only`, selects 10 of 109 sources, defers 99, discards all mutations, and lists four reasons: no designated report, register or ledger, and unreconciled history. No Wiki write, scheduler change or Drive access occurred.
+Read-only inspection of the live Wiki, then the planner on a snapshot (109 `raw/` notes, no checksum ledger): with no resolvable loaded SHA the run is `blocked` and does nothing. With a placeholder SHA it is `read_only`, selects 10 of 109 sources, defers 99, discards all mutations, and lists four reasons: no designated report, register or ledger, and unreconciled history. No Wiki write, scheduler change or Drive access occurred.
 
 ### Extended live evidence (read-only, 2026-10-13)
 - `reports/` holds 21 notes (complete listing, `has_more` false). The latest ingest and lint reports are dated 2026-10-11 (blocked ingest); none exists for 2026-10-12. Confirms reconciliation is required.
@@ -79,7 +79,7 @@ Read-only inspection of the live Wiki, then the planner on a snapshot (109 `raw/
 1. Owner reviews this slice and merges to `develop` (not done here).
 2. Owner designates the rolling report, review register and checksum ledger notes, and approves the schema (including `KM-` IDs).
 3. Reconcile historical reports and the review register, including the missing 2026-10-12 run and the blocked 2026-10-11 run.
-4. Launcher supplies a verified pinned release or commit; confirm how the ChatGPT automation obtains skill files at that revision.
+4. Launcher tracks `main` and resolves and records the loaded commit SHA each run (with an optional owner-set SHA override); confirm how the ChatGPT automation obtains skill files at that revision.
 5. Controlled non-destructive test on a copy or a single approved note, with checksum guard and reversal verified.
 6. Owner approves editing and enabling the disabled automation; `sk-scheduled-ingest-lint` is already retired.
 
@@ -89,7 +89,7 @@ The owner asked for the architect's answer, derived from the approved architectu
 2. **Ledger:** a separate machine-state note, `reports/knowledge-maintenance-ledger`, holding only the `km-state` block. It is kept apart from the human-edited register so checkpoint writes do not contend with owner edits.
 3. **Review register:** the existing `tasks/wiki-semantic-lint-review.md`. New findings use `KM-` IDs and `awaiting-response`; existing `SEM-`/`SCHED-` items are never renumbered or edited.
 4. **Authority:** exactly `provenance_record`, `frontmatter_normalise`, `link_normalise`, reversible and non-semantic. The first production runs operate in report-only (`would_apply`) mode until the controlled test in gate 5 passes and the owner approves writes.
-5. **Pinning:** the launcher passes the commit SHA of an owner-approved release tag as `approved_commit_sha`. The run fails closed on a missing, malformed or mismatched pin. Gemini has no role in the scheduled run.
+5. **Revision:** the launcher tracks `main`, resolves its latest commit SHA at run start and supplies it as `loaded_commit_sha`; the run should record it (see the recording gap under Interface resolutions). An explicit `approved_commit_sha` is an optional owner-set override for rollback or incidents. The launcher fails closed by not supplying a valid `loaded_commit_sha` when `main` cannot be fetched or its SHA cannot be resolved; `preflight` enforces only the SHA shape. The override is enforced only on the non-tracking path today, and whether it should override tracking is an open owner question. Gemini has no role in the scheduled run.
 
 ### Owner mandate (2026-10-13): gates approved
 - Merge to `develop`, creation of `reports/knowledge-maintenance` and the ledger note in the live Wiki: approved.
@@ -106,4 +106,4 @@ The owner asked for the architect's answer, derived from the approved architectu
 2. Answering `SCHED-007` and reconciling the 2026-10-11 and 2026-10-12 gaps.
 3. First-run budgets and the initial `lint_queue`.
 4. How the run-time model is selected and verified; this slice only guarantees no escalation is requested.
-5. Whether the automation can load skill files at the pinned tag and verify `loaded_commit_sha` itself.
+5. Whether the automation can load skill files at the resolved revision (or at an override SHA) and verify `loaded_commit_sha` itself.
