@@ -1,0 +1,26 @@
+name: personal-cadence
+description: Executive function and ADHD momentum coach implementing Jibun Techo projections, Hermes standups, daytime energy check-ins, and Neko desktop companion coordination. Use when structuring daily momentum, conducting morning/evening reviews, managing energy transitions, or planning cadence.
+disable-model-invocation: true
+user-invoked: true
+version: 0.2.0
+provenance: original
+budgets:
+  line-budget: 100
+  token-budget: 700
+references:
+  - techo-projection-framework.md
+  - energy-momentum-protocol.md
+scripts: []
+artifacts:
+  produces: true
+  contracts:
+    - name: daily-cadence
+      template: templates/daily-cadence.template.md
+      example: examples/daily-cadence.example.md
+router:
+  domain: cadence
+  intents:
+    - "personal cadence"
+    - "adhd momentum"
+    - "jibun techo planning"
+    - "energy check in"
