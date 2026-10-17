@@ -48,13 +48,17 @@ def derived_snapshot_name(utc_date):
 
 
 def clock_ok(utc_time):
-    """True only for a well-formed HH:MM[:SS] UTC time at or after 03:15:00.
+    """True only for a well-formed HH:MM[:SS] UTC time between 02:00:00 and 06:00:00.
+
+    Accommodates British Summer Time (BST = UTC+1: 03:00 London is 02:00 UTC) as
+    well as GMT (UTC+0: 03:00 London is 03:00 UTC). Rejects times outside this
+    window (such as afternoon or late evening runs).
     Malformed input is False, so the run aborts without writing."""
     m = TIME_RE.match(utc_time) if isinstance(utc_time, str) else None
     if not m:
         return False
     h, mi, sec = int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)
-    return (h, mi, sec) >= (3, 15, 0)
+    return (2, 0, 0) <= (h, mi, sec) <= (6, 0, 0)
 
 
 def change_key(drive_file_id, size, modified_time, checksum=None):

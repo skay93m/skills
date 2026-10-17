@@ -512,8 +512,17 @@ class GuardedUnattendedRules(unittest.TestCase):
 
     def test_snapshot_name_and_clock(self):
         self.assertEqual(km.derived_snapshot_name("2026-10-16"), "auto-daily-auto-20261016-000000")
-        self.assertFalse(km.clock_ok("03:14"))
+        # BST runs (03:00 London is 02:00 UTC)
+        self.assertTrue(km.clock_ok("02:15"))
+        self.assertTrue(km.clock_ok("02:30"))
+        # GMT runs (03:00 London is 03:00 UTC)
         self.assertTrue(km.clock_ok("03:15"))
+        self.assertTrue(km.clock_ok("04:00"))
+        # Rejections outside 02:00-06:00 UTC window
+        self.assertFalse(km.clock_ok("01:59"))
+        self.assertFalse(km.clock_ok("06:01"))
+        self.assertFalse(km.clock_ok("14:00"))
+        self.assertFalse(km.clock_ok("23:59"))
 
     def test_change_key(self):
         self.assertEqual(km.change_key("f1", 10, "t"), ["f1", 10, "t"])
@@ -522,9 +531,12 @@ class GuardedUnattendedRules(unittest.TestCase):
     def test_clock_parses_time(self):
         for bad in ("3:00", "T03:00", "03:15 ", "25:00", "", None, "0315"):
             self.assertFalse(km.clock_ok(bad), bad)
+        self.assertTrue(km.clock_ok("02:00:00"))
         self.assertTrue(km.clock_ok("03:15:00"))
-        self.assertFalse(km.clock_ok("03:14:59"))
-        self.assertTrue(km.clock_ok("23:59"))
+        self.assertTrue(km.clock_ok("06:00:00"))
+        self.assertFalse(km.clock_ok("01:59:59"))
+        self.assertFalse(km.clock_ok("06:00:01"))
+        self.assertFalse(km.clock_ok("23:59"))
 
     def dele(self, entry, **kw):
         kw.setdefault("first_run_limit", False)
