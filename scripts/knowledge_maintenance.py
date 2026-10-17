@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Deterministic decision core for the daily knowledge maintenance contract.
 
+Status 2026-10-16: the guarded-unattended helpers (derived_snapshot_name,
+clock_ok, change_key, deletion_allowed, write_allowed, failed_runs) follow the
+current skills. preflight(), the km-state ledger, render_report and
+HUMAN_GATED_OPS are the earlier report-only/ledger model, kept for its tests and
+superseded by the operations/ run records; the skills no longer use them.
+
 The skills in skills/daily-knowledge-maintenance, knowledge-ingest and
 knowledge-lint are prose. This module is the executable reference for their
 settled rules, so the rules can be tested without a model or a live Wiki. It
@@ -25,6 +31,92 @@ REQUIRED_CAPABILITIES = ("checksum_read", "guarded_overwrite", "exclusive_create
                          "listing_total")
 
 
+DELETE_RULES = ("duplicate", "scratch", "fixture")
+SIMILARITY_MIN = 0.95  # proposal measure for the duplicate rule
+TIME_RE = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$")
+WORKSPACE_PREFIX = re.compile(r"^[^/]+/sk-wiki/")
+# Folders a later (not first-run-limited) run may write besides its own records.
+WRITE_FOLDERS = ("operations/issues/", "knowledge/", "source-notes/", "scratch/")
+INDEX_NOTES = ("index", "knowledge/index", "source-notes/index", "operations/issues/index")
+LOG_NOTES = ("log",)
+DELETE_FOLDERS = ("knowledge/", "source-notes/", "scratch/")
+
+
+def derived_snapshot_name(utc_date):
+    """auto-daily-auto-YYYYMMDD-000000 from a UTC date string YYYY-MM-DD."""
+    return "auto-daily-auto-%s-000000" % utc_date.replace("-", "")
+
+
+def clock_ok(utc_time):
+    """True only for a well-formed HH:MM[:SS] UTC time at or after 03:15:00.
+    Malformed input is False, so the run aborts without writing."""
+    m = TIME_RE.match(utc_time) if isinstance(utc_time, str) else None
+    if not m:
+        return False
+    h, mi, sec = int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)
+    return (h, mi, sec) >= (3, 15, 0)
+
+
+def change_key(drive_file_id, size, modified_time, checksum=None):
+    return [drive_file_id, size, modified_time] + ([checksum] if checksum else [])
+
+
+def _strip_workspace(path):
+    return WORKSPACE_PREFIX.sub("", path or "")
+
+
+def deletion_allowed(entry, run_created=(), first_run_limit=None):
+    """Allowlisted deletion only. Refused under the first-run limit (absent flag
+    counts as true). The path (workspace prefix stripped) must be in knowledge/,
+    source-notes/ or scratch/ of sk-wiki, so operations/, schemas/, index, log and
+    other projects are never deletable. Also required: rule, before checksum, a
+    computed numeric similarity >= 0.95 for duplicates, a same-run scratch/ note
+    for scratch, and for fixture an empty body with zero size or unparseable
+    frontmatter (explicit inputs body_chars, size, frontmatter_parses)."""
+    if first_run_limit is not False:
+        return False
+    rule = entry.get("allowlist_rule")
+    path = _strip_workspace(entry.get("permalink"))
+    if rule not in DELETE_RULES or not path or not entry.get("before_checksum"):
+        return False
+    if ".." in path.split("/") or not path.startswith(DELETE_FOLDERS):
+        return False
+    if rule == "duplicate":
+        score = entry.get("similarity_score")
+        if isinstance(score, bool) or not isinstance(score, (int, float)):
+            return False
+        return SIMILARITY_MIN <= score <= 1
+    if "similarity_score" in entry:
+        return False
+    if rule == "scratch":
+        return path.startswith("scratch/") and path in {_strip_workspace(p) for p in run_created}
+    body, size, parses = entry.get("body_chars"), entry.get("size"), entry.get("frontmatter_parses")
+    if isinstance(body, bool) or not isinstance(body, int) or body != 0:
+        return False
+    zero_byte = isinstance(size, int) and not isinstance(size, bool) and size == 0
+    return zero_byte or parses is False
+
+
+def write_allowed(path, first_run_limit, run_id):
+    """First-run limit (also the default when the flag is absent): only the run's
+    start and run notes. Otherwise: this run's own start/run notes, the folder
+    allowlist, the named index notes and the root log. Never -audit, other runs'
+    records, schemas/ or any other path."""
+    path = _strip_workspace(path)
+    own = ("operations/%s-start" % run_id, "operations/%s" % run_id)
+    if first_run_limit is not False:
+        return path in own
+    if ".." in path.split("/"):
+        return False
+    return path in own or path.startswith(WRITE_FOLDERS) or path in INDEX_NOTES or path in LOG_NOTES
+
+
+def failed_runs(listing):
+    """Run IDs that have a -start note but no run note."""
+    names = set(listing)
+    return sorted(n[:-6] for n in names if n.endswith("-start") and n[:-6] not in names)
+
+
 class Incomplete(Exception):
     """A paginated read did not prove it saw everything."""
 
@@ -33,28 +125,46 @@ class Conflict(Exception):
     """The target changed since it was read."""
 
 
+def revision_ok(loaded, approved, supervised=False):
+    """supervised is honoured only when it is the boolean True (strict).
+
+    Assert loaded_revision == approved_revision before any write.
+
+    Both must be full lowercase 40-hex SHAs. A supervised run may record
+    approved as None/"none" (loaded must still be a full SHA); an unattended
+    run requires an approved SHA that equals loaded. Any other input is False.
+    """
+    if not isinstance(loaded, str) or not SHA_RE.fullmatch(loaded):
+        return False
+    if supervised is True and (approved is None or approved == "none"):
+        return True
+    if not isinstance(approved, str) or not SHA_RE.fullmatch(approved):
+        return False
+    return loaded == approved
+
+
 def preflight(request, capabilities, state):
     """Return {"mode": blocked|read_only|full, "reasons": [...]}.
 
     blocked: no tool call at all. read_only: reads and reports, no mutation.
     """
     reasons = []
-    approved = request.get("approved_commit_sha") or request.get("approved_revision")
-    loaded = request.get("loaded_commit_sha")
-    tracking_branch = request.get("tracking_branch")
-    # An owner-set override wins over Tracking: it must be a full SHA and equal
-    # the Loaded revision, whether or not a tracking branch is set.
-    if approved and not SHA_RE.fullmatch(str(approved)):
-        return {"mode": "blocked", "reasons": ["approved_commit_sha override is not a full SHA"]}
-    if tracking_branch or approved:
+    approved = request.get("approved_revision") or request.get("approved_commit_sha")
+    loaded = request.get("loaded_revision") or request.get("loaded_commit_sha")
+    # Explicit launcher parameter. Only the boolean True is supervised; absent,
+    # "true", 1 or any other value is unattended (fail closed). A tracking branch
+    # implies nothing.
+    supervised = request.get("supervised") is True
+    if not revision_ok(loaded, approved, supervised):
         if not loaded or not SHA_RE.fullmatch(str(loaded)):
-            return {"mode": "blocked", "reasons": ["loaded_commit_sha missing or not a full SHA"]}
-        if approved and loaded != approved:
-            return {"mode": "blocked", "reasons": ["loaded_commit_sha does not match approved_commit_sha override"]}
-    else:
-        return {"mode": "blocked", "reasons": ["no revision to load: set a tracking branch or an approved_commit_sha override"]}
-    if request.get("wiki_project") != "wiki":
-        return {"mode": "blocked", "reasons": ["wiki_project is not the canonical project"]}
+            why = "loaded_revision missing or not a full SHA"
+        elif not approved or not SHA_RE.fullmatch(str(approved)):
+            why = "approved_revision (approved_commit_sha override) missing or not a full SHA (required for unattended runs)"
+        else:
+            why = "loaded_revision does not match approved_revision (approved_commit_sha override)"
+        return {"mode": "blocked", "reasons": [why]}
+    if request.get("wiki_project") != "sk-wiki":
+        return {"mode": "blocked", "reasons": ["wiki_project is not the canonical project (sk-wiki)"]}
     for cap in REQUIRED_CAPABILITIES:
         if not capabilities.get(cap):
             reasons.append("missing capability: " + cap)
@@ -264,7 +374,7 @@ def run(request, capabilities, state, sources, process, lint, store=None,
     store is never written; apply-class proposals are listed as would_apply.
     """
     pre = preflight(request, capabilities, state)
-    loaded = request.get("loaded_commit_sha")
+    loaded = request.get("loaded_revision") or request.get("loaded_commit_sha")
     result = {"mode": pre["mode"], "reasons": pre["reasons"], "run_id": request.get("run_id"),
               "revision": loaded if isinstance(loaded, str) and SHA_RE.fullmatch(loaded) else None,
               "completed": [], "failed": [],
