@@ -26,16 +26,6 @@ The future command-line interface to manage, verify, update, and heal agent skil
 A skill that lives in an Authorised Skill Repository other than this one. A skill here that overlaps one should extend it and record how it differs.
 _Avoid_: external skill, third-party skill
 
-### Skill revision
-
-**Tracking**:
-The launcher follows `main` and resolves its latest commit SHA at run start.
-_Avoid_: pin, approved pin
-
-**Loaded revision**:
-The full commit SHA the run actually loaded, the one that should be recorded.
-_Avoid_: pin, approved pin
-
 ### Pull request review standard
 
 **Standard**:
@@ -85,3 +75,53 @@ _Avoid_: handover prompt, fix prompt
 **Provenance**:
 The record, kept in a skill's frontmatter, of where the skill came from: its origin, how much an agent wrote, and, for a skill derived from an upstream, how it differs.
 _Avoid_: attribution, credits
+
+### Scheduled runs
+
+**Loaded revision**:
+The full 40-character commit SHA of this repository at which a scheduled run fetched its skill files. The run records it as `loaded_revision`.
+_Avoid_: pin, pinned version, approved pin
+
+**Tracking**:
+Following `main` and resolving its latest commit SHA at run start, which becomes the Loaded revision. Only a supervised run may do this; an unattended run needs an Approved revision.
+_Avoid_: pin, approved pin
+
+**Approved revision**:
+The full 40-character commit SHA the owner approved for a run. An unattended run requires it and writes nothing unless it equals the Loaded revision; a supervised run (launcher parameter `supervised: true`; anything else is unattended) may record `none`. The run records it as `approved_revision`.
+_Avoid_: approved pin, pin
+
+**Run**:
+One scheduled execution of the daily maintenance. It writes one Run record set.
+_Avoid_: job, cycle, operation
+
+**Operation**:
+One of lint or ingest, performed inside a Run. It is not the whole Run.
+_Avoid_: run, task
+
+**Run type**:
+What a Run does, such as `daily`. The run note records it as `run_type`.
+_Avoid_: operation, mode
+
+**Run record set**:
+The three notes of one Run in `sk-wiki` `operations/`: `<run-id>-start` and `<run-id>`, written by the run, and `<run-id>-audit`, written later by the Auditor.
+_Avoid_: report, ledger
+
+**First-run limit**:
+The launcher flag that confines a Run to creating its own start and run notes and deleting nothing. It is true when absent; the owner lifts it after the Auditor passes the first Run.
+_Avoid_: dry-run
+
+**Dry-run**:
+A Run that writes nothing to the Wiki, not even its start or run note, and reports to its run output only. It differs from the First-run limit, which still writes the two run notes.
+_Avoid_: first run
+
+**Deletion allowlist**:
+The closed set of rules in the knowledge skills' `references/mutation-rules.md` under which a Run may call `delete_note`, within `knowledge/`, `source-notes/` and `scratch/` only. Everything else is human-only.
+_Avoid_: delete permission
+
+**Guarded edit**:
+A Wiki write that passes the `expected_checksum` read earlier and is read back afterwards, so a note changed in between is never overwritten.
+_Avoid_: safe edit, blind overwrite
+
+**Auditor**:
+The separate agent that checks a Run afterwards and writes its `<run-id>-audit` note. The Run never writes it.
+_Avoid_: reviewer

@@ -2,7 +2,7 @@
  "request": {
   "approved_commit_sha": "1111111111111111111111111111111111111111",
   "loaded_commit_sha": "1111111111111111111111111111111111111111",
-  "wiki_project": "wiki",
+  "wiki_project": "sk-wiki",
   "run_id": "dry-run-fixture",
   "budgets": {
    "sources": 3,

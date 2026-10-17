@@ -14,7 +14,7 @@ STATE = {"report_note": "r", "review_register": "q", "ledger_note": "l",
 
 
 def request(**kw):
-    base = {"approved_commit_sha": SHA, "loaded_commit_sha": SHA, "wiki_project": "wiki",
+    base = {"approved_commit_sha": SHA, "loaded_commit_sha": SHA, "wiki_project": "sk-wiki",
             "run_id": "run-1", "budgets": {"sources": 3}}
     base.update(kw)
     return base
@@ -40,22 +40,77 @@ class FakeStore:
             raise TimeoutError("response lost")
 
 
+class RevisionOk(unittest.TestCase):
+    A, B = "a" * 40, "b" * 40
+
+    def test_unattended_match_passes(self):
+        self.assertTrue(km.revision_ok(self.A, self.A, False))
+
+    def test_unattended_mismatch_fails(self):
+        self.assertFalse(km.revision_ok(self.A, self.B, False))
+
+    def test_unattended_requires_approved(self):
+        for bad in (None, "", "none", "main", "a" * 39, "a" * 41, "A" * 40, "g" * 40, 5):
+            self.assertFalse(km.revision_ok(self.A, bad, False), bad)
+
+    def test_loaded_must_be_full_sha(self):
+        for bad in (None, "", "none", "main", "a" * 39, "A" * 40, "a" * 40 + "\n"):
+            self.assertFalse(km.revision_ok(bad, self.A, False), bad)
+            self.assertFalse(km.revision_ok(bad, "none", True), bad)
+
+    def test_supervised_may_record_none(self):
+        self.assertTrue(km.revision_ok(self.A, "none", True))
+        self.assertTrue(km.revision_ok(self.A, None, True))
+
+    def test_supervised_with_approved_must_still_match(self):
+        self.assertTrue(km.revision_ok(self.A, self.A, True))
+        self.assertFalse(km.revision_ok(self.A, self.B, True))
+        self.assertFalse(km.revision_ok(self.A, "main", True))
+
+    def test_preflight_accepts_revision_names(self):
+        r = request(approved_commit_sha=None, approved_revision=self.A,
+                    loaded_commit_sha=None, loaded_revision=self.A)
+        self.assertEqual(km.preflight(r, CAPS, STATE)["mode"], "full")
+        r = request(approved_commit_sha=None, approved_revision=self.B,
+                    loaded_commit_sha=None, loaded_revision=self.A)
+        self.assertEqual(km.preflight(r, CAPS, STATE)["mode"], "blocked")
+
+
 class Preflight(unittest.TestCase):
     def test_missing_revision_blocks(self):
         for bad in (None, "", "abc", "main"):
             self.assertEqual(km.preflight(request(approved_commit_sha=bad, loaded_commit_sha=bad),
                                           CAPS, STATE)["mode"], "blocked")
 
-    def test_tracking_branch_with_loaded_sha_passes(self):
-        r = km.preflight(request(approved_commit_sha=None, tracking_branch="main",
+    def test_supervised_true_with_tracking_branch_and_loaded_sha_passes(self):
+        r = km.preflight(request(approved_commit_sha=None, tracking_branch="main", supervised=True,
                                  loaded_commit_sha="a" * 40), CAPS, STATE)
         self.assertEqual(r["mode"], "full")
 
-    def test_tracking_branch_without_valid_loaded_sha_blocks(self):
+    def test_supervised_without_valid_loaded_sha_blocks(self):
         for bad in (None, "", "not-a-sha"):
-            r = km.preflight(request(approved_commit_sha=None, tracking_branch="main",
+            r = km.preflight(request(approved_commit_sha=None, tracking_branch="main", supervised=True,
                                      loaded_commit_sha=bad), CAPS, STATE)
             self.assertEqual(r["mode"], "blocked")
+
+    def test_tracking_branch_without_supervised_is_unattended(self):
+        # Absent supervised flag: a tracking branch does not relax the rules.
+        r = km.preflight(request(approved_commit_sha=None, tracking_branch="main",
+                                 loaded_commit_sha="a" * 40), CAPS, STATE)
+        self.assertEqual(r["mode"], "blocked")
+        r = km.preflight(request(approved_commit_sha=None, tracking_branch="main", supervised=False,
+                                 loaded_commit_sha="a" * 40), CAPS, STATE)
+        self.assertEqual(r["mode"], "blocked")
+
+    def test_supervised_must_be_boolean_true(self):
+        for bad in ("true", "True", 1, "yes", [True], None):
+            r = km.preflight(request(approved_commit_sha=None, tracking_branch="main", supervised=bad,
+                                     loaded_commit_sha="a" * 40), CAPS, STATE)
+            self.assertEqual(r["mode"], "blocked", bad)
+
+    def test_revision_ok_strict_supervised(self):
+        for bad in ("true", 1, "yes"):
+            self.assertFalse(km.revision_ok("a" * 40, "none", bad), bad)
 
     def test_loaded_revision_mismatch_blocks(self):
         self.assertEqual(km.preflight(request(loaded_commit_sha="b" * 40), CAPS, STATE)["mode"], "blocked")
@@ -90,9 +145,13 @@ class LoadedRevision(unittest.TestCase):
         return res, store
 
     def test_tracking_resolves_and_records_the_loaded_commit(self):
-        res, _ = self.go(approved_commit_sha=None, tracking_branch="main", loaded_commit_sha=self.OTHER)
+        # Adapted for the explicit supervised flag: tracking main with no approved SHA is supervised only.
+        res, _ = self.go(approved_commit_sha=None, tracking_branch="main", supervised=True,
+                         loaded_commit_sha=self.OTHER)
         self.assertNotEqual(res["mode"], "blocked")
         self.assertEqual(res["revision"], self.OTHER)
+        res, _ = self.go(approved_commit_sha=None, tracking_branch="main", loaded_commit_sha=self.OTHER)
+        self.assertEqual(res["mode"], "blocked")
         self.assertIn("Revision: " + self.OTHER, km.render_report(res))
         self.assertNotIn("Revision: None", km.render_report(res))
 
@@ -444,6 +503,137 @@ class DryRunFixture(unittest.TestCase):
                          {"projects": "repair_allowed", "systems": "check_only", "tasks": "check_only"})
         self.assertIn("notes/stale-1", res["lint_scope"])
         self.assertIn("missing_index_policy", [f["kind"] for f in res["findings"]])
+
+
+class GuardedUnattendedRules(unittest.TestCase):
+    def test_legacy_wiki_project_blocks(self):
+        r = km.preflight(request(wiki_project="wiki"), CAPS, STATE)
+        self.assertEqual(r["mode"], "blocked")
+
+    def test_snapshot_name_and_clock(self):
+        self.assertEqual(km.derived_snapshot_name("2026-10-16"), "auto-daily-auto-20261016-000000")
+        self.assertFalse(km.clock_ok("03:14"))
+        self.assertTrue(km.clock_ok("03:15"))
+
+    def test_change_key(self):
+        self.assertEqual(km.change_key("f1", 10, "t"), ["f1", 10, "t"])
+        self.assertEqual(km.change_key("f1", 10, "t", "ab"), ["f1", 10, "t", "ab"])
+
+    def test_clock_parses_time(self):
+        for bad in ("3:00", "T03:00", "03:15 ", "25:00", "", None, "0315"):
+            self.assertFalse(km.clock_ok(bad), bad)
+        self.assertTrue(km.clock_ok("03:15:00"))
+        self.assertFalse(km.clock_ok("03:14:59"))
+        self.assertTrue(km.clock_ok("23:59"))
+
+    def dele(self, entry, **kw):
+        kw.setdefault("first_run_limit", False)
+        return km.deletion_allowed(entry, **kw)
+
+    def test_deletion_allowlist(self):
+        base = {"permalink": "scratch/x", "before_checksum": "c"}
+        self.assertTrue(self.dele(dict(base, allowlist_rule="scratch"), run_created=["scratch/x"]))
+        self.assertFalse(self.dele(dict(base, allowlist_rule="scratch")))
+        dup = dict(base, permalink="knowledge/a", allowlist_rule="duplicate")
+        self.assertTrue(self.dele(dict(dup, similarity_score=0.97)))
+        self.assertFalse(self.dele(dict(dup, similarity_score=0.9)))
+        self.assertFalse(self.dele(dup))
+        self.assertFalse(self.dele(dict(base, allowlist_rule="other")))
+        self.assertFalse(self.dele({"permalink": "scratch/x", "allowlist_rule": "scratch"}))
+
+    def test_similarity_must_be_numeric(self):
+        base = {"permalink": "knowledge/a", "before_checksum": "c", "allowlist_rule": "duplicate"}
+        for bad in (None, True, "0.99", 1.5):
+            self.assertFalse(self.dele(dict(base, similarity_score=bad)), bad)
+        self.assertFalse(self.dele(dict(base, allowlist_rule="scratch", permalink="scratch/x",
+                                        similarity_score=0.99), run_created=["scratch/x"]))
+
+    def test_scratch_needs_prefix_and_run_origin(self):
+        e = {"permalink": "knowledge/real-note", "before_checksum": "c", "allowlist_rule": "scratch"}
+        self.assertFalse(self.dele(e, run_created=["knowledge/real-note"]))
+        e = dict(e, permalink="scratch/tmp")
+        self.assertFalse(self.dele(e))
+        self.assertFalse(self.dele(e, run_created=["scratch/other"]))
+        self.assertTrue(self.dele(e, run_created=["scratch/tmp"]))
+        e = dict(e, permalink="ws/sk-wiki/scratch/tmp")
+        self.assertTrue(self.dele(e, run_created=["scratch/tmp"]))
+
+    FIXTURE = {"allowlist_rule": "fixture", "before_checksum": "c", "body_chars": 0, "size": 0}
+
+    def test_fixture_rule_is_encoded(self):
+        f = dict(self.FIXTURE, permalink="knowledge/empty")
+        self.assertTrue(self.dele(f))
+        self.assertTrue(self.dele(dict(f, size=40, frontmatter_parses=False)))
+        self.assertFalse(self.dele(dict(f, body_chars=12)))
+        self.assertFalse(self.dele(dict(f, body_chars=12, size=40, frontmatter_parses=False)))
+        self.assertFalse(self.dele(dict(f, size=40, frontmatter_parses=True)))
+        self.assertFalse(self.dele(dict(f, size=40)))
+        self.assertFalse(self.dele({k: v for k, v in f.items() if k != "body_chars"}))
+        self.assertFalse(self.dele(dict(f, body_chars=True)))
+
+    def test_deletion_path_scope(self):
+        for p in ("operations/r0-start", "operations/r0", "operations/issues/schema-drift",
+                  "schemas/concept", "index", "log", "knowledge/index/../../log",
+                  "ws/wiki/knowledge/a", "wiki/knowledge/a", "other/a"):
+            self.assertFalse(self.dele(dict(self.FIXTURE, permalink=p)), p)
+            self.assertFalse(self.dele({"permalink": p, "before_checksum": "c",
+                                        "allowlist_rule": "duplicate", "similarity_score": 0.99}), p)
+        for p in ("knowledge/a", "source-notes/a", "ws/sk-wiki/knowledge/a"):
+            self.assertTrue(self.dele(dict(self.FIXTURE, permalink=p)), p)
+
+    def test_no_deletion_under_first_run_limit(self):
+        e = {"permalink": "scratch/x", "before_checksum": "c", "allowlist_rule": "scratch"}
+        for flag in (True, None):
+            self.assertFalse(km.deletion_allowed(e, run_created=["scratch/x"], first_run_limit=flag))
+        self.assertFalse(km.deletion_allowed(e, run_created=["scratch/x"]))
+        self.assertTrue(km.deletion_allowed(e, run_created=["scratch/x"], first_run_limit=False))
+
+    def test_first_run_scope(self):
+        self.assertTrue(km.write_allowed("operations/r1-start", True, "r1"))
+        self.assertTrue(km.write_allowed("operations/r1", True, "r1"))
+        self.assertFalse(km.write_allowed("knowledge/a", True, "r1"))
+        self.assertTrue(km.write_allowed("knowledge/a", False, "r1"))
+
+    def test_write_scope_allowlist(self):
+        ok = ["knowledge/a", "source-notes/a", "scratch/a", "operations/issues/schema-drift",
+              "operations/r1", "operations/r1-start", "log", "index", "knowledge/index",
+              "source-notes/index", "operations/issues/index", "ws/sk-wiki/knowledge/a"]
+        for p in ok:
+            self.assertTrue(km.write_allowed(p, False, "r1"), p)
+        for p in ("schemas/concept", "schemas/index", "ws/sk-wiki/schemas/concept", "other/a",
+                  "knowledge/../schemas/x", "operations/a/b", "operations/r1-audit",
+                  "operations/r2", "operations/r2-start", "operations/index", "scratch/index/../../x",
+                  "projects/index", "operations/log"):
+            self.assertFalse(km.write_allowed(p, False, "r1"), p)
+
+    def test_first_run_scope_defaults_to_limited_and_strips_prefix(self):
+        self.assertTrue(km.write_allowed("ws/sk-wiki/operations/r1-start", None, "r1"))
+        self.assertFalse(km.write_allowed("knowledge/a", None, "r1"))
+        self.assertFalse(km.write_allowed("log", True, "r1"))
+        self.assertFalse(km.write_allowed("operations/r1-audit", True, "r1"))
+
+    def test_start_without_run_is_failed_run(self):
+        self.assertEqual(km.failed_runs(["r1-start", "r1", "r2-start", "r2-audit"]), ["r2"])
+
+
+class EmbeddedCopies(unittest.TestCase):
+    ROOT = pathlib.Path(__file__).resolve().parents[1] / "skills"
+
+    def test_duplicated_references_are_identical(self):
+        for name in ("mutation-rules.md", "schemas.md"):
+            a = (self.ROOT / "knowledge-ingest" / "references" / name).read_bytes()
+            b = (self.ROOT / "knowledge-lint" / "references" / name).read_bytes()
+            self.assertEqual(a, b, name)
+
+    def test_checksum_tables_agree(self):
+        import re
+        pat = re.compile(r"`(schemas/[a-z-]+)` \| `([0-9a-f]{64})`")
+        tables = [dict(pat.findall((self.ROOT / d / "references" / f).read_text()))
+                  for d, f in (("knowledge-ingest", "schemas.md"), ("knowledge-lint", "schemas.md"),
+                               ("daily-knowledge-maintenance", "schema-checksums.md"))]
+        self.assertEqual(len(tables[0]), 4)
+        self.assertEqual(tables[0], tables[1])
+        self.assertEqual(tables[0], tables[2])
 
 
 if __name__ == "__main__":
