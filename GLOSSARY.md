@@ -1,6 +1,6 @@
 # Glossary
 
-The language of `syafiq-kay-skills`: a public repository of agent skills, and the standard that an advisory reviewer uses to review its pull requests.
+The language of `skills`: a public repository of agent skills, and the standard that an advisory reviewer uses to review its pull requests.
 
 ## Language
 
@@ -13,7 +13,8 @@ The human-readable Markdown file (`docs/authorised-skill-repositories.md`) that 
 The machine-readable JSON file (e.g., `golden-skills.json`) derived from the Authority. It must not be manually edited to bypass the Authority.
 
 **Syafiq's Skills Repository**:
-This repository (`syafiq-kay-skills`), containing Syafiq's custom agent skills, onboarding routines, and automated workflows.
+This repository (`skills`), containing Syafiq's custom agent skills, onboarding routines, and automated workflows. Any reference to `sk-skills`, `SK-skills`, or `syafiq-kay-skills` refers to this skills repo.
+_Avoid_: sk-skills, SK-skills, syafiq-kay-skills
 
 **Authorised Skill Repository**:
 A third-party or external repository (like `mattpocock-skills` or `basic-memory-skills`) that has been explicitly permitted in the Authority.
