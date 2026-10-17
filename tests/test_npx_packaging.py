@@ -9,7 +9,6 @@ Verifies that all 38 skills in the repository comply with:
   verifying self-contained asset resolution (references, templates, examples, scripts).
 """
 import importlib
-import os
 import pathlib
 import re
 import shutil
@@ -283,6 +282,67 @@ class TestNpxSkillsPackagingContract(unittest.TestCase):
                     content = (tomb_dest / "SKILL.md").read_text(encoding="utf-8")
                     self.assertIn("disable-model-invocation: true", content)
                     self.assertIn("zero mutations", content)
+
+    def test_isolated_single_skill_installation(self):
+        """Install each skill into an isolated clean directory and verify packaging invariants.
+
+        Asserts:
+        - All references in ## References exist within the skill directory.
+        - No outbound markdown links target non-existent sibling directories ('../').
+        - Terminal reference invariant is maintained (depth == 1, 0 outbound .md links).
+        """
+        for skill_name in ALL_38_SKILLS:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                src_dir = resolve_skill_source(REPO_ROOT, skill_name)
+                target_skills_dir = pathlib.Path(tmpdir) / "skills"
+                dest_dir = install_skill_to_runtime(src_dir, target_skills_dir, skill_name)
+
+                # 1. References in ## References exist within the skill directory
+                skill_md = dest_dir / "SKILL.md"
+                content = skill_md.read_text(encoding="utf-8")
+                if "## References" in content:
+                    ref_section = content.split("## References", 1)[1]
+                    if "\n## " in ref_section:
+                        ref_section = ref_section.split("\n## ", 1)[0]
+                    links = re.findall(r"\[.*?\]\((?!https?://|#|mailto:)([^)#\s]+\.md)\)", ref_section)
+                    backtick_refs = re.findall(r"`(references/[^`]+\.md)`", ref_section)
+                    declared_refs = set(links + backtick_refs)
+                    for ref_rel in declared_refs:
+                        ref_path = dest_dir / ref_rel
+                        self.assertTrue(
+                            ref_path.is_file(),
+                            f"Skill {skill_name} declares reference {ref_rel} which does not exist in {dest_dir}",
+                        )
+
+                # 2. No outbound markdown links target sibling directories ('../') or non-existent files
+                for md_file in dest_dir.rglob("*.md"):
+                    md_content = md_file.read_text(encoding="utf-8")
+                    all_md_links = re.findall(r"\[.*?\]\((?!https?://|#|mailto:)([^)#\s]+)\)", md_content)
+                    for link_target in all_md_links:
+                        self.assertFalse(
+                            link_target.startswith("../"),
+                            f"Skill {skill_name} contains forbidden sibling/cross-package link '{link_target}' in {md_file.name}",
+                        )
+                        resolved_path = (md_file.parent / link_target).resolve()
+                        self.assertTrue(
+                            resolved_path.is_file(),
+                            f"Skill {skill_name} contains broken link '{link_target}' in {md_file.name}",
+                        )
+                        self.assertTrue(
+                            resolved_path.is_relative_to(dest_dir.resolve()),
+                            f"Skill {skill_name} contains out-of-bounds link '{link_target}' in {md_file.name}",
+                        )
+
+                # 3. Terminal reference invariant: no reference file links to another reference file
+                ref_dir = dest_dir / "references"
+                if ref_dir.is_dir():
+                    for ref_file in ref_dir.glob("*.md"):
+                        for line in ref_file.read_text(encoding="utf-8").splitlines():
+                            self.assertIsNone(
+                                check_std.SHELL_STEP_LINK.search(line),
+                                f"Terminal reference violated in {skill_name}/{ref_file.name}: {line}",
+                            )
+
 
 
 if __name__ == "__main__":

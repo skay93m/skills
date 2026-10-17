@@ -42,3 +42,4 @@ Return run ID, revisions, `schema_checksums`, snapshot name, lane counts, manife
 ## References
 - `references/run-records.md`: start and run note fields, status values, body layout.
 - `references/schema-checksums.md`: schema checksum mapping.
+- [mutation-rules.md](references/mutation-rules.md): write tiers, allowlists, index/log contracts.
