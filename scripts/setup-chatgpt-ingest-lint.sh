@@ -82,22 +82,9 @@ finish() {
 # STAGES — author this section. One stage() per step the human takes.
 # ──────────────────────────────────────────────────────────────────────────
 
-TOTAL_STAGES=6
+TOTAL_STAGES=5
 
 banner "ChatGPT daily Wiki ingest/lint cutover"
-
-stage "Create the v0.1.0 release"
-say "Create the first semantic release from the merged main commit."
-open_url "https://github.com/skay93m/syafiq-kay-skills/releases/new"
-step "Set the tag to v0.1.0 and target the merged main commit."
-step "Publish the GitHub release with the generated release notes."
-step "Copy the full commit SHA that the v0.1.0 tag points to."
-ask RELEASE_SHA "Paste the full commit SHA behind v0.1.0:"
-if [[ ! "$RELEASE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
-  warn "That is not a full 40-character commit SHA. Do not continue to task cutover."
-  SKIPPED+=("Create v0.1.0 and capture its full target SHA")
-fi
-pause "When the v0.1.0 release is published, press Enter."
 
 stage "Pause the stale scheduled task"
 say "Pause the currently active ChatGPT task before changing its contract."
@@ -108,18 +95,22 @@ if ! confirm "Is the old Wiki maintenance task paused?"; then
   SKIPPED+=("Pause the existing Wiki maintenance task")
 fi
 
-stage "Update and pin the ChatGPT task"
-say "Edit the paused task and replace its instructions with the pinned contract below."
+stage "Update the ChatGPT task"
+say "Edit the paused task and replace its instructions with the tracking contract below."
 step "Keep the name ‘Wiki maintenance — daily’. Keep the schedule at daily 03:00 Europe/London."
 step "Paste this prompt (configured to track the canonical production branch main):"
 printf '\n%s\n' "Act as the ChatGPT-side execution worker for Syafiq's daily Wiki ingest and lint workflow."
 printf '%s\n' "Run unsupervised against the connected Basic Memory Cloud project wiki. Do not wait for Syafiq and do not delegate ingest or lint to Hermes."
 printf '%s\n' "Tracking branch: main (canonical production branch)."
-printf '%s\n' "At run start, fetch/resolve the latest commit SHA of branch main from repository skay93m/syafiq-kay-skills. Load and verify the exact contracts from that commit: skills/daily-knowledge-maintenance/SKILL.md, skills/knowledge-ingest/SKILL.md, and skills/knowledge-lint/SKILL.md. If the loaded revision cannot be resolved or does not match main, stop with status blocked and make no Wiki mutation. Record the resolved commit SHA in all reports."
+printf '%s\n' "Owner commit SHA override: none"
+printf '%s\n' "Syafiq sets an override by replacing none on the line above with a full 40-character lowercase commit SHA in this task prompt; nobody else sets it, and an empty or none value means track main."
+printf '%s\n' "At run start, fetch/resolve the latest commit SHA of branch main from repository skay93m/syafiq-kay-skills. Load and verify the exact contracts from that commit: skills/daily-knowledge-maintenance/SKILL.md, skills/knowledge-ingest/SKILL.md, and skills/knowledge-lint/SKILL.md. If the owner has set an explicit commit SHA override, it takes precedence over tracking: load exactly that SHA, and the loaded revision must equal that override exactly; otherwise it must equal the resolved latest commit of main. Stop with status blocked and make no Wiki mutation if the override is malformed, if the loaded revision cannot be resolved, or if it fails that equality check. Record the loaded commit SHA in all reports."
+printf '%s\n' "These first runs are report-only with zero substantive Wiki mutations until Syafiq approves writes: write only the dated and rolling reports and the ledger, and report would-apply items instead of applying them. The mutation maximums below are the contract limit for a later approved full mode, not an authorisation for these runs."
+printf '%s\n' "Also load skills/seam-adapter/SKILL.md from the same loaded commit and end the run result with one seam envelope that conforms to docs/seam/envelope.md: seam-version 0.1.0, capability knowledge.ingest, capability-version 0.1.0, mode report-only. The run-reference and grant-reference come from the SW binding; if they are not supplied, say so in the result and never invent them."
 printf '%s\n' "Use deterministic run_id YYYY-MM-DD-daily-ingest-lint. Read the Wiki AGENTS, index, log, skills, rolling report, ledger, and review register before selecting work. Paginate the eligible raw inventory completely; ingest oldest eligible notes first, maximum 10 backlog sources plus one rotation slot and 8 mutations. Verify every write."
 printf '%s\n' "Then run bounded lint on at most 12 notes with at most 8 deterministic, reversible metadata/link mutations. Never delete, move to deletion, overwrite source material, infer policy, create semantic relations, change task lifecycle, or apply meaning-changing repairs. Treat relation gaps and inconsistent links as report-only; missing policy and uncertain operations are report-only findings."
 printf '%s\n' "Persist dated maintenance, ingest, and lint reports. Rewrite reports/knowledge-maintenance and reports/knowledge-maintenance-ledger with the same run_id, terminal status, and ledger state. Reread both rolling notes and compare them with the dated reports before claiming success. A dated report alone is never proof. If the control plane or readback is unavailable, skip lint and write blocked or failed stage reports; do not claim complete. If one source fails while the control plane remains available, continue independent lint and defer that source. Report status, mutations, deferred items, findings, and verification."
-printf '%s\n' "current control-plane gate: if the approved pin, current control-plane reads, checksum-guarded writes, or required rereads are unavailable, skip both ingest and lint, write blocked or failed stage reports, and do not claim complete. This gate takes precedence over all historical-reconciliation rules."
+printf '%s\n' "current control-plane gate: if the loaded revision, current control-plane reads, checksum-guarded writes, or required rereads are unavailable, skip both ingest and lint, write blocked or failed stage reports, and do not claim complete. This gate takes precedence over all historical-reconciliation rules."
 printf '%s\n' "historical reconciliation: an unreconciled report gap, ledger state, or review state is a deferred audit finding, not a hard stop. Only when control-plane reads, guarded writes, and rereads are healthy, proceed with bounded ingest and lint. Still paginate the raw inventory, select bounded ingest candidates, and run bounded lint over the current scope. Apply zero meaning-changing repairs, but do not skip ingest analysis or lint merely because historical reconciliation is incomplete. Write and reread the control-plane evidence and record any historical gaps as deferred. A previous blocked or unreconciled report is audit context, not a gate."
 printf '%s\n' "Never delete or overwrite dated historical reports; preserve dated historical reports and prior ledger evidence. Rewriting a rolling note must not erase historical provenance or earlier audit evidence."
 printf '\n'
@@ -134,10 +125,11 @@ step "Use the task's Run now action. Do not enable the schedule yet."
 step "Wait for a terminal result; a disappearing page is not evidence of success."
 step "Open Basic Memory and select the wiki project."
 step "In project wiki, reread reports/knowledge-maintenance and reports/knowledge-maintenance-ledger."
-step "Confirm the run ID, pinned SHA, terminal status, dated reports, verification result, and zero substantive mutations."
+step "Confirm the run ID, loaded commit SHA, terminal status, dated reports, verification result, and zero substantive mutations."
+step "Proposed: confirm the run result ends with a seam envelope, and, once the SW binding supplies its references, save it to a file and check it with scripts/seam_conformance.py."
 step "If there are no candidates, confirm complete pagination is recorded; an unproven empty search is not success."
 if ! confirm "Did the first manual run produce terminal reports and verified control-plane readback?"; then
-  SKIPPED+=("Diagnose the first pinned report-only run before continuing")
+  SKIPPED+=("Diagnose the first report-only run before continuing")
 fi
 
 stage "Run the idempotency acceptance check"
@@ -154,7 +146,7 @@ stage "Re-enable the daily schedule"
 say "Only enable the schedule after both manual acceptance checks pass."
 open_url "https://chatgpt.com/"
 step "Open the saved ‘Wiki maintenance — daily’ task."
-step "Confirm it still uses the full v0.1.0 commit SHA and the exact modular contracts."
+step "Confirm it still tracks main (no release or pasted SHA is needed) and loads the exact modular contracts."
 step "Confirm the schedule is daily at 03:00 Europe/London."
 if confirm "Have both manual acceptance runs passed and is it safe to enable the 03:00 schedule?"; then
   step "Enable or resume the task."

@@ -41,7 +41,7 @@ class FakeStore:
 
 
 class Preflight(unittest.TestCase):
-    def test_missing_pin_blocks(self):
+    def test_missing_revision_blocks(self):
         for bad in (None, "", "abc", "main"):
             self.assertEqual(km.preflight(request(approved_commit_sha=bad, loaded_commit_sha=bad),
                                           CAPS, STATE)["mode"], "blocked")
@@ -74,6 +74,76 @@ class Preflight(unittest.TestCase):
     def test_missing_write_guard_is_read_only(self):
         r = km.preflight(request(), dict(CAPS, guarded_overwrite=False), STATE)
         self.assertEqual(r["mode"], "read_only")
+
+
+class LoadedRevision(unittest.TestCase):
+    """Tracking main with an optional owner-set override (#106), seen through run()."""
+
+    SOURCES = [src("raw/a")]
+    OTHER = "b" * 40
+
+    def go(self, **kw):
+        store = FakeStore()
+        res = km.run(request(**kw), CAPS, dict(STATE), self.SOURCES,
+                     lambda i: {"proposals": [{"op": "provenance_record", "path": "n", "content": "x"}]},
+                     lambda n: {"findings": []}, store=store)
+        return res, store
+
+    def test_tracking_resolves_and_records_the_loaded_commit(self):
+        res, _ = self.go(approved_commit_sha=None, tracking_branch="main", loaded_commit_sha=self.OTHER)
+        self.assertNotEqual(res["mode"], "blocked")
+        self.assertEqual(res["revision"], self.OTHER)
+        self.assertIn("Revision: " + self.OTHER, km.render_report(res))
+        self.assertNotIn("Revision: None", km.render_report(res))
+
+    def test_override_equal_to_loaded_is_honoured_and_recorded(self):
+        res, _ = self.go(tracking_branch="main", approved_commit_sha=SHA, loaded_commit_sha=SHA)
+        self.assertNotEqual(res["mode"], "blocked")
+        self.assertEqual(res["revision"], SHA)
+
+    def test_override_wins_over_tracking_when_loaded_differs(self):
+        res, store = self.go(tracking_branch="main", approved_commit_sha=SHA, loaded_commit_sha=self.OTHER)
+        self.assertEqual(res["mode"], "blocked")
+        self.assertEqual((res["mutations"], store.writes), ([], 0))
+        self.assertEqual(res["revision"], self.OTHER)
+
+    def test_malformed_override_blocks_a_tracking_run(self):
+        for bad in ("abc", "main", "A" * 40):
+            res, store = self.go(tracking_branch="main", approved_commit_sha=bad, loaded_commit_sha=SHA)
+            self.assertEqual(res["mode"], "blocked")
+            self.assertTrue(any("approved_commit_sha" in r for r in res["reasons"]))
+            self.assertEqual((res["mutations"], res["completed"], store.writes), ([], [], 0))
+
+    def test_unresolved_or_malformed_loaded_revision_blocks_with_no_mutation(self):
+        for bad in (None, "", "not-a-sha"):
+            for override in (None, SHA):
+                res, store = self.go(tracking_branch="main", approved_commit_sha=override, loaded_commit_sha=bad)
+                self.assertEqual(res["mode"], "blocked")
+                self.assertEqual((res["mutations"], store.writes), ([], 0))
+                self.assertNotIn("Revision: " + SHA, km.render_report(res))
+
+    def test_sha_with_trailing_newline_is_not_a_full_sha(self):
+        nl = SHA + "\n"
+        for kw in (dict(tracking_branch="main", approved_commit_sha=nl, loaded_commit_sha=SHA),
+                   dict(tracking_branch="main", approved_commit_sha=None, loaded_commit_sha=nl)):
+            res, store = self.go(**kw)
+            self.assertEqual(res["mode"], "blocked")
+            self.assertEqual((res["mutations"], store.writes), ([], 0))
+
+    def test_blocked_report_does_not_present_an_unloaded_value_as_the_revision(self):
+        for bad in ("not-a-sha", "main", SHA + "\n"):
+            res, _ = self.go(tracking_branch="main", approved_commit_sha=None, loaded_commit_sha=bad)
+            self.assertEqual(res["mode"], "blocked")
+            self.assertIsNone(res["revision"])
+            self.assertNotIn("Revision: " + bad, km.render_report(res))
+
+    def test_recorded_revision_is_the_loaded_one_without_tracking(self):
+        res, _ = self.go()
+        self.assertEqual(res["revision"], SHA)
+
+    def test_no_tracking_and_no_override_stays_blocked(self):
+        res, _ = self.go(approved_commit_sha=None, loaded_commit_sha=SHA)
+        self.assertEqual(res["mode"], "blocked")
 
 
 class Pagination(unittest.TestCase):
