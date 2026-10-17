@@ -36,12 +36,12 @@ Dispatch incoming requests to the appropriate domain module or pipeline phase. S
 
 | Domain | Skill | Intents / Triggers |
 |---|---|---|
-| `knowledge` | [`wiki-ops`](../wiki-ops/SKILL.md) | Compiled knowledge engine, Basic Memory compliance, linting |
-| `scrum` | [`autonomous-scrum`](../autonomous-scrum/SKILL.md) | Standalone AWT agile engine, PO vs Dev boundary, Event 0 |
-| `ecosystem` | [`agent-ecosystem`](../agent-ecosystem/SKILL.md) | Fleet governance, golden config, subagents (<=10), handoffs |
-| `scholarship` | [`academic-scholar`](../academic-scholar/SKILL.md) | KCL MSc Mental Health/Ethics/Law, student prose, legal citations |
-| `cadence` | [`personal-cadence`](../personal-cadence/SKILL.md) | ADHD momentum, Jibun Techo projections, Hermes standups |
-| `cognition` | [`thinking-partner`](../thinking-partner/SKILL.md) | Oxford tutorial Socratic sparring, concept stress-testing |
+| `knowledge` | `wiki-ops` | Compiled knowledge engine, Basic Memory compliance, linting |
+| `scrum` | `autonomous-scrum` | Standalone AWT agile engine, PO vs Dev boundary, Event 0 |
+| `ecosystem` | `agent-ecosystem` | Fleet governance, golden config, subagents (<=10), handoffs |
+| `scholarship` | `academic-scholar` | KCL MSc Mental Health/Ethics/Law, student prose, legal citations |
+| `cadence` | `personal-cadence` | ADHD momentum, Jibun Techo projections, Hermes standups |
+| `cognition` | `thinking-partner` | Oxford tutorial Socratic sparring, concept stress-testing |
 
 ### Upstream Engineering Pipeline
 `/grill-me` -> `/to-spec` -> `/to-tickets` -> `/tdd` -> `/code-review` -> `/pr`

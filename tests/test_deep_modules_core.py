@@ -273,7 +273,7 @@ class TestDeepModulesCore(unittest.TestCase):
 
         for mod_name, spec in MODULE_SPECS.items():
             self.assertIn(f"`{spec['domain']}`", text, f"Domain {spec['domain']} missing in ask-syafiq router")
-            self.assertIn(f"[`{mod_name}`]", text, f"Skill link for {mod_name} missing in ask-syafiq router")
+            self.assertIn(f"`{mod_name}`", text, f"Skill {mod_name} missing in ask-syafiq router")
 
     def test_domain_specific_rule_invariants(self):
         """Verify each module includes mandatory domain-specific mechanics and invariants."""
