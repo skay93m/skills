@@ -144,6 +144,45 @@ class ExtensionsAndCrossingRule(Verdict):
                                  "invalid-request")
                 self.assertFails(run(lambda e, k=key: e["mutation-summary"]["read"].update({k: 1})), "invalid-request")
 
+    def test_extension_key_oversized_rejected(self):
+        ok_key = "org.example.demo.item-one.item-two.item-three.item-four.latencys"
+        self.assertEqual(len(ok_key), 64)
+        self.assertEqual(run(lambda e: e["extensions"].update({ok_key: 1}))["result"], "pass")
+        long_key = ok_key + "x"
+        self.assertEqual(len(long_key), 65)
+        res = run(lambda e: e["extensions"].update({long_key: 1}))
+        self.assertFails(res, "invalid-request")
+        self.assertEqual(res["rule"], "extension-key")
+
+    def test_extension_count_limit_enforced(self):
+        def add_eleven(e):
+            for i in range(11):
+                e["extensions"][f"org.example.demo.metric-{i}"] = i
+        res = run(add_eleven)
+        self.assertFails(res, "invalid-request")
+        self.assertEqual(res["rule"], "extension-count")
+
+        def add_ten(e):
+            for i in range(10):
+                e["extensions"][f"org.example.demo.metric-{i}"] = i
+        self.assertEqual(run(add_ten)["result"], "pass")
+
+    def test_extension_key_rejects_hex_payload_smuggling(self):
+        for pattern in ("deadbeef", "cafebabe", "a1b2c3d4e5f67890", "0123456789abcdef", "deadbeefcafebabe"):
+            with self.subTest(pattern=pattern):
+                key = f"org.example.demo.{pattern}"
+                res = run(lambda e: e["extensions"].update({key: 1}))
+                self.assertFails(res, "invalid-request")
+                self.assertEqual(res["rule"], "extension-key")
+
+    def test_extension_key_rejects_base32_payload_smuggling(self):
+        for pattern in ("jbswy3dpeblw64tmmq", "abcdef234567", "b" * 26, "run-" + "b" * 26, "grant-" + "c" * 26, "approval-" + "a" * 26):
+            with self.subTest(pattern=pattern):
+                key = f"org.example.demo.{pattern}"
+                res = run(lambda e: e["extensions"].update({key: 1}))
+                self.assertFails(res, "invalid-request")
+                self.assertEqual(res["rule"], "extension-key")
+
 
 def refuse(op):
     """Mutate an envelope into the correct fail-closed report for one class."""
@@ -428,6 +467,7 @@ class RcMode(Verdict):
             g["grants"].append({"capability": "knowledge.ingest", "operation-class": "apply-change"})
 
         def env(e):
+            e["counts"]["applied"] = 1
             e["mutation-summary"]["apply-change"].update({"requested": 1, "granted": 1, "applied": 1})
             e["disposition"] = "applied"
         self.assertEqual(run(env, prof, grants, rc=True)["result"], "pass")
@@ -611,6 +651,83 @@ class PublishedExamples(unittest.TestCase):
         for parts in (("skills", "seam-adapter", "SKILL.md"), ("skills", "seam-adapter", "references", "envelope-reference.md")):
             with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
                 self.assertNotRegex(f.read().lower(), r"basic.?memory|permalink:|wiki")
+
+
+class StateConsistencyAndFailureMasking(Verdict):
+    def test_succeeded_status_rejects_positive_failed_count(self):
+        res = run(lambda e: e["counts"].update({"failed": 1}))
+        self.assertFails(res, "invalid-request")
+        self.assertEqual(res["rule"], "failure-masking")
+
+    def test_failed_status_accepts_positive_failed_count(self):
+        def failed_env(e):
+            e.update({"status": "failed", "error-category": "internal"})
+            e["counts"].update({"failed": 1})
+        self.assertEqual(run(failed_env)["result"], "pass")
+
+    def test_state_inconsistency_disposition_reported_with_applied_counts_rejected(self):
+        env, prof, grants = lint_apply_run()
+        env["disposition"] = "reported"
+        res = sc.check(env, prof, grants, rc=True)
+        self.assertFails(res, "invalid-request")
+        self.assertEqual(res["rule"], "state-consistency")
+
+    def test_state_inconsistency_mutation_summary_mismatch_rejected(self):
+        env, prof, grants = lint_apply_run()
+        env["counts"]["applied"] = 5
+        res = sc.check(env, prof, grants, rc=True)
+        self.assertFails(res, "invalid-request")
+        self.assertEqual(res["rule"], "state-consistency")
+
+    def test_state_consistency_valid_applied_run_passes(self):
+        env, prof, grants = lint_apply_run(delete_applied=2)
+        self.assertEqual(sc.check(env, prof, grants, rc=True)["result"], "pass")
+
+
+class UnifiedEffectivePermissions(Verdict):
+    def test_effective_permissions_strict_rejects_delete_grant(self):
+        env, prof, grants = base()
+        prof["capability"] = "knowledge.lint"
+        env["capability"] = "knowledge.lint"
+        prof["allowed-operation-classes"].append("read")
+        grants["grants"] = [{"capability": "knowledge.lint", "operation-class": "delete"}]
+        with self.assertRaises(sc.Fail) as ctx:
+            sc.effective_classes(prof, grants, env, rc=False)
+        self.assertEqual(ctx.exception.category, "not-permitted")
+        self.assertEqual(ctx.exception.rule, "delete-never-granted")
+
+    def test_effective_permissions_rc_allows_lint_delete_grant(self):
+        env, prof, grants = base()
+        prof["capability"] = "knowledge.lint"
+        env["capability"] = "knowledge.lint"
+        open_apply(prof)
+        open_delete(prof)
+        approve(prof)
+        grants["mode"] = "apply"
+        grants["grants"] = [{"capability": "knowledge.lint", "operation-class": "delete"}]
+        effective, ref = sc.effective_classes(prof, grants, env, rc=True)
+        self.assertIn("delete", effective)
+
+    def test_effective_permissions_rc_rejects_non_lint_delete_grant(self):
+        env, prof, grants = base()
+        open_apply(prof)
+        approve(prof)
+        grants["mode"] = "apply"
+        grants["grants"] = [{"capability": "knowledge.ingest", "operation-class": "delete"}]
+        with self.assertRaises(sc.Fail) as ctx:
+            sc.effective_classes(prof, grants, env, rc=True)
+        self.assertEqual(ctx.exception.category, "not-permitted")
+        self.assertEqual(ctx.exception.rule, "delete-never-granted")
+
+    def test_effective_permissions_mode_and_profile_intersection(self):
+        env, prof, grants = base()
+        effective, ref = sc.effective_classes(prof, grants, env, rc=False)
+        self.assertEqual(effective, {"read", "write-report"})
+        grants["grants"] = []
+        effective, ref = sc.effective_classes(prof, grants, env, rc=False)
+        self.assertEqual(effective, set())
+        effective_rc, ref_rc = sc.effective_classes(prof, grants, env, rc=True)
+        self.assertEqual(effective_rc, set())
 
 
 class CommandLine(unittest.TestCase):
