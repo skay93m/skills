@@ -1,77 +1,112 @@
-# Syafiq Kay Skills
+# Syafiq Kay Skills (`skay93m/skills`)
 
-Personal skills and adapters for Syafiq's agent environments.
+Personal skills and deep modules for multi-agent environments across Claude Code, Codex, Antigravity, and Hermes.
 
-This repository is the Syafiq-owned extension layer in a larger, centralised
-skills installation. It is not a replacement for the upstream skill
-repositories. Agents should use the golden configuration and the provenance
-declared below before creating, copying, adapting, or overriding a skill.
+This repository provides modular, bounded, and deterministic agent capabilities adhering to the Skill Manifest Standard (`docs/standards/skill-manifest.md`). Every module is governed by strict line budgets ($\le 100$ lines), token budgets ($< 700$ tokens), terminal references (no reference chaining), and explicit artifact contracts.
 
-## Upstream skill sources
+---
 
-The current golden configuration is recorded in
-[`skills/sk-update/golden-skills.json`](skills/sk-update/golden-skills.json).
-It points the local agent runtimes at these canonical sources:
+## Architecture Overview (Work 2)
 
-| Source | Upstream repository or installation | Local canonical path |
-| --- | --- | --- |
-| Matt Pocock skills | [mattpocock/skills](https://github.com/mattpocock/skills) | `~/.agents/mattpocock-skills/skills/engineering` and `~/.agents/mattpocock-skills/skills/productivity` |
-| Basic Memory skills | [basicmachines-co/basic-memory-skills](https://github.com/basicmachines-co/basic-memory-skills) | `~/.agents/basic-memory-skills` |
-| Syafiq Kay skills | [skay93m/syafiq-kay-skills](https://github.com/skay93m/syafiq-kay-skills) | `~/.agents/syafiq-kay-skills/skills` |
-| Agy built-ins | Agent-runtime installation | `~/.agents/agy-builtin-skills/skills` |
+```
+                            [ ask-syafiq ]
+                            (Master Router)
+                                  │
+    ┌──────────────┬──────────────┼──────────────┬──────────────┬──────────────┐
+    ▼              ▼              ▼              ▼              ▼              ▼
+[ wiki-ops ] [ autonomous-   [ agent-       [ academic-    [ personal-    [ thinking-
+               scrum ]        ecosystem ]    scholar ]      cadence ]      partner ]
+ (knowledge)   (scrum)       (ecosystem)   (scholarship)    (cadence)     (cognition)
+```
 
-The repository names above are provenance pointers, not permission to add a
-repository to the golden configuration. Only Syafiq may authorise additions to
-that configuration.
+### Master Router: `ask-syafiq`
+- **Domain**: General dispatch & context orchestration.
+- **Capabilities**: Rapid workspace detection across 8 canonical repositories, intent routing into deep modules, execution phase boundary enforcement (`PLAN` $\to$ `VALIDATE` $\to$ `EXECUTE`).
 
-## Extension policy
+### The 6 Deep Modules
 
-Before adding a skill, check whether an upstream source already provides the
-capability. Personal work should normally be expressed as one of these,
-listed from least to most divergent:
+1. **`wiki-ops` (`knowledge`)**:
+   - Compiled knowledge engine for personal wiki and research operations.
+   - Basic Memory MCP compliance, prompt injection isolation, structural and semantic linting, and additive artifact contracts.
+2. **`autonomous-scrum` (`scrum`)**:
+   - AWT agile engine for automated sprint management.
+   - Strict Product Owner vs. Developer role boundaries, Event 0 sprint gates, read-only SQLite state tracking (`awt.db`), and sprint artifact contracts.
+3. **`agent-ecosystem` (`ecosystem`)**:
+   - Heterogeneous fleet governance across Claude Code, Codex, Antigravity, and Hermes.
+   - `~/.agents` golden layout, subagent batching ceiling ($\le 10$ workers), cross-agent durable handoffs (`docs/handoff/<slug>.md`), and fleet audit contracts.
+4. **`academic-scholar` (`scholarship`)**:
+   - Postgraduate supervisory coaching and legal research scaffolding.
+   - Strict student-authored prose invariant (supervisory feedback only, zero ghost-writing), primary statutory authorities (MHA 1983, MCA 2005), Strasbourg/ECHR jurisprudence, OSCOLA legal citations, and supervision memo contracts.
+5. **`personal-cadence` (`cadence`)**:
+   - Executive function and ADHD momentum scaffolding.
+   - Jibun Techo 3-phase projections, Hermes standups, circadian energy mapping, Neko desktop companion integration, and daily review contracts.
+6. **`thinking-partner` (`cognition`)**:
+   - Oxford tutorial Socratic sparring method.
+   - Assumption unmasking, failure mode analysis, Type 1 vs. Type 2 decision reversibility analysis, Architecture Decision Record (ADR) formulation, and decision log contracts.
 
-1. configuration or composition;
-2. an adapter that delegates to the upstream skill and changes only the
-   required interface or policy boundary;
-3. a documented extension;
-4. a fork or replacement, only when the upstream contract cannot support the
-   requirement.
+---
 
-Every adapter or extension must identify its upstream source, preserve the
-reason for divergence, and receive security, optimisation, duplication, and
-public-surface review. Do not silently copy an upstream skill into this repo.
+## Upstream Engineering Pipeline
 
-## Repository conventions
+All software engineering tasks follow the sequential multi-agent delivery pipeline:
 
-- `main` is the only long-lived branch and is always production-ready.
-- Work happens on short-lived branches, reviewed in a pull request into `main`
-  and squash-merged. Delete the branch after merge.
-- Skills should be small, composable, and progressively disclosed. Supporting
-  scripts and references should be added only when they materially improve
-  reliability or reduce repeated instructions.
-- This repository must remain safe to publish: do not commit secrets, private
-  Wiki content, personal information, local machine paths, private prompts, or
-  internal URLs.
+$$\text{/grill-me} \longrightarrow \text{/to-spec} \longrightarrow \text{/to-tickets} \longrightarrow \text{/tdd} \longrightarrow \text{/code-review} \longrightarrow \text{/pr}$$
 
-## Current skills
+1. **/grill-me**: Relentless adversarial Socratic interview to stress-test designs and surface ambiguities.
+2. **/to-spec**: Distill requirements and interview consensus into a formal technical specification.
+3. **/to-tickets**: Decompose specifications into bounded, test-driven implementation tickets.
+4. **/tdd**: Test-driven implementation cycle (red $\to$ green $\to$ refactor).
+5. **/code-review**: Two-axis adversarial code review (Standards Compliance + Spec Verification).
+6. **/pr**: Pull request composition and release verification.
 
-The `skills/` directory currently contains Syafiq-owned skills, including
-onboarding, updates, Wiki governance, ingestion, semantic review, and
-reconciliation. Read each skill's `SKILL.md` for its trigger and operating
-boundary. The golden configuration identifies what is installed centrally; it
-does not make every skill in this repository an upstream source for other
-skills.
+---
 
-## Roadmap & Backlog
+## Installation & Multi-Agent Packaging
 
-The custom CLI is currently suspended. The roadmap, backlog, new features, and bugs for `syafiq-kay-skills` are tracked exclusively as **GitHub Issues** on this repository.
+Skills in this repository are packaged for instant installation across all major agent runtimes using `npx skills`:
 
-See [Issue #2](https://github.com/skay93m/syafiq-kay-skills/issues/2) for the high-level roadmap and deferred backlog. Use `gh issue list` to view and manage active tasks.
+### Install Entire Suite
+```bash
+npx skills add skay93m/skills
+```
 
-## Related knowledge
+### Install Individual Deep Module
+```bash
+npx skills add skay93m/skills --skill wiki-ops
+npx skills add skay93m/skills --skill autonomous-scrum
+npx skills add skay93m/skills --skill agent-ecosystem
+npx skills add skay93m/skills --skill academic-scholar
+npx skills add skay93m/skills --skill personal-cadence
+npx skills add skay93m/skills --skill thinking-partner
+npx skills add skay93m/skills --skill ask-syafiq
+```
 
-The detailed design rationale and open questions live in the Wiki. The
-work-facing vision is the reference note
-`references/personal-ai-engineering-vision`; its detailed synthesis is
-`concepts/personal-ai-engineering-system`. This README records only the
-repository-level operational context needed by an agent working here.
+### Supported Runtimes & Target Directories
+
+| Runtime | Skill Installation Path | Discovery Mechanism |
+|---|---|---|
+| **Claude Code** | `~/.claude/skills/<skill>` | Direct folder resolution (`SKILL.md`) |
+| **Codex** | `~/.codex/skills/<skill>` | Codex skill registry |
+| **Antigravity (AGY)** | `~/.gemini/antigravity-cli/skills` or `~/.agents/skills` | Builtin / custom skill loader |
+| **Hermes** | `~/.hermes/skills/<skill>` | Agent tool executor |
+
+All skills are self-contained: installed skill directories contain all necessary `references/`, `templates/`, and `examples/` without relative cross-package dependencies.
+
+---
+
+## Safe Tombstone Policy (Migration Safety)
+
+In `v0.2.0`, 26 legacy utility skills (`sk-*` and `task-assistant`) have been replaced with **Fail-Closed Safe Tombstones**:
+- **Behavior**: Safe tombstones carry `disable-model-invocation: true` and execute zero mutations and zero shell commands.
+- **Migration Guidance**: Each tombstone informs the agent of its retired capability and provides the direct `npx skills` command to install its successor deep module.
+- **Retention**: Tombstones remain in place through `v0.3.0` to preserve backwards compatibility for existing agent prompts and workflows.
+
+---
+
+## Repository Standards & Quality Verification
+
+- **Skill Manifest Standard**: Every skill is defined by a declarative manifest in `manifests/` validated against `docs/standards/skill-manifest.md`.
+- **Scaffolder Tool**: Run `python3 scripts/new-skill.py --manifest manifests/<name>.yaml` to deterministically scaffold new skills with terminal references and artifact contracts.
+- **Automated Verification**:
+  - `pytest`: Comprehensive unit and contract test suite (>300 tests).
+  - `python3 scripts/check-standard.py`: Deterministic pr-review standard enforcement for security, privacy, and skill budgets.
