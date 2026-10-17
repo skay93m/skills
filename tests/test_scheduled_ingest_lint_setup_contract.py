@@ -14,6 +14,13 @@ class ScheduledIngestLintSetupContract(unittest.TestCase):
     def test_setup_does_not_depend_on_broken_raw_contract_url(self):
         self.assertNotIn("raw.githubusercontent.com", self.text)
 
+    def test_setup_targets_canonical_repo_and_sk_wiki_project(self):
+        self.assertIn("skay93m/skills", self.text)
+        self.assertNotIn("skay93m/syafiq-kay-skills", self.text)
+        self.assertIn("project sk-wiki", self.text)
+        self.assertNotIn("project wiki", self.text)
+        self.assertIn("select the sk-wiki project", self.text)
+
     def test_setup_carries_rolling_control_plane_contract(self):
         for expected in (
             "knowledge-maintenance",
