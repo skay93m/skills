@@ -38,7 +38,7 @@ When you have a specific goal, consult this matrix to reach for the right capabi
 |---|---|---|---|
 | **Starting a session / switching repos** | `ask-syafiq` | Master Router | `/ask-syafiq` or `"orient this session"` |
 | **Managing ADHD momentum & daily schedule** | `personal-cadence` | `cadence` | `"plan daily cadence"` or `"morning brief"` |
-| **Building code / engineering pipeline** | Upstream Pipeline | Multi-Agent Lifecycle | `/grill-me` $\to$ `/to-spec` $\to$ `/to-tickets` $\to$ `/tdd` $\to$ `/code-review` $\to$ `/pr` |
+| **Building code / engineering pipeline** | Upstream Pipeline | Multi-Agent Lifecycle | `/grill-me` → `/to-spec` → `/to-tickets` → `/tdd` → `/code-review` → `/pr` |
 | **Evaluating hard architectural choices** | `thinking-partner` | `cognition` | `/grill-me` or `"challenge my architecture"` |
 | **Writing postgraduate essays / legal research** | `academic-scholar` | `scholarship` | `"review legal argument"` or `"verify oscola citations"` |
 | **Compiling wiki notes & running lints** | `wiki-ops` | `knowledge` | `"run knowledge lint"` or `"compile wiki"` |
@@ -52,21 +52,25 @@ When you have a specific goal, consult this matrix to reach for the right capabi
 All incoming requests and session transitions route through `ask-syafiq` into the 6 bounded Deep Modules:
 
 ```text
-                             [ ask-syafiq ]
-                             (Master Router)
-                                   │
-     ┌──────────────┬──────────────┼──────────────┬──────────────┬──────────────┐
-     ▼              ▼              ▼              ▼              ▼              ▼
-[ wiki-ops ] [ autonomous-   [ agent-       [ academic-    [ personal-    [ thinking-
-               scrum ]        ecosystem ]    scholar ]      cadence ]      partner ]
- (knowledge)   (scrum)       (ecosystem)   (scholarship)    (cadence)     (cognition)
+                                       ┌───────────────┐
+                                       │  ask-syafiq   │
+                                       │(Master Router)│
+                                       └───────┬───────┘
+                                               │
+       ┌───────────────┬───────────────┬───────┴───────┬───────────────┬───────────────┐
+       ▼               ▼               ▼               ▼               ▼               ▼
+┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│  wiki-ops   │ │ autonomous- │ │   agent-    │ │  academic-  │ │  personal-  │ │  thinking-  │
+│             │ │    scrum    │ │  ecosystem  │ │   scholar   │ │   cadence   │ │   partner   │
+└─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
+  (knowledge)       (scrum)       (ecosystem)    (scholarship)     (cadence)      (cognition)
 ```
 
 ---
 
-## The 6 Deep Modules Catalog
+## Deep Modules & Master Router Catalog
 
-Every deep module is a bounded, deterministic skill package complying with strict budgets ($\le 100$ lines, $< 700$ tokens), terminal references (depth 1), and explicit artifact contracts.
+Every deep module is a bounded, deterministic skill package complying with strict budgets (≤ 100 lines, < 700 tokens), terminal references (depth 1), and explicit artifact contracts.
 
 ### 1. `wiki-ops`
 - **Domain**: `knowledge`
@@ -99,7 +103,7 @@ Every deep module is a bounded, deterministic skill package complying with stric
 - **Purpose**: Fleet-wide governance for multi-agent environments across Claude Code, Codex, Antigravity, and Hermes, enforcing golden configurations and inter-agent coordination.
 - **Core Invariants**:
   - Golden layout: Centralized synchronization through `~/.agents` golden directory structure.
-  - Subagent batching ceiling: Strict limit of $\le 10$ concurrent subagents per batch; subsequent batches wait until the active batch completes.
+  - Subagent batching ceiling: Strict limit of ≤ 10 concurrent subagents per batch; subsequent batches wait until the active batch completes.
   - Durable handoffs: Inter-agent handoffs and session completions are persisted to durable notes under `docs/handoff/<slug>.md`.
 - **Artifact Contracts**: Produces `agent-handoff` ([`templates/agent-handoff.template.md`](skills/agent-ecosystem/templates/agent-handoff.template.md), [`examples/agent-handoff.example.md`](skills/agent-ecosystem/examples/agent-handoff.example.md)).
 - **Direct Install**:
@@ -124,7 +128,7 @@ Every deep module is a bounded, deterministic skill package complying with stric
 - **Domain**: `cadence`
 - **Purpose**: Executive function and ADHD momentum coaching, daily energy alignment, time tracking, and coordination with ambient daemons.
 - **Core Invariants**:
-  - Jibun Techo 3-phase projections: Vertical timeline mapping covering Plan $\to$ Reality $\to$ Delta.
+  - Jibun Techo 3-phase projections: Vertical timeline mapping covering Plan → Reality → Delta.
   - Hermes standups: Automated morning kickoff briefs and evening retrospective reconciliations.
   - Circadian energy mapping: Matching high-focus tasks to peak cognitive bandwidth and low-friction tasks to recovery troughs.
   - Neko companion coordination: Desktop companion status hooks and non-intrusive focus cycle nudges.
@@ -163,7 +167,7 @@ Every deep module is a bounded, deterministic skill package complying with stric
 
 ## Upstream Engineering Pipeline
 
-All software engineering tasks follow a sequential, multi-agent delivery lifecycle designed to eliminate latent defects and ensure strict specification adherence:
+All software engineering tasks follow a sequential, multi-agent delivery lifecycle designed to eliminate latent defects and ensure strict specification adherence (for full coordinator and subagent delegation protocols, see [`docs/agents/coordinator-protocol.md`](docs/agents/coordinator-protocol.md)):
 
 ```text
 /grill-me  ──>  /to-spec  ──>  /to-tickets  ──>  /tdd  ──>  /code-review  ──>  /pr
@@ -171,10 +175,10 @@ All software engineering tasks follow a sequential, multi-agent delivery lifecyc
 
 1. **/grill-me (Socratic Stress-Testing)**: Relentless adversarial Socratic interview to interrogate requirements, expose implicit assumptions, discover failure modes, and align on boundaries before writing code.
 2. **/to-spec (Formal Specification)**: Distill interview consensus and requirements into an unambiguous, bounded technical specification defining interface seams, data models, and acceptance criteria.
-3. **/to-tickets (Atomic Work Decomposition)**: Decompose specifications into small, independent, test-driven implementation tickets with strict line budgets ($\le 100$ lines) and explicit acceptance gates.
-4. **/tdd (Test-Driven Implementation)**: Implement tickets following the strict Red $\to$ Green $\to$ Refactor cycle: write failing test (Red), minimal implementation passing test (Green), and standards refactor.
+3. **/to-tickets (Atomic Work Decomposition)**: Decompose specifications into small, independent, test-driven implementation tickets with strict line budgets (≤ 100 lines) and explicit acceptance gates.
+4. **/tdd (Test-Driven Implementation)**: Implement tickets following the strict Red → Green → Refactor cycle: write failing test (Red), minimal implementation passing test (Green), and standards refactor.
 5. **/code-review (Two-Axis Adversarial Review)**: Parallel adversarial review running two independent subagents:
-   - **Standards Axis**: Verifies budgets ($\le 100$ lines, $< 700$ tokens), terminal references, security, and repository conventions.
+   - **Standards Axis**: Verifies budgets (≤ 100 lines, < 700 tokens), terminal references, security, and repository conventions.
    - **Spec Axis**: Verifies exact issue/spec requirement conformance with zero extraneous changes.
    Zero approval granted on latent defects.
 6. **/pr (Pull Request Delivery)**: Construct high-fidelity pull requests containing structured change summaries, automated verification proofs, and risk assessments ready for human owner review and merge.
@@ -230,9 +234,9 @@ In `v0.2.0`, 26 legacy utility skills (`sk-*` and `task-assistant`) have been re
 ### Architectural Standards & Invariants
 
 Every skill in this repository is governed by the Skill Manifest Standard (`docs/standards/skill-manifest.md`) and must strictly uphold:
-- **Line Budget**: $\le 100$ lines for `SKILL.md`.
-- **Token Budget**: $< 700$ estimated tokens for `SKILL.md`.
-- **Terminal References**: Reference files in `references/` are 1-level deep from `SKILL.md` and must never link to other markdown reference files (`docs/standards/terminal-references.md`).
+- **Line Budget**: ≤ 100 lines for `SKILL.md`.
+- **Token Budget**: < 700 estimated tokens for `SKILL.md`.
+- **Terminal References**: Reference files in `references/` are 1-level deep from `SKILL.md` and must never link to other markdown reference files (`docs/standards/skill-manifest.md#31-terminal-reference-invariant-no-chaining`).
 - **Artifact Contracts**: Modules producing user-facing or durable deliverables must provide declarative contracts with paired templates (`templates/`) and verified examples (`examples/`).
 
 ### Scaffolding New Skills
