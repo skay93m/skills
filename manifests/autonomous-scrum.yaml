@@ -1,0 +1,26 @@
+name: autonomous-scrum
+description: Standalone AWT agile sprint engine enforcing Product Owner versus Developer boundaries, Event 0 sprint gates, and read-only SQLite state tracking. Use when planning sprints, triaging issues, checking Event 0 gates, or reviewing sprint progress.
+disable-model-invocation: true
+user-invoked: true
+version: 0.2.0
+provenance: original
+budgets:
+  line-budget: 100
+  token-budget: 700
+references:
+  - event-0-gates.md
+  - role-boundaries.md
+scripts: []
+artifacts:
+  produces: true
+  contracts:
+    - name: sprint-report
+      template: templates/sprint-report.template.md
+      example: examples/sprint-report.example.md
+router:
+  domain: scrum
+  intents:
+    - "autonomous scrum"
+    - "sprint planning"
+    - "event 0 gates"
+    - "task triage"

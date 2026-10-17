@@ -1,0 +1,26 @@
+name: agent-ecosystem
+description: Heterogeneous agent fleet governance enforcing golden layout, subagent batching ceilings of ten, and durable cross-agent handoff contracts. Use when managing multi-agent fleets, onboarding agent runtimes, configuring golden layout, or coordinating agent handoffs.
+disable-model-invocation: true
+user-invoked: true
+version: 0.2.0
+provenance: original
+budgets:
+  line-budget: 100
+  token-budget: 700
+references:
+  - golden-agents-layout.md
+  - fleet-batching-protocol.md
+scripts: []
+artifacts:
+  produces: true
+  contracts:
+    - name: agent-handoff
+      template: templates/agent-handoff.template.md
+      example: examples/agent-handoff.example.md
+router:
+  domain: ecosystem
+  intents:
+    - "agent ecosystem"
+    - "fleet governance"
+    - "subagent batching"
+    - "cross agent handoff"
