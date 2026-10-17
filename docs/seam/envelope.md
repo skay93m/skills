@@ -33,7 +33,7 @@ The four vocabularies above are closed. A new value needs a new seam version, be
 
 `mutation-summary` has one entry per operation class, each with four non-negative integers: `requested`, `granted`, `applied`, `refused`. Constraints: `applied <= granted <= requested` and `granted + refused <= requested`. It carries no targets and no content. SW decides what applies inside a grant; SS reports the counts.
 
-A grant is a human-approved allowlist entry for one capability and one operation class. A mode, a role or a passing test grants nothing. A request outside a grant gives `status: refused` and `error-category: not-permitted`; it fails closed. Seam 0.1.0 defines no grant for `delete`, and `knowledge.ingest` 0.1.0 offers no `apply` mode. Deletion stays with Syafiq.
+A grant is a human-approved allowlist entry for one capability and one operation class. A mode, a role or a passing test grants nothing. A request outside a grant gives `status: refused` and `error-category: not-permitted`; it fails closed. Seam 0.1.0 defines no grant for `delete`, and `knowledge.ingest` 0.1.0 offers no `apply` mode. Deletion stays with Syafiq. The default conformance check enforces this. A separate, opt-in `--rc` draft check can accept approved mutation profiles (see `profiles.md`); it cannot verify that an approval is genuine, and the owner decides the allowlist.
 
 ## 4. Counts
 
