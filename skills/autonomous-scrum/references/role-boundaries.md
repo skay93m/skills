@@ -44,3 +44,22 @@ Maintaining a rigorous separation between specification authority (the PO) and i
   - **Standards Axis Review**: Conducted by standards reviewer subagent to audit line budgets, reference depths, typing, and security hygiene.
 - **Dispute Escalation**:
   - Disagreements between implementation mechanics and specification intent are referred to the human repository owner.
+
+---
+
+## 5. Read-Only SQLite State Tracking (`awt.db`)
+
+All state queries against the autonomous sprint database must follow strict read-only protocols:
+
+- **Safe Read-Only Query Procedures**:
+  - Direct database queries must explicitly enforce read-only execution modes:
+    - CLI invocations: `sqlite3 -readonly awt.db "<SQL>"`
+    - SQLite URI invocations: `file:awt.db?mode=ro`
+- **Core State Tables**:
+  - `sprints`: Stores sprint metadata, start/end windows, goals, and status transitions.
+  - `issues`: Tracks ticket specifications, assigned agents, acceptance criteria, and lifecycle status.
+  - `events`: Records append-only event logs (Event 0 gate verifications, review decisions, transitions).
+- **Prohibited Write Operations**:
+  - Direct ad-hoc SQL writes (`INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`) against `awt.db` are strictly forbidden.
+  - State changes must occur solely through authorized transactional interfaces (`awt CLI commands`), guaranteeing data integrity, schema consistency, and audit ledger generation.
+

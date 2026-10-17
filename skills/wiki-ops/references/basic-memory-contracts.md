@@ -10,6 +10,8 @@ This specification defines the mandatory invariants, tool call constraints, and 
 ## 1. Project Invariants
 
 - **Canonical Project**: All persistent knowledge operations must explicitly specify `project: "sk-wiki"`. Cross-project bleed or targeting unverified projects is prohibited.
+- **Mandatory Fresh Refetch Invariant**:
+  - Whenever conversation context has been compacted (indicated by `<CONTEXT_SUMMARY>`) or a session starts/resumes work touching `sk-wiki`, the agent MUST NOT rely on summarized context for structural invariants or operational policy. The agent MUST immediately refetch `AGENTS.md` fresh via Basic Memory MCP (`read_note` on `AGENTS` in project `sk-wiki`) before creating, modifying, or moving any notes.
 - **Strict File Naming**:
   - File identifiers and note paths must strictly use lowercase ASCII kebab-case (`example-concept.md`).
   - Never use spaces, CamelCase, Title Case, or underscores in note titles or file paths.
