@@ -508,7 +508,7 @@ def build_routing_row(name, domain, intents):
     """Construct clean markdown table row for master router ask-syafiq."""
     clean_domain = escape_table_cell(domain)
     clean_name = escape_table_cell(name)
-    clean_skill_link = f"[`{clean_name}`](../{clean_name}/SKILL.md)"
+    clean_skill_link = f"`{clean_name}`"
     clean_intents = [escape_table_cell(i) for i in intents]
     intents_str = ", ".join(clean_intents) if clean_intents else format_title(clean_name)
     return f"| {clean_domain} | {clean_skill_link} | {intents_str} |"
@@ -638,7 +638,7 @@ def scaffold_skill(manifest, skills_dir, tests_dir):
 
     budgets = manifest.get("budgets") if isinstance(manifest.get("budgets"), dict) else {}
     line_limit = budgets.get("line-budget", 100)
-    token_limit = budgets.get("token-budget", 700)
+    tok_ceiling = budgets.get("token-budget", 700)
 
     router = manifest.get("router") if isinstance(manifest.get("router"), dict) else {}
     domain = router.get("domain", "general")
@@ -812,9 +812,9 @@ Canonical example output demonstrating successful artifact generation.
                 f"Generated SKILL.md exceeds line budget ({len(skill_lines)} > {line_limit} lines)"
             )
         tok_est = estimate_tokens(skill_content)
-        if tok_est > token_limit:
+        if tok_est > tok_ceiling:
             raise ValueError(
-                f"Generated SKILL.md exceeds token budget (~{tok_est} > {token_limit} tokens)"
+                f"Generated SKILL.md exceeds token budget (~{tok_est} > {tok_ceiling} tokens)"
             )
 
         skill_md = skill_dir / "SKILL.md"

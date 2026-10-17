@@ -370,7 +370,7 @@ class TestScaffoldingExecution(unittest.TestCase):
         ask_syafiq = self.skills_dir / "ask-syafiq" / "SKILL.md"
         self.assertTrue(ask_syafiq.exists())
         ask_text = ask_syafiq.read_text(encoding="utf-8")
-        self.assertIn("| cadence | [`sample-worker`](../sample-worker/SKILL.md) | Execute background work |", ask_text)
+        self.assertIn("| cadence | `sample-worker` | Execute background work |", ask_text)
         self.assertLessEqual(len(ask_text.splitlines()), 100)
 
         # Scaffolding test execution

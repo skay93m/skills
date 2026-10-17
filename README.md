@@ -105,7 +105,7 @@ In `v0.2.0`, 26 legacy utility skills (`sk-*` and `task-assistant`) have been re
 
 ## Repository Standards & Quality Verification
 
-- **Skill Manifest Standard**: Every skill is defined by a declarative manifest in `manifests/` validated against `docs/standards/skill-manifest.md`.
+- **Skill Manifest Standard**: Every deep module and the master router is defined by a declarative manifest in `manifests/` validated against `docs/standards/skill-manifest.md`.
 - **Scaffolder Tool**: Run `python3 scripts/new-skill.py --manifest manifests/<name>.yaml` to deterministically scaffold new skills with terminal references and artifact contracts.
 - **Automated Verification**:
   - `pytest`: Comprehensive unit and contract test suite (>300 tests).
