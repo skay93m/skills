@@ -55,6 +55,8 @@ The Chief of Staff appends all status updates, subagent conversation IDs, verifi
 
 [2026-10-18 20:00] Ticket 1 (#168): Implemented, committed 7cb528f. Stage 1 green (247 passed, 0 blocking). Pass 0 review: no blocking findings. Non-blocking: working-tree mode uses two-dot diff (W1), fence handling ignores fence length (W2), unverified 'most capable' wording for opus in the protocol (P1).
 
+[2026-10-18 21:00] Ticket 2 (#163): Converged after Pass 0 plus 2 remediation loops (3 review runs, commits fe312a2, 7ef9cf5, fa91cc0). Owner chose option A for the Standard version (draft covers S7; version and review date untouched). Owner decision: legacy skills over the token ceiling are exempted by a named test set that #164 deletes. Carry-over non-blocking items for #161: scaffolder build_routing_row omits backticks around the domain; router intents differ from manifest router.intents; gateway disable-model-invocation still true; kos row typo. Carry-over for #164: delete tests/legacy_domains.py and LEGACY_OVER_TOKEN_CEILING.
+
 ## Observations
 - [decision] Sprint 2 delivers the v1 six-directory catalogue with no tombstones, replacing the WO-1 release attempt #sprint
 - [rule] Pruning boundaries are strictly confidential to the Chief of Staff #safety
