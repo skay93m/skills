@@ -21,7 +21,7 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 - Use one integration branch, `feat-msc-coach-shipping-plan` (PR #155), for every ticket, and the coordinator protocol (`docs/agents/coordinator-protocol.md`).
 - Never overwrite an existing skill directory.
 - Keep provenance and version fields. Fix only what the standard check flags. Report repo-side fixes back to msc-coach (#153).
-- Shipping gate: for the msc-coach shipping PR, `python3 scripts/check-standard.py --base origin/main` must print 0 blocking and 0 non-blocking findings, and `pytest` must pass. These are the script's findings, separate from reviewer NON-BLOCKING notes. See Phase 6 step 1 of `docs/agents/coordinator-protocol.md`.
+- Shipping gate: for the msc-coach shipping PR, `python3 scripts/check-standard.py --base origin/main` must print 0 blocking and 0 non-blocking findings, and `pytest` must pass. This 0/0 criterion is the project gate already stated here, not a new rule. These are the script's findings, separate from reviewer NON-BLOCKING notes. Phase 6 step 1 of `docs/agents/coordinator-protocol.md` lists the commands.
 - On the ready signal, count the skills myself. If the count is not 22 or `ask-coach` is missing, halt and report.
 - No ADR: the decisions are easy to reverse.
 - `docs/authorised-skill-repositories.md` does not apply. msc-coach is a source repo, not a third-party Authorised Skill Repository.
@@ -29,7 +29,7 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 ## Collision protocol
 
 - A collision is an exact name match or a functional overlap. Report all of them to the human before anything is copied. While the human is away (authorised 2026-10-18), report them in the PR body instead.
-- While the human is away (authorised 2026-10-18), the agent applies the default resolution order (extend the existing skill, then merge and synthesise, then rename only if the two are functionally distinct) and lists every decision at the top of the PR body. The human's approval of each case is given by reviewing that list before merging. Exact-name collisions with no functional overlap: rename only if distinct. msc-coach changes still go through the skills agent.
+- While the human is away (authorised 2026-10-18), the agent applies the default resolution order and lists every decision at the top of the PR body. Order: try extend first, then merge and synthesise; rename applies only when the two skills are functionally distinct (a pure name clash). The human's approval of each case is given by reviewing that list before merging. PR #155 carries collision decisions, so the agent does not merge it even where the classifier and ruleset would allow; it leaves PR #155 ready for the human, who merges it once. msc-coach changes still go through the skills agent.
 - The skills agent implements any change in this repo. msc-coach changes only msc-coach, and may propose and negotiate on #146.
 - Non-colliding skills ship first (#150). Colliding ones follow after resolution (#151).
 - Overlap suspicion (unverified): the 2026-10-18 snapshot listed `academic-thinking-partner`, which may overlap `thinking-partner` and `academic-scholar`. That name is gone from the later local tree, so recheck at #148 against the pinned SHA.
