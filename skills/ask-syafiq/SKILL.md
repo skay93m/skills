@@ -1,7 +1,7 @@
 ---
 name: ask-syafiq
 description: Master router skill providing rapid workspace detection across 8 repositories, intent-based routing to 6 deep modules, and execution phase boundary guidance. Use when routing requests, selecting deep modules, detecting repository context, or managing session transitions.
-disable-model-invocation: true
+disable-model-invocation: false
 user-invoked: true
 version: 0.2.0
 provenance: original
@@ -23,8 +23,8 @@ Detect repository root heuristics before executing commands. See [workspace-matr
 |---|---|---|
 | `skills` | Agent skills, deep modules, standards | `skills/`, `docs/standards/`, `scripts/new-skill.py` |
 | `sk-wiki` | Compiled persistent knowledge base, Basic Memory | `raw/`, `compiled/`, `AGENTS.md`, `log.md` |
-| `awt` | Agent work tracker, sprints, SQLite state | `awt.db`, `sprints/`, `issues/`, `schema.sql` |
-| `kos` | Kernel operating system, background daemons | `daemons/`, `kernel/`, `systemd/`, `kos.conf` |
+| `awt` | Agile workflow tracker | `awt.db`, `sprints/`, `issues/`, `schema.sql` |
+| `kos` | Kancil operating system| `daemons/`, `kernel/`, `systemd/`, `kos.conf` |
 | `syafiq-kay.github.io` | Public portfolio, essays, digital garden | `_posts/`, `_layouts/`, `index.html`, `assets/` |
 | `neko` | Desktop companion daemon, telemetry | `neko/`, `telemetry/`, `daemon.py`, `mood.json` |
 | `hermes` | Daily coordination agent, standup summaries | `hermes/`, `standups/`, `notifications/`, `bot.py` |
