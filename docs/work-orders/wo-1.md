@@ -40,7 +40,12 @@ The Chief of Staff processes tickets sequentially on dedicated sprint branch `sp
 
 ### Ticket 3: Issue #162
 - **Title**: `[v1.0.0] Verify 5-point CI release gate, packaging, and tag v1.0.0`
-- **Execution Target**: Run full test suite, verify npm packaging, tag `v1.0.0`, and generate release notes.
+- **Execution Target**:
+  1. Run 5-point CI release gate on `sprint-1`.
+  2. Open release pull request from `sprint-1` into `main` (`gh pr create --base main --head sprint-1`).
+  3. Merge pull request into `main` (`gh pr merge --admin --merge`).
+  4. Check out `main`, verify clean git status, tag `v1.0.0` on `main`, and push tag (`git push origin v1.0.0`).
+  5. Publish `docs/releases/v1.0.0.md` and close Milestone `v1.0.0: Minimal Production Deploy`.
 - **Review Tier**: Core Release Gate (5-point automated CI checks plus release audit).
 
 ## 3. Pre-Configured Prune Points (Coordinator Exclusive Authority)
