@@ -19,7 +19,7 @@ The Parent or Primary Agent functions strictly as a **Coordinator Agent**:
 ### Single Ticket Flow
 - **Strict Focus**: The Coordinator focuses on one ticket or feature stream at a time from start to finish.
 - **Parallel Work Limit**: At most two non-conflicting, fully independent task flows may run concurrently when explicit separation is guaranteed.
-- **Run-to-Completion**: A ticket must complete its full lifecycle (planning → implementation → dual-axis adversarial review → fixer loop → verification) before moving to subsequent work. This prevents work-in-progress (WIP) sprawl and context dilution. Under one-PR delivery (Phase 6), a ticket is complete once its reviewed commits are on the integration PR; the PR is merged once, at the end.
+- **Run-to-Completion**: A ticket must complete its full lifecycle (planning → implementation → dual-axis adversarial review → fixer loop → verification) before moving to subsequent work. This prevents work-in-progress (WIP) sprawl and context dilution. Under one-PR delivery (Phase 6), a ticket is complete once its reviewed commits are on the integration PR; the batch's PR is merged once, after its last ticket.
 
 ### Cost-Efficiency Tier
 - Subagents handle heavy implementation, testing, review, and fixing tasks using cost-efficient models (`Model: "flash"` where supported, such as Gemini Flash / Flash Lite or fast tier models).
@@ -49,7 +49,7 @@ The Parent or Primary Agent functions strictly as a **Coordinator Agent**:
 4. The Coordinator immediately terminates the Implementation Subagent before initiating review.
 
 ### Phase 3: Two-Axis Adversarial Code Review Loop
-Every implementation must undergo a dual, concurrent adversarial review prior to merge approval. The Coordinator spawns two independent review subagents in parallel. Each reviewer applies one axis, using `/code-review` where available:
+Every implementation must undergo a dual, concurrent adversarial review prior to merge approval. The Coordinator spawns two independent review subagents in parallel. Each reviewer applies one axis and runs `/code-review` on the change. A reviewer that cannot run it says so in its verdict and cannot pass. Each reviewer posts its verdict as a PR comment whose first line is a marker such as `<!-- adversarial-review: axis=spec|standards verdict=pass|fail sha=<head sha> -->`. Any new commit voids earlier verdicts.
 
 1. **Adversarial Spec Reviewer**:
    - **Mission**: Relentlessly hunt for loopholes, unhandled edge cases, omitted spec constraints, subtle semantic drift from original intent, missing contract assertions, and latent regressions.
@@ -80,7 +80,7 @@ Every implementation must undergo a dual, concurrent adversarial review prior to
    - The Fixer applies targeted changes, runs tests and standard checks, and reports back.
 2. The Coordinator terminates the Fixer and dispatches verification / adversarial re-review.
 3. The loop repeats until **0 blocking findings remain**.
-4. **Zero-Defect Gate**: No pull request or branch may be merged with unresolved blocking findings or known latent defects.
+4. **Zero-Defect Gate**: No pull request or branch may be merged with unresolved blocking findings or known latent defects. Latent defects are always BLOCKING.
 
 ### Phase 5: Whole-Product Adversarial Review
 - At major milestone boundaries, multi-ticket epics, or release tags, the Coordinator triggers a holistic, whole-product adversarial audit.
@@ -89,8 +89,8 @@ Every implementation must undergo a dual, concurrent adversarial review prior to
 ### Phase 6: Landing & Merging
 1. Verify git working directory and run full verification (`python3 scripts/check-standard.py`, `pytest`).
 2. Push branch to remote repository.
-3. Open a pull request using GitHub CLI (`gh pr create`). A ticket batch may land as reviewed commits on one integration PR. The integration PR stays a draft until all its tickets are done. Each ticket still completes Phase 3 and Phase 4 before the next starts.
-4. Merge with `gh pr merge --merge` only if the permission classifier (the Claude Code auto-mode safety check that can deny an action) and the repository ruleset allow it, and only after both adversarial reviewers have passed (one on Spec, one on Standards, each using `/code-review` where available). BLOCKING findings must be fixed; NON-BLOCKING findings may be dismissed with a stated reason. If the classifier or ruleset blocks the merge, stop and ask the human; do not work around it, and leave the PR for the human to merge once. Never use `--admin` or other bypasses to defeat a permission or review denial.
+3. Open a pull request using GitHub CLI (`gh pr create`). A ticket batch may land as reviewed commits on one integration PR. The PR stays a draft while any of its tickets remain. Each ticket still completes Phase 3 and Phase 4 before the next starts.
+4. Once all of the batch's tickets are done, mark the PR ready (`gh pr ready`). Then merge with `gh pr merge --merge` only if the permission classifier (the Claude Code auto-mode safety check that can deny an action) and the repository ruleset allow it, and only after both adversarial reviewers have passed on the current head sha. Latent defects are always BLOCKING and must be fixed; only NON-BLOCKING style or clarity notes may be dismissed, with a stated reason. If the classifier or ruleset blocks the merge, stop and ask the human; do not work around it, and leave the PR ready for the human to merge once. Never use `--admin` or other bypasses to defeat a permission or review denial.
 5. After a merge, fast-forward local `main` (`git pull origin main`) and confirm `git status` is clean.
 
 ---
