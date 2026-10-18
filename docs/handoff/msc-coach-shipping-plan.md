@@ -21,7 +21,7 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 - Use one integration branch, `feat-msc-coach-shipping-plan` (PR #155), for every ticket, and the coordinator protocol (`docs/agents/coordinator-protocol.md`).
 - Never overwrite an existing skill directory.
 - Keep provenance and version fields. Fix only what the standard check flags. Report repo-side fixes back to msc-coach (#153).
-- Verification gate: see Phase 6 step 1 of `docs/agents/coordinator-protocol.md`.
+- Shipping gate: for the msc-coach shipping PR, `python3 scripts/check-standard.py --base origin/main` must print 0 blocking and 0 non-blocking findings, and `pytest` must pass. These are the script's findings, separate from reviewer NON-BLOCKING notes. See Phase 6 step 1 of `docs/agents/coordinator-protocol.md`.
 - On the ready signal, count the skills myself. If the count is not 22 or `ask-coach` is missing, halt and report.
 - No ADR: the decisions are easy to reverse.
 - `docs/authorised-skill-repositories.md` does not apply. msc-coach is a source repo, not a third-party Authorised Skill Repository.
