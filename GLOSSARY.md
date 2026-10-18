@@ -54,6 +54,7 @@ _Avoid_: prompt checklist, linter rules
 **Style Module**:
 A cross-cutting, model-invoked module governing Syafiq's writing voice, presentation rubrics, artefact templates, and ubiquitous language across all agent interactions.
 _Avoid_: formatting guide, style guide
+
 ### Pull request review standard
 
 **Standard**:
