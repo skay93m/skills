@@ -45,6 +45,7 @@ The Chief of Staff appends all status updates, subagent conversation IDs, verifi
 [2026-10-18 19:00] Ticket 1 (#160): Implemented and committed on sprint-1. Stage 1 green (check-standard 0 blocking, 316 passed). Pass 0 review: no blocking findings, 4 non-blocking advisories (glossary lacks Sprint/Epic/Ticket, two multi-point table cells in AGENTS.md, rule duplication). Also touched tests/test_npx_packaging.py for the 39-skill inventory.
 [2026-10-18 19:10] Ticket 2 (#114): Implemented and committed. Deleted knowledge_maintenance.py, its test and orphaned fixture; spec marked retired by ADR 0002. Stage 1 green (240 passed). Pass 0 review: no blocking findings. No explicit tombstone added (absence fails closed); awaiting owner view.
 [2026-10-18 19:15] Ticket 3 (#162): HALTED before release. Gate 4 fails: working tree has a pre-existing uncommitted change (docs/standards/pr-review-standard.md deleted, extensionless pr-review-standard untracked) that is not mine to discard. Gate 2 expectation of 317 tests no longer matches (240 after retiring the legacy suite). No PR, merge, or tag was made.
+[2026-10-18 19:06] Ticket 1 (#160) amendment: consequential changes (style rules single-sourced in skills/style, coordinator-protocol section 4 pointer, Sprint/Epic/Ticket glossary entries, observation rewording, 39-skill inventory) folded into #160 scope at owner request; acceptance criteria added.
 
 ## Observations
 - [decision] Package Sprint 1 into sequential Work Order WO-1 #sprint
