@@ -18,7 +18,7 @@ artifacts:
       template: templates/agent-handoff.template.md
       example: examples/agent-handoff.example.md
 router:
-  domain: ecosystem
+  domain: setup
   intents:
     - "agent ecosystem"
     - "fleet governance"

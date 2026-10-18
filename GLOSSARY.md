@@ -51,6 +51,10 @@ _Avoid_: monolithic skill, multi-skill bundle
 The three-part standard (Behavioural Delta, Upstream Overlap, and "What We Care About") that disqualifies generic model instructions and duplicate skills from the repository.
 _Avoid_: prompt checklist, linter rules
 
+**Overlay**:
+Using an upstream skill unchanged and applying only the delta: the repository's own changes on top of it, with no copy of the upstream skill. It is how the Pocock Skill Filter's Behavioural Delta is kept, because only the delta lives here.
+_Avoid_: fork, vendored copy, wrapper
+
 **Style Module**:
 A cross-cutting, model-invoked module governing Syafiq's writing voice, presentation rubrics, artefact templates, and ubiquitous language across all agent interactions.
 _Avoid_: formatting guide, style guide

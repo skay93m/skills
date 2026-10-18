@@ -42,7 +42,7 @@ A manifest is authored in declarative YAML (or JSON) and adheres to the schema b
 | `version` | `string` | No | `"0.1.0"` | Semantic version string (e.g. `0.1.0`). |
 | `owner` | `string` | No | `"skay93m"` | GitHub user or team handle responsible for the skill. |
 | `provenance` | `string` | No | `"original"` | Upstream origin, issue reference, or author attribution. |
-| `disable-model-invocation` | `boolean` | No | `true` | When `true`, prevents models from invoking the skill automatically without explicit human slash command. Default is `true` for personal skills. |
+| `disable-model-invocation` | `boolean` | No | `true` | When `true`, prevents models from invoking the skill automatically without explicit human slash command. Default is `true` for personal skills. `false` is permitted only for the gateway (`ask-syafiq`) and presentation (`style`) modules; the scaffolder rejects it for every other skill. |
 | `user-invoked` | `boolean` | No | `true` | Indicates whether the skill is intended for direct user slash invocation. |
 | `triggers` | `list[string]` | No | `[]` | Natural-language utterances, prompts, or trigger keywords activating the skill. |
 | `budgets` | `object` | No | `{}` | Resource ceilings for the skill entrypoint `SKILL.md`. |
@@ -54,7 +54,7 @@ A manifest is authored in declarative YAML (or JSON) and adheres to the schema b
 | `artifacts.produces` | `boolean` | No | `false` | Whether the skill produces persistent notes, reports, or files. |
 | `artifacts.contracts` | `list[object]` | Conditional | `[]` | Required if `artifacts.produces` is `true`. List of contract specifications. Each entry must define `name` (lowercase kebab-case), `template` (must end with `.template.md` or `.md` strictly under `templates/` without nested subdirectories or traversal), and `example` (must end with `.example.md` or `.md` strictly under `examples/` without nested subdirectories or traversal). |
 | `router` | `object` | No | `{}` | Router dispatch configuration for `skills/ask-syafiq/SKILL.md`. |
-| `router.domain` | `string` | No | `"general"` | Taxonomy domain: strictly one of `knowledge`, `scrum`, `ecosystem`, `scholarship`, `cadence`, `cognition`, or `general`. |
+| `router.domain` | `string` | No | `"general"` | Taxonomy domain: strictly one of `curate`, `code`, `tutor`, `setup`, `style`, or `general`. |
 | `router.intents` | `list[string]` | No | `[]` | High-level intent descriptions registered in the master routing table. Must be non-empty strings. |
 
 ---
@@ -113,19 +113,19 @@ The router configuration binds domain skills to the master router (`skills/ask-s
 
 ### 5.1 Domain Taxonomy
 Taxonomy domains include:
-- `knowledge`: Knowledge maintenance, ingestion, linting, and Wiki operations.
-- `scrum`: Autonomous backlog triage, sprint planning, and issue lifecycle.
-- `ecosystem`: Agent protocol governance, inter-agent contracts, and MCP tools.
-- `scholarship`: Academic research, literature synthesis, and paper analysis.
-- `cadence`: Personal calendar, energy mapping, habits, and daily/weekly routines.
-- `cognition`: Critical thinking partnership, decision stress-testing, and reflection.
+- `curate`: Knowledge base operations, ingestion, and memory compounding.
+- `code`: Engineering workflows: specification, tickets, TDD, and review.
+- `tutor`: Syafiq's own teaching taste: legal doctrine, supervision debriefs, Socratic thinking, and daily cadence.
+- `setup`: Agent fleet governance and configuration.
+- `style`: Ambient presentation and writing standards.
+- `general`: Anything that fits none of the above.
 
 ### 5.2 Routing Integration
 When a skill declares a `router` block, the scaffolder (`scripts/new-skill.py`) appends or updates an entry in `skills/ask-syafiq/SKILL.md`:
 ```markdown
 | Domain | Skill | Intents / Triggers |
 |---|---|---|
-| knowledge | [`knowledge-run-audit`](../knowledge-run-audit/SKILL.md) | Audit knowledge maintenance runs, inspect diffs |
+| curate | [`knowledge-run-audit`](../knowledge-run-audit/SKILL.md) | Audit knowledge maintenance runs, inspect diffs |
 ```
 
 ---
@@ -160,7 +160,7 @@ artifacts:
       template: templates/audit-report.template.md
       example: examples/audit-report.example.md
 router:
-  domain: knowledge
+  domain: curate
   intents:
     - "Audit and verify knowledge maintenance run artifacts"
     - "Inspect run records and diffs"
@@ -188,7 +188,7 @@ scripts: []
 artifacts:
   produces: false
 router:
-  domain: cognition
+  domain: tutor
   intents:
     - "Probe design assumptions"
     - "Stress-test technical proposals"

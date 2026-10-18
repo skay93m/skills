@@ -204,6 +204,21 @@ class Skills(unittest.TestCase):
         self.assertTrue({"S2", "S3", "S4", "S6"} <= ids(found, "BLOCKING"))
         self.assertIn("N5", ids(found, "NON-BLOCKING"))
 
+    def test_skill_over_token_ceiling_is_blocking(self):
+        big = GOOD_SKILL + ("word " * 600 + "\n")
+        _, found = run_check({}, {"skills/good-skill/SKILL.md": big})
+        self.assertIn("S7", ids(found, "BLOCKING"))
+
+    def test_skill_under_token_ceiling_passes(self):
+        _, found = run_check({}, {"skills/good-skill/SKILL.md": GOOD_SKILL})
+        self.assertNotIn("S7", ids(found))
+
+    def test_existing_oversize_skill_is_grandfathered_when_untouched(self):
+        big = GOOD_SKILL + ("word " * 600 + "\n")
+        _, found = run_check({"skills/good-skill/SKILL.md": big},
+                             {"skills/good-skill/SKILL.md": big, "README.md": "# changed\n"})
+        self.assertNotIn("S7", ids(found))
+
     def test_missing_frontmatter(self):
         _, found = run_check({}, {"skills/x/SKILL.md": "# no frontmatter\n"})
         self.assertIn("S1", ids(found, "BLOCKING"))

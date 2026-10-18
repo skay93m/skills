@@ -218,3 +218,12 @@ The `v1.0.0` production release tag may only be cut when all five automated gate
 - Run full pytest suite and standard checks.
 - Verify packaging dry-run.
 - Cut immutable release tag `v1.0.0`.
+
+## Superseding note (2026-10-18)
+
+This note supersedes earlier text above, which is left unaltered. Four changes apply:
+
+1. Tombstones are replaced by outright deletion of retired skills. Safe tombstones and revival demand counters are dropped.
+2. The three-axis `code-review` refactor is deferred out of v1. `code` uses an Overlay on the upstream skills for now.
+3. `tutor` ships empty in v1. The `msc-coach` submodule is not ingested yet.
+4. `setup` ships minimal in v1.

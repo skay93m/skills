@@ -18,7 +18,7 @@ artifacts:
       template: templates/supervisory-feedback.template.md
       example: examples/supervisory-feedback.example.md
 router:
-  domain: scholarship
+  domain: tutor
   intents:
     - "academic scholar"
     - "msc supervisory coaching"

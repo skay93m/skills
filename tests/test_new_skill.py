@@ -38,7 +38,7 @@ artifacts:
       template: templates/report.template.md
       example: examples/report.example.md
 router:
-  domain: knowledge
+  domain: curate
   intents:
     - "Test intent"
 """
@@ -50,7 +50,7 @@ router:
         self.assertEqual(manifest["budgets"]["line-budget"], 100)
         self.assertEqual(manifest["references"], ["guide.md"])
         self.assertEqual(manifest["artifacts"]["contracts"][0]["name"], "report")
-        self.assertEqual(manifest["router"]["domain"], "knowledge")
+        self.assertEqual(manifest["router"]["domain"], "curate")
 
     def test_parse_yaml_block_scalars(self):
         content = """
@@ -132,7 +132,7 @@ class TestManifestValidation(unittest.TestCase):
                 "produces": True,
                 "contracts": [{"name": "audit-report"}],
             },
-            "router": {"domain": "knowledge", "intents": ["Audit operations"]},
+            "router": {"domain": "curate", "intents": ["Audit operations"]},
         }
 
     def test_valid_manifest_passes(self):
@@ -256,11 +256,28 @@ class TestManifestValidation(unittest.TestCase):
 
         # Invalid intents
         with self.assertRaises(ValueError):
-            new_skill.validate_manifest(dict(self.valid_manifest(), router={"domain": "knowledge", "intents": "not-a-list"}))
+            new_skill.validate_manifest(dict(self.valid_manifest(), router={"domain": "curate", "intents": "not-a-list"}))
         with self.assertRaises(ValueError):
-            new_skill.validate_manifest(dict(self.valid_manifest(), router={"domain": "knowledge", "intents": [""]}))
+            new_skill.validate_manifest(dict(self.valid_manifest(), router={"domain": "curate", "intents": [""]}))
         with self.assertRaises(ValueError):
-            new_skill.validate_manifest(dict(self.valid_manifest(), router={"domain": "knowledge", "intents": [123]}))
+            new_skill.validate_manifest(dict(self.valid_manifest(), router={"domain": "curate", "intents": [123]}))
+
+    def test_all_allowed_domains_pass_and_legacy_fail(self):
+        for domain in ("curate", "code", "tutor", "setup", "style", "general"):
+            new_skill.validate_manifest(dict(self.valid_manifest(), router={"domain": domain}))
+        for domain in ("knowledge", "scrum", "ecosystem", "scholarship", "cadence", "cognition"):
+            with self.assertRaises(ValueError):
+                new_skill.validate_manifest(dict(self.valid_manifest(), router={"domain": domain}))
+
+    def test_model_invocation_false_only_for_gateway_and_style(self):
+        for name in ("ask-syafiq", "style"):
+            new_skill.validate_manifest(dict(self.valid_manifest(), name=name, **{"disable-model-invocation": False}))
+        for name in ("curate", "code", "tutor", "setup", "valid-skill"):
+            with self.assertRaises(ValueError) as ctx:
+                new_skill.validate_manifest(dict(self.valid_manifest(), name=name, **{"disable-model-invocation": False}))
+            self.assertIn("disable-model-invocation", str(ctx.exception))
+        for name in ("curate", "code", "tutor", "setup"):
+            new_skill.validate_manifest(dict(self.valid_manifest(), name=name, **{"disable-model-invocation": True}))
 
     def test_non_terminal_reference_fails(self):
         for bad_ref in ("sub/nested.md", "../outside.md", "/root.md", "guide.txt"):
@@ -327,7 +344,7 @@ class TestScaffoldingExecution(unittest.TestCase):
                 "contracts": [{"name": "worker-log"}],
             },
             "router": {
-                "domain": "cadence",
+                "domain": "code",
                 "intents": ["Execute background work"],
             },
         }
@@ -342,7 +359,7 @@ class TestScaffoldingExecution(unittest.TestCase):
         self.assertLessEqual(len(lines), 100)
         content = "\n".join(lines)
         self.assertIn("name: sample-worker", content)
-        self.assertIn("category: cadence", content)
+        self.assertIn("category: code", content)
         self.assertIn("[Workflow](references/workflow.md)", content)
         self.assertIn("scripts/worker.sh", content)
         self.assertIn("templates/worker-log.template.md", content)
@@ -370,7 +387,7 @@ class TestScaffoldingExecution(unittest.TestCase):
         ask_syafiq = self.skills_dir / "ask-syafiq" / "SKILL.md"
         self.assertTrue(ask_syafiq.exists())
         ask_text = ask_syafiq.read_text(encoding="utf-8")
-        self.assertIn("| cadence | `sample-worker` | Execute background work |", ask_text)
+        self.assertIn("| code | `sample-worker` | Execute background work |", ask_text)
         self.assertLessEqual(len(ask_text.splitlines()), 100)
 
         # Scaffolding test execution
@@ -391,7 +408,7 @@ class TestScaffoldingExecution(unittest.TestCase):
                 "produces": False,
             },
             "router": {
-                "domain": "cognition",
+                "domain": "tutor",
                 "intents": ["Stress-test proposals"],
             },
         }
@@ -461,7 +478,7 @@ class TestScaffoldingExecution(unittest.TestCase):
         manifest = {
             "name": "rollback-skill",
             "description": "Use when verifying atomic rollback on failure.",
-            "router": {"domain": "cognition", "intents": ["Intent"]},
+            "router": {"domain": "tutor", "intents": ["Intent"]},
         }
 
         with self.assertRaises(ValueError) as ctx:
@@ -489,7 +506,7 @@ class TestScaffoldingExecution(unittest.TestCase):
         new_skill.update_master_router(
             ask_syafiq,
             name="pipe-skill",
-            domain="knowledge",
+            domain="curate",
             intents=["First intent | Second intent with pipes"],
         )
         content_1 = ask_syafiq.read_text(encoding="utf-8")
@@ -499,7 +516,7 @@ class TestScaffoldingExecution(unittest.TestCase):
         new_skill.update_master_router(
             ask_syafiq,
             name="pipe-skill",
-            domain="knowledge",
+            domain="curate",
             intents=["First intent | Second intent with pipes"],
         )
         content_2 = ask_syafiq.read_text(encoding="utf-8")
@@ -545,7 +562,7 @@ class TestCommandLineInterface(unittest.TestCase):
 name: cli-test-skill
 description: Use when verifying CLI invocation behavior.
 router:
-  domain: cognition
+  domain: tutor
   intents:
     - "Test intent"
 """)

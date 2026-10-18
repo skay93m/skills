@@ -18,7 +18,7 @@ artifacts:
       template: templates/sprint-report.template.md
       example: examples/sprint-report.example.md
 router:
-  domain: scrum
+  domain: code
   intents:
     - "autonomous scrum"
     - "sprint planning"

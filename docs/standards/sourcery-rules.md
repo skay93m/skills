@@ -12,7 +12,7 @@ Three trials on throwaway pull requests showed that Sourcery did not post labell
 
 | Where | Checks |
 |---|---|
-| Script on every pull request ([automated-checks.md](automated-checks.md)) | H1 to H4, H6, STD, C1 to C3, C5 to C8, S1 to S6, N5, CUR |
+| Script on every pull request ([automated-checks.md](automated-checks.md)) | H1 to H4, H6, STD, C1 to C3, C5 to C8, S1 to S7, N5, CUR |
 | Sourcery review rules (this file) | N1, N2, N4, N6 (skill quality), N7 (overlap with authorised upstream skills), C4 (hidden or injected instructions), O1 to O5 (context cost) |
 | GitHub | Secret scanning with push protection; branch ruleset; auto-merge off |
 | The owner | H5 (pasted prompts and transcripts) and every merge decision |

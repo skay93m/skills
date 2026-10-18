@@ -18,7 +18,7 @@ artifacts:
       template: templates/concept-adr.template.md
       example: examples/concept-adr.example.md
 router:
-  domain: cognition
+  domain: tutor
   intents:
     - "thinking partner"
     - "socratic sparring"

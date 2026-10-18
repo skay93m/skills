@@ -90,6 +90,16 @@ MODULE_SPECS = {
 }
 
 
+LEGACY_TO_V1_DOMAIN = {
+    "knowledge": "curate",
+    "scrum": "code",
+    "ecosystem": "setup",
+    "scholarship": "tutor",
+    "cadence": "tutor",
+    "cognition": "tutor",
+}
+
+
 class TestDeepModulesCore(unittest.TestCase):
     """Contract verification test suite for core deep modules."""
 
@@ -113,7 +123,8 @@ class TestDeepModulesCore(unittest.TestCase):
             self.assertEqual(budgets.get("token-budget"), 700)
 
             router = manifest.get("router", {})
-            self.assertEqual(router.get("domain"), spec["domain"])
+            # Manifests use the v1 domain enum; spec["domain"] is the legacy category.
+            self.assertEqual(router.get("domain"), LEGACY_TO_V1_DOMAIN[spec["domain"]])
             for intent in spec["intents"]:
                 self.assertIn(intent, router.get("intents", []))
 

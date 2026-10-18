@@ -22,14 +22,15 @@ FIRST_SECOND_PERSON = re.compile(
     r"\b(I|I'm|I've|I'll|me|my|mine|we|our|you|your|yours|you'll)\b", re.IGNORECASE
 )
 ALLOWED_DOMAINS = (
-    "knowledge",
-    "scrum",
-    "ecosystem",
-    "scholarship",
-    "cadence",
-    "cognition",
+    "curate",
+    "code",
+    "tutor",
+    "setup",
+    "style",
     "general",
 )
+# Only the gateway and the presentation module may be model-invoked.
+MODEL_INVOCABLE_SKILLS = ("ask-syafiq", "style")
 
 
 def strip_comment(line):
@@ -369,6 +370,12 @@ def validate_manifest(manifest):
 
     if "disable-model-invocation" in manifest and not isinstance(manifest["disable-model-invocation"], bool):
         raise ValueError("'disable-model-invocation' must be a boolean")
+
+    if manifest.get("disable-model-invocation") is False and manifest.get("name") not in MODEL_INVOCABLE_SKILLS:
+        raise ValueError(
+            "'disable-model-invocation: false' is permitted only for "
+            + ", ".join(MODEL_INVOCABLE_SKILLS)
+        )
 
     if "user-invoked" in manifest and not isinstance(manifest["user-invoked"], bool):
         raise ValueError("'user-invoked' must be a boolean")

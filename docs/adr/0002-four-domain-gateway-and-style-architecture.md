@@ -52,3 +52,12 @@ Over successive development sprints, the repository accumulated 62 skill folders
 - Consumers using old slash commands (`/wiki-ops`, `/autonomous-scrum`, `/preview`) are intercepted by safe tombstones and redirected to `/ask-syafiq`.
 - PR #155 will be closed in favor of an upstream submodule issue on `skay93m/msc-coach`.
 - Scaffolding tools (`new-skill.py`) and standard checkers (`check-standard.py`) must be updated to validate the new domain enum and token limits.
+
+## Superseding note (2026-10-18)
+
+This note supersedes earlier text above, which is left unaltered. Four changes apply:
+
+1. Tombstones are replaced by outright deletion of retired skills. Safe tombstones and revival demand counters are dropped.
+2. The three-axis `code-review` refactor is deferred out of v1. `code` uses an Overlay on the upstream skills for now.
+3. `tutor` ships empty in v1. The `msc-coach` submodule is not ingested yet.
+4. `setup` ships minimal in v1.

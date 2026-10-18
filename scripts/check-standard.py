@@ -75,11 +75,17 @@ EVENT_TEXT = re.compile(
 ENV_ASSIGN = re.compile(r"^\s*[A-Z_][A-Z0-9_]*:\s*\$\{\{")
 EVAL_UNTRUSTED = re.compile(r"\beval\b.*\$\{?(PR_TITLE|PR_BODY|BRANCH_NAME|ISSUE_BODY|ISSUE_TITLE|COMMENT_BODY)")
 SHELL_STEP_LINK = re.compile(r"\]\((?!https?://|#|mailto:)([^)#\s]+\.md)")
+TOKEN_CEILING = 700
 EM_DASH = "\u2014"
 RULE_LINE = re.compile(r"^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
 US_SPELLING = re.compile(
     r"(?i)\b(analyz|behavior|color|favor|honor|labeled|labeling|modeling|canceled|"
     r"catalog(?!ue)|center|defense|judgment|organiz|optimiz|prioritiz|recogniz|summariz|synthesiz)\w*")
+
+
+def estimate_tokens(text):
+    """Deterministic token estimate: characters divided by 4, rounded up."""
+    return -(-len(text) // 4)
 
 
 def git(*args, check=True):
@@ -295,6 +301,10 @@ def check_skill(report, base, path, rows, is_new):
         report.add(True, "S3", path, where.get("description", 1), "Description must not use first or second person; use third person or a verb-first form.")
     if total > 100 and (is_new or rows):
         report.add(True, "S4", path, 1, f"SKILL.md has {total} lines; the limit is 100.")
+    if is_new or rows:
+        tokens = estimate_tokens(text)
+        if tokens >= TOKEN_CEILING:
+            report.add(True, "S7", path, 1, f"SKILL.md is estimated at {tokens} tokens (characters divided by 4); it must stay strictly under {TOKEN_CEILING}.")
     meta = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
     origin, involvement = meta.get("origin", ""), meta.get("agent_involvement", "")
     if not origin or involvement not in ("none", "partial", "full"):

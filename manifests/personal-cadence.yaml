@@ -18,7 +18,7 @@ artifacts:
       template: templates/daily-cadence.template.md
       example: examples/daily-cadence.example.md
 router:
-  domain: cadence
+  domain: tutor
   intents:
     - "personal cadence"
     - "adhd momentum"

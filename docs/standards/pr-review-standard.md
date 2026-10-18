@@ -91,6 +91,14 @@ Every pull request must conform to repository style rules:
 - **Strictly Zero Em Dashes**: Never use em dashes. Use commas, colons, or parentheses.
 - **Strictly Zero Body Horizontal Dividers**: Never insert horizontal rules in markdown bodies (only YAML frontmatter delimiters are permitted).
 
+## Pocock Skill Filter
+
+Reviewers apply the Pocock Skill Filter to every added or changed skill. A skill that fails a pillar is a candidate for rejection or for an Overlay (see `GLOSSARY.md`).
+
+- **Behavioural Delta**: The skill must change what a capable model does by default. Generic instructions the model already follows are a no-op and are rejected.
+- **Upstream Overlap**: The skill must not duplicate an authorised upstream skill. Where upstream covers the need, use it unchanged and keep only the delta.
+- **What We Care About**: The skill must encode Syafiq's own taste, doctrine, or non-default constraints that nobody else can supply.
+
 ## Check Registry
 
 "Script" is `scripts/check-standard.py` (see [automated-checks.md](automated-checks.md)). "Sourcery" means a dashboard review rule (see [sourcery-rules.md](sourcery-rules.md)). "Owner" means the owner's own review.
@@ -105,6 +113,7 @@ Every pull request must conform to repository style rules:
 | S2 | Name is kebab-case, at most three words, equals its directory, no "anthropic" or "claude" | Blocking | Script |
 | S3 | Description at most 1,024 characters, has a "Use when" clause, no first or second person | Blocking | Script |
 | S4 | `SKILL.md` at most 100 lines | Blocking | Script |
+| S7 | `SKILL.md` estimated strictly under 700 tokens (characters divided by 4) | Blocking | Script |
 | S5 | A reference file does not link to another reference file | Blocking | Script |
 | S6 | Provenance in frontmatter: `metadata.origin`, `metadata.agent_involvement`, and `metadata.divergence` when the origin is an upstream | Blocking | Script |
 | N1, N2, N4, N6 | Skill quality: name form, description quality, writing principles, fragile operations | Non-blocking | Sourcery |

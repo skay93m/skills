@@ -40,11 +40,16 @@ Standard: `sk-pr-review-standard`, version `1.0.0-draft`. Mechanical checks run 
 | C7 | Blocking or non-blocking | A third-party action pinned by tag or branch (blocking), or a GitHub-owned one (non-blocking) |
 | C8 | Blocking | Text an outsider controls placed directly in a workflow script, or passed to `eval` |
 | S1 to S6 | Blocking | Skill frontmatter, name, description, length, nested references, and provenance |
+| S7 | Blocking | A new or edited skill entrypoint estimated at 700 tokens or more (see Token Estimate) |
 | N5 | Non-blocking | `metadata.category` is missing |
 | CUR | Non-blocking | The stamp's fresh-until date has passed |
 | W1 | Blocking | An em dash in any added text line |
 | W2 | Blocking | A horizontal divider in an added markdown body line; YAML frontmatter and fenced code blocks are exempt |
 | W3 | Blocking | A US spelling of a listed word stem in an added markdown line; the list lives in `scripts/check-standard.py` |
+
+## Token Estimate
+
+S7 estimates the tokens of a whole `SKILL.md` as its character count divided by 4, rounded up. The method is deterministic and needs no tokeniser. The entrypoint must stay strictly under 700 estimated tokens. Like S4, it applies only when a skill is new or the pull request adds lines to it, so existing oversize skills do not start failing.
 
 ## Known Limits
 
