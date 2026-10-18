@@ -21,7 +21,7 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 - Use one integration branch, `feat-msc-coach-shipping-plan` (PR #155), for every ticket, and the coordinator protocol (`docs/agents/coordinator-protocol.md`).
 - Never overwrite an existing skill directory.
 - Keep provenance and version fields. Fix only what the standard check flags. Report repo-side fixes back to msc-coach (#153).
-- Gate: `python3 scripts/check-standard.py --base origin/main` shows 0 blocking and 0 non-blocking findings, and `pytest` passes. The `npx skills add skay93m/skills` check runs after merge, because it installs from the default branch.
+- Verification gate: see Phase 6 step 1 of `docs/agents/coordinator-protocol.md`.
 - On the ready signal, count the skills myself. If the count is not 22 or `ask-coach` is missing, halt and report.
 - No ADR: the decisions are easy to reverse.
 - `docs/authorised-skill-repositories.md` does not apply. msc-coach is a source repo, not a third-party Authorised Skill Repository.
@@ -64,9 +64,9 @@ Blocking edges are GitHub native dependencies, except the two external ones (rea
 ## One-PR delivery and merge (decided by the human, 2026-10-18)
 
 - All tickets land as commits on PR #155, which stays a draft until its tickets are done.
-- The agent cannot merge unattended in general: the permission classifier can block a merge, and the `main` ruleset requires an approving review.
+- The agent cannot merge unattended in general. See Phase 6 of the protocol.
 - #149 collision decisions use the agent's best guess and are listed at the top of the PR body for the human to check.
-- #152 can run before merge: `npx skills add skay93m/skills#<branch> --list` installs from a branch ref (verified 2026-10-18).
+- #152: the `npx skills add skay93m/skills` install check runs after merge, because it installs from the default branch. #152 may also check before merge from the branch ref: `npx skills add skay93m/skills#<branch> --list` (verified 2026-10-18).
 - Work after #147 waits for the human's explicit ready signal. Do not infer it from msc-coach's repository state.
 
 Review, verdict-comment and merge rules: see Phase 3, Phase 4 and Phase 6 of `docs/agents/coordinator-protocol.md`. Do not restate them here.
