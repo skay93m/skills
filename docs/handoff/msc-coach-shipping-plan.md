@@ -22,14 +22,14 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 - A msc-coach copy never replaces an existing skill directory. Extending or merging edits the existing skill in place via a reviewed change.
 - Keep provenance and version fields. Fix only what the standard check flags. Report repo-side fixes back to msc-coach (#153).
 - Shipping gate: for the msc-coach shipping PR, a project criterion (not a pre-existing rule), `python3 scripts/check-standard.py --base origin/main` must print 0 blocking and 0 non-blocking findings, and `pytest` must pass. These are the script's findings, separate from reviewer NON-BLOCKING notes. Phase 6 step 1 of `docs/agents/coordinator-protocol.md` lists the commands.
-- On the ready signal, count the skills myself. If the count is not 22 or `ask-coach` is missing, halt and report.
+- On the ready signal, count the skills myself. If the count is not the 22 stated in the msc-coach agent's ready message, or `ask-coach` is missing, halt and report.
 - No ADR: the decisions are easy to reverse.
 - `docs/authorised-skill-repositories.md` does not apply. msc-coach is a source repo, not a third-party Authorised Skill Repository.
 
 ## Collision protocol
 
-- A collision is an exact name match or a functional overlap. Report all of them to the human before anything is copied. While the human is away (authorised 2026-10-18), report them in the PR body instead.
-- After the human's ready signal for #148 is received, the agent applies the default resolution order while the human is away (authorised 2026-10-18). Before that signal, nothing from #148 onward starts. Order: try extend first, then merge and synthesise; rename applies only when the two skills are functionally distinct (a pure name clash). The agent lists every decision at the top of the PR body. The human's approval of each case is given by reviewing that list before merging. PR #155 merge hold: see Phase 6 of `docs/agents/coordinator-protocol.md`.
+- A collision is an exact name match or a functional overlap. Collision decisions are listed at the top of the PR body before the batch is marked ready. Nothing is copied before the ready signal.
+- After the human's ready signal for #148, the agent applies the default resolution order (authorised 2026-10-18). Before that signal, nothing from #148 onward starts. Order: try extend first, then merge and synthesise; rename applies only when the two skills are functionally distinct (a pure name clash). The human approves each case by reviewing the PR body list at merge. PR #155 is held for the human, per the protocol's Phase 6.
 - msc-coach changes only msc-coach, and may propose and negotiate on #146. Every change in this repository is implemented by the skills agent.
 - Non-colliding skills ship first (#150). Colliding ones follow after resolution (#151).
 - Overlap suspicion (unverified): the 2026-10-18 snapshot listed `academic-thinking-partner`, which may overlap `thinking-partner` and `academic-scholar`. That name is gone from the later local tree, so recheck at #148 against the pinned SHA.
@@ -64,8 +64,9 @@ Blocking edges are GitHub native dependencies, except the two external ones (rea
 ## One-PR delivery and merge (decided by the human, 2026-10-18)
 
 - All tickets land as commits on PR #155, which stays a draft until its tickets are done.
-- #149 collision decisions follow the Collision protocol above and are listed at the top of the PR body.
-- #152: the `npx skills add skay93m/skills` install check runs after merge, because it installs from the default branch. #152 may also check before merge from the branch ref: `npx skills add skay93m/skills#<branch> --list` (verified 2026-10-18).
+- #149 collision decisions follow the Collision protocol above. The human approves them by reviewing the PR body list at merge.
+- #152 is verified before merge from the branch ref: `npx skills add skay93m/skills#<branch> --list` (verified 2026-10-18). The post-merge `npx skills add skay93m/skills` run is a final human confirmation, not a gate on the PR.
+- #154 lands on PR #155 once the msc-coach manifest exists.
 - Work after #147 waits for the human's explicit ready signal. Do not infer it from msc-coach's repository state.
 
 Review, verdict-comment and merge rules: see Phase 3, Phase 4 and Phase 6 of `docs/agents/coordinator-protocol.md`. Do not restate them here.
