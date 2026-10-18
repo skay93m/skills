@@ -80,6 +80,16 @@ TOMBSTONE_SKILLS = {
 
 ALL_38_SKILLS = DEEP_MODULES | ROUTER_SKILLS | KNOWLEDGE_AND_SEAM_SKILLS | TOMBSTONE_SKILLS
 
+# Shipped from the Source repository skay93m/msc-coach (pinned commit 48b8e5f).
+MSC_COACH_SKILLS = frozenset({
+    "academic-review", "analytical-read", "ask-coach", "blueprint", "coach-setup",
+    "compact-academic", "debrief", "final-audit", "park", "preview", "quiz",
+    "recall", "session-end", "session-start", "slice-tickets", "source-discover",
+    "supervision-debrief", "supervision-prep", "syntopical-map", "think",
+    "viva-draft", "viva-idea",
+})
+ALL_SKILLS = ALL_38_SKILLS | MSC_COACH_SKILLS
+
 
 def resolve_skill_source(repo_root: pathlib.Path, skill_name: str) -> pathlib.Path:
     """Simulate npx skills add skay93m/skills --skill <name> resolution."""
@@ -104,11 +114,13 @@ def install_skill_to_runtime(source_dir: pathlib.Path, target_skills_dir: pathli
 class TestNpxSkillsPackagingContract(unittest.TestCase):
     """Packaging contract and multi-agent runtime verification test suite."""
 
-    def test_exact_inventory_of_38_skills(self):
-        """Repository must contain exactly 38 skills across the four defined categories."""
+    def test_exact_inventory_of_60_skills(self):
+        """Repository must contain exactly 60 skills: the 38 native skills plus 22 from msc-coach."""
         actual_dirs = sorted([p.name for p in SKILLS_DIR.iterdir() if p.is_dir()])
-        self.assertEqual(len(actual_dirs), 38, f"Expected 38 skill directories, found {len(actual_dirs)}")
-        self.assertEqual(set(actual_dirs), ALL_38_SKILLS)
+        self.assertEqual(len(actual_dirs), 60, f"Expected 60 skill directories, found {len(actual_dirs)}")
+        self.assertEqual(set(actual_dirs), ALL_SKILLS)
+        self.assertEqual(len(ALL_38_SKILLS), 38)
+        self.assertEqual(len(MSC_COACH_SKILLS), 22)
         self.assertEqual(len(DEEP_MODULES), 6)
         self.assertEqual(len(ROUTER_SKILLS), 1)
         self.assertEqual(len(KNOWLEDGE_AND_SEAM_SKILLS), 5)
