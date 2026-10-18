@@ -1,0 +1,21 @@
+name: style
+description: Mandatory ambient writing standard for Syafiq's repositories and sessions, requiring British English, zero em dashes, zero horizontal dividers, and clean markdown tables. Use when writing or reviewing any document, comment, code artefact, report, or chat reply.
+version: 1.0.0
+provenance: original
+disable-model-invocation: false
+user-invoked: false
+triggers:
+  - "style standard"
+  - "british english"
+  - "em dash"
+  - "horizontal divider"
+budgets:
+  line-budget: 100
+  token-budget: 700
+references:
+  - language-rules.md
+  - markdown-layout.md
+  - global-agent-setup.md
+scripts: []
+artifacts:
+  produces: false

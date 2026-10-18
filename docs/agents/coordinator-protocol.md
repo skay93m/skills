@@ -79,7 +79,7 @@ Re-check codebase alignment and re-run the full Stage 1 checks before merging.
 
 ## 4. Style and Standards
 
-Follow the style rules in `AGENTS.md` and the checks in `docs/standards/automated-checks.md` (British English, no em dashes, no body horizontal dividers, line budgets, reference depth, path hygiene, secrets).
+Follow the style rules in `skills/style/SKILL.md`, and the checks in `docs/standards/automated-checks.md`.
 
 ## Observations
 - [governance] Codify Chief of Staff AFK execution protocol and Docket 1 adversarial review decisions #afk #governance

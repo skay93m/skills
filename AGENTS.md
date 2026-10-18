@@ -10,11 +10,17 @@ Instructions and governing operational standards for all AI agents collaborating
 
 ## Agile Sprint Framework
 
-All planned feature development, refactoring, and maintenance work follow native GitHub Agile workflows:
+All planned feature development, refactoring, and maintenance work follow native GitHub Agile workflows. A sprint is a GitHub Milestone.
 
-- **Sprints**: Represented natively by GitHub Milestones (e.g. `v1.0.0: Minimal Production Deploy`). Every sprint defines an explicit objective, release gate, and bounded scope.
-- **Epics**: High-level capability streams tracked as top-level GitHub issues with child sub-issues or `Part of #<parent>` task lists.
-- **Issues**: Atomic units of work with unambiguous boundaries, verification criteria, and dependency declarations (`blocked_by`).
+| Agile term | GitHub object | Rule |
+|---|---|---|
+| Sprint | Milestone | One milestone per sprint |
+| Spec | Spec issue and `docs/specs/` note | Defines the objective, release gate, and bounded scope of its sprint |
+| Epic | Top-level issue | Groups child sub-issues or `Part of #<parent>` task lists |
+| Ticket | Issue labelled `ready-for-agent` | Atomic unit of work |
+
+- **Sprint example**: `v1.0.0: Minimal Production Deploy`.
+- **Ticket contents**: verification criteria and `blocked_by` declarations.
 - **Execution Order**: Milestones execute sequentially on `main` to eliminate merge conflicts and branch drift.
 
 ## Deliberation and Execution Interfaces
@@ -43,11 +49,7 @@ All multi-step tasks follow the Chief of Staff Coordinator Protocol detailed in 
 
 ## Style and Presentation Standards
 
-Every document, comment, and code artefact produced must strictly adhere to the repository style rules:
-- **British English**: Use British English spelling across all prose and identifiers (e.g. prioritise, behaviour, organisation, synthesise, artefact).
-- **Strictly Zero Em Dashes**: Never use em dashes. Use commas, colons, or parentheses instead.
-- **Strictly Zero Horizontal Dividers**: Never insert horizontal rules in markdown bodies (only YAML frontmatter delimiters are permitted).
-- **Conciseness and Line Budgets**: Maintain strict modularity and respect skill line budgets (e.g. 100-line limit on `SKILL.md`).
+`skills/style/` is a mandatory ambient standard. Every agent working in this repository must read `skills/style/SKILL.md` before producing any document, comment, code artefact, or reply, and must follow it over default habits. Global agent environments load it as described in `skills/style/references/global-agent-setup.md`.
 
 ## Domain and Documentation Standards
 
@@ -76,7 +78,7 @@ This project integrates with the Basic Memory persistent memory app:
 - [governance] Agile sprints are mapped to GitHub Milestones, Epics, and Issues #agile
 - [workflow] Dockets govern human deliberation and Work Orders govern autonomous AFK execution #workflow
 - [tooling] GitHub issues are referenced by bare URL so the GitHub Link plugin renders them #obsidian
-- [style] Repository mandates British English, zero em dashes, and zero body horizontal dividers #style
+- [style] Repository style rules live only in skills/style/SKILL.md #style
 - [architecture] Chief of Staff enforces pure delegation, bounded review loops, and fail-closed isolation #protocol
 
 ## Relations
