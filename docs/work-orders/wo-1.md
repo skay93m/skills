@@ -10,7 +10,7 @@ Packages Sprint 1 for autonomous AFK execution under `docs/agents/coordinator-pr
 
 ## 1. Sprint Identity
 
-- **Milestone**: `v1.0.0: Minimal Production Deploy` , Spec https://github.com/skay93m/skills/issues/157 
+- **Milestone**: `v1.0.0: Minimal Production Deploy`, Spec https://github.com/skay93m/skills/issues/157 
 - **Branch**: `sprint-1` from `origin/main`; one release PR into `main` after the 5-point gate (Ticket 3)
 
 ## 2. Ticket Order
