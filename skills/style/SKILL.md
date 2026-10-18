@@ -22,6 +22,7 @@ Ambient standard for every document, comment, code artefact, report, and chat re
 3. **Zero horizontal dividers.** In markdown bodies, chat replies, and reviews, never write a rule line made of three or more hyphens, asterisks, or underscores. Use a heading instead. YAML frontmatter delimiters are the only permitted exception.
 4. **Clean tables.** Keep one point per cell. If a cell needs a second clause, split the row or use a bullet list.
 5. **No emoji** in repository artefacts, unless a tool or instruction requires one, such as the attribution line on a pull request.
+6. **Line budgets.** Keep documents concise and modular. Respect skill line budgets, such as the 100-line limit on `SKILL.md`.
 
 ## Vocabulary
 

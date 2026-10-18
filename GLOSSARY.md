@@ -165,9 +165,21 @@ _Avoid_: RFC, pitch, discussion document, proposal
 An authoritative operational directive (e.g., `WO-1` or `docs/work-orders/wo-1.md`) that packages sprint tickets, sequential execution order, living execution ledgers, and Chief-of-Staff-only prune points for autonomous AFK delivery.
 _Avoid_: task bundle, job order, sprint memo
 
+**Sprint**:
+A GitHub Milestone with a defined objective, release gate, and bounded scope.
+_Avoid_: iteration, timebox
+
+**Epic**:
+A top-level issue that groups child sub-issues.
+_Avoid_: initiative, theme
+
+**Ticket**:
+An atomic issue with verification criteria and dependencies, labelled `ready-for-agent`.
+_Avoid_: task, story
+
 ## Observations
 - [standard] Establish canonical terminology for skills repository governance and development #glossary
-- [convention] Terms use British English spelling and zero em dashes #style
+- [convention] Style rules live only in skills/style/SKILL.md #style
 - [governance] Dockets and Work Orders govern human deliberation and autonomous execution #agile
 
 ## Relations
