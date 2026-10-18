@@ -89,9 +89,9 @@ Every implementation must undergo a dual, concurrent adversarial review prior to
 ### Phase 6: Landing & Merging
 1. Verify git working directory and run full verification (`python3 scripts/check-standard.py`, `pytest`).
 2. Push branch to remote repository.
-3. Open a pull request using GitHub CLI (`gh pr create`).
-4. Merge using admin privileges (`gh pr merge --admin --merge`).
-5. Fast-forward local `main` (`git pull origin main`) and confirm `git status` is clean.
+3. Open a pull request using GitHub CLI (`gh pr create`). A ticket batch may land as reviewed commits on one integration PR; each ticket still completes Phase 3 and Phase 4 before the next starts.
+4. Merge with `gh pr merge --merge` only if the permission classifier and the repository ruleset allow it, and only after both adversarial reviewers have passed (each runs `/code-review` on the PR, one on Spec and one on Standards, with every finding resolved or dismissed). If the classifier or ruleset blocks the merge, leave the PR open for the human. Never use `--admin` or other bypasses to defeat a permission or review denial.
+5. After a merge, fast-forward local `main` (`git pull origin main`) and confirm `git status` is clean.
 
 ---
 
