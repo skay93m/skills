@@ -53,6 +53,8 @@ The Chief of Staff appends all status updates, subagent conversation IDs, verifi
 
 *(Chief of Staff: append entries below using the format: `[YYYY-MM-DD HH:MM] <Ticket / Action>: <Details>`)*
 
+[2026-10-18 20:00] Ticket 1 (#168): Implemented, committed 7cb528f. Stage 1 green (247 passed, 0 blocking). Pass 0 review: no blocking findings. Non-blocking: working-tree mode uses two-dot diff (W1), fence handling ignores fence length (W2), unverified 'most capable' wording for opus in the protocol (P1).
+
 ## Observations
 - [decision] Sprint 2 delivers the v1 six-directory catalogue with no tombstones, replacing the WO-1 release attempt #sprint
 - [rule] Pruning boundaries are strictly confidential to the Chief of Staff #safety
