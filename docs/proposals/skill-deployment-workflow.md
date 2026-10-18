@@ -143,7 +143,7 @@ The final stage ensures operational harmony with existing workflows and tools be
 Before cutting a release or merging the pull request, the Skills Agent conducts a focused alignment session with Syafiq:
 - **Routing & Discovery**:
   - How will `ask-syafiq` discover and route to this skill?
-  - Does it need user invocation (`/ask-<domain>`) or model invocation?
+  - Does it need user invocation (`curate`, `code`, `tutor`, `setup`) or model invocation?
   - How does it map to the GTD Project Detector / Reference-Action split?
 - **Host Coexistence**:
   - Verifying compatibility across target runtimes (Claude, Codex, Antigravity).

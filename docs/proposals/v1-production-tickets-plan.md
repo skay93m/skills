@@ -56,7 +56,7 @@ flowchart TD
 1. **[Issue #114](https://github.com/skay93m/skills/issues/114): Ticket 2 — Retire Superseded Report-Only Maintenance Code & Spec**
    - Delete `scripts/knowledge_maintenance.py` and `tests/test_knowledge_maintenance.py`.
    - Formally mark `docs/specs/daily-knowledge-maintenance.md` as superseded.
-   - Deploy fail-closed tombstones redirecting to `/ask-curate` and `ask-syafiq`.
+   - Deploy fail-closed tombstones redirecting to `curate` and `ask-syafiq`.
 2. **[Issue #163](https://github.com/skay93m/skills/issues/163): Ticket 2.5 — Align Scaffolder `ALLOWED_DOMAINS` & Token Ceiling**
    - Update `ALLOWED_DOMAINS` in `scripts/new-skill.py` and `docs/standards/skill-manifest.md` to `("curate", "code", "tutor", "setup", "style", "general")`.
    - Permit `disable-model-invocation: false` for `ask-syafiq` and `style`.
