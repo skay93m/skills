@@ -10,11 +10,15 @@ Instructions and governing operational standards for all AI agents collaborating
 
 ## Agile Sprint Framework
 
-All planned feature development, refactoring, and maintenance work follow native GitHub Agile workflows:
+All planned feature development, refactoring, and maintenance work follow native GitHub Agile workflows. A sprint is a GitHub Milestone.
 
-- **Sprints**: Represented natively by GitHub Milestones (e.g. `v1.0.0: Minimal Production Deploy`). Every sprint defines an explicit objective, release gate, and bounded scope.
-- **Epics**: High-level capability streams tracked as top-level GitHub issues with child sub-issues or `Part of #<parent>` task lists.
-- **Issues**: Atomic units of work with unambiguous boundaries, verification criteria, and dependency declarations (`blocked_by`).
+| Agile term | GitHub object | Rule |
+|---|---|---|
+| Sprint | Milestone | One milestone per sprint, for example `v1.0.0: Minimal Production Deploy` |
+| Spec | Spec issue and `docs/specs/` note | Defines the objective, release gate, and bounded scope of its sprint |
+| Epic | Top-level issue | Groups child sub-issues or `Part of #<parent>` task lists |
+| Ticket | Issue labelled `ready-for-agent` | Atomic work with verification criteria and `blocked_by` declarations |
+
 - **Execution Order**: Milestones execute sequentially on `main` to eliminate merge conflicts and branch drift.
 
 ## Deliberation and Execution Interfaces
@@ -42,6 +46,8 @@ All multi-step tasks follow the Chief of Staff Coordinator Protocol detailed in 
 - **Resilience**: Rate limit circuit breaker (120-second backoff on HTTP 429) and automated git revert roll-back on `main` if post-merge checks fail.
 
 ## Style and Presentation Standards
+
+`skills/style/` is a mandatory ambient standard. Every agent working in this repository must read `skills/style/SKILL.md` before producing any document, comment, code artefact, or reply, and must follow it over default habits. Global agent environments load it as described in `skills/style/references/global-agent-setup.md`.
 
 Every document, comment, and code artefact produced must strictly adhere to the repository style rules:
 - **British English**: Use British English spelling across all prose and identifiers (e.g. prioritise, behaviour, organisation, synthesise, artefact).
