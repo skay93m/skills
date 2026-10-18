@@ -6,7 +6,7 @@ Written 2026-10-18 at the end of a grill-with-docs and to-tickets session. Nothi
 
 - The plan is agreed and ticketed. Parent: #146 "Ship msc-coach skills v1". Sub-issues: #147 to #154.
 - Work starts only when the human says the msc-coach agent is ready. That signal is the human telling the skills agent, in conversation.
-- The only ticket that can start before the signal is #147 (glossary). `GLOSSARY.md` has not been touched.
+- The only ticket that can start before the signal is #147 (glossary). The glossary terms land in PR #155.
 - Branch `refactor-ask-syafiq` was merged into `main` by the human. The local checkout may still be on that branch; switch to `main` and fetch before branching.
 
 ## Goal
@@ -18,7 +18,7 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 - Out of scope: `mhel-coaching` workspace detection.
 - `ask-syafiq` routing and count changes wait for the msc-coach skill manifest (#154). The "8 repositories" and "6 modules" counts, and the 100-line and 700-token budgets, are handled there.
 - Copy from a pinned msc-coach commit on its GitHub `origin/main`, not from the local working tree at `../msc-coach`. Record the SHA on #146 and in the PR body.
-- Use a fresh branch from `origin/main`, one PR, and the coordinator protocol (`docs/agents/coordinator-protocol.md`).
+- Use fresh branches from `origin/main`, one PR per ticket (#150, #151, #154), and the coordinator protocol (`docs/agents/coordinator-protocol.md`).
 - Never overwrite an existing skill directory.
 - Keep provenance and version fields. Fix only what the standard check flags. Report repo-side fixes back to msc-coach (#153).
 - Gate: `python3 scripts/check-standard.py --base origin/main` shows 0 blocking and 0 non-blocking findings, and `pytest` passes. The `npx skills add skay93m/skills` check runs after merge, because it installs from the default branch.
@@ -32,11 +32,11 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 - Default resolution order: extend the existing skill, then merge and synthesise, then rename only if the two are functionally distinct. The human approves each case.
 - The skills agent implements any change in this repo. msc-coach changes only msc-coach, and may propose and negotiate on #146.
 - Non-colliding skills ship first (#150). Colliding ones follow after resolution (#151).
-- Already suspected: msc-coach `academic-thinking-partner` overlaps this repo's `thinking-partner` and `academic-scholar`. The latter already adapts `thinking-partner`. Relay this to msc-coach early.
+- Overlap suspicion (unverified): the 2026-10-18 snapshot listed `academic-thinking-partner`, which may overlap `thinking-partner` and `academic-scholar`. That name is gone from the later local tree, so recheck at #148 against the pinned SHA.
 
 ## Facts observed (2026-10-18)
 
-- `../msc-coach/skills/` held 17 skills, not 22, so the finalised set is not there yet: academic-compaction, academic-review, academic-thinking-partner, active-retrieval, adversarial-examiner, analytical-read, blueprint, coach-orientation, coaching, final-audit, preview, session-end, session-start, slice-tickets, source-discover, supervision, syntopical-map.
+- Snapshots of `../msc-coach/skills/` change as msc-coach evolves. An early one held 17 skills, a later one 21 (e.g. debrief, park, quiz, recall, think, viva-draft, viva-idea, compact-academic, supervision-debrief, supervision-prep), neither 22. Do not rely on either; count the pinned SHA at #148.
 - `ask-coach` was not among them.
 - No exact directory-name collisions with this repo's 38 skills at that time.
 - Glossary precedent: a skill here that overlaps an Authorised upstream skill should extend it and record how it differs.
@@ -63,6 +63,6 @@ Blocking edges are GitHub native dependencies, except the two external ones (rea
 
 ## Merge policy (decided by the human)
 
-- The agent may merge its own PRs, but only after it has spawned two adversarial reviewer subagents that each invoke `/code-review` on the PR, one on the Spec axis and one on the Standards axis, and every finding is resolved or explicitly dismissed.
+- This overrides the "reviewed and merged by the human" criterion in #150. The agent may merge its own PRs, but only after it has spawned two adversarial reviewer subagents that each invoke `/code-review` on the PR, one on the Spec axis and one on the Standards axis, and every finding is resolved or explicitly dismissed.
 - Mentioning `/code-review` in the policy is not a request to run it now. Run it per PR, at merge time.
 - The permission classifier blocked a create-and-squash-merge earlier ("Merge Without Review"). The human has since added the `Bash(gh pr merge:*)` allow rule. The classifier is separate from the allow list and may still block a merge. If it does, stop and ask the human; do not work around it.
