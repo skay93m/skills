@@ -6,7 +6,9 @@ type: protocol
 
 # Coordinator & Subagent Protocol
 
-**First step: any agent following this protocol must begin by invoking the /chief-of-staff skill, before taking any other action.**
+**First step: any agent following this protocol must load the `/chief-of-staff` skill before taking any other action.**
+
+Fallback: if the skill is not listed or fails to load, read this document and `AGENTS.md` in full, record in the Work Order ledger that the skill was unavailable, and then follow this document as written.
 
 Next, confirm `AGENTS.md` is in your context. If it is not, read it before acting.
 
@@ -23,7 +25,9 @@ This document defines the official Chief of Staff Coordinator & Subagent Working
 - When all tickets are merged and the full 5-point CI release gate passes on the sprint branch, merge into `main` via a single verified pull request.
 
 ### Model Tiers
-- Subagents (implementers, reviewers, fixers) use cost-efficient `flash` tier models. Higher-tier models are reserved for coordination and high-complexity design, or when a task mandates them.
+- The Coordinator runs on `opus`, the most capable Claude Code tier, for orchestration and high-complexity design.
+- Implementers, reviewers and fixers default to `sonnet`, which balances cost and capability. Use `haiku` only for mechanical, fully specified edits.
+- Set the tier on each Agent tool dispatch with its `model` argument (`opus`, `sonnet` or `haiku`), unless the task mandates another tier.
 
 ### Batching and Lifecycle Cleanup
 - Never spawn more than 10 subagents in one batch. Queue larger sets in sequential batches, waiting for each to finish.
@@ -38,12 +42,12 @@ This document defines the official Chief of Staff Coordinator & Subagent Working
 4. Write a self-contained task prompt for an Implementation subagent.
 
 ### Phase 2: Implementation Delegation
-1. Dispatch an Implementation Subagent (every subagent prompt, including reviewers and fixers, must tell it to read `AGENTS.md` first) with only the GitHub ticket and specification (never prune points, per `AGENTS.md`), plus task scope, strict file boundaries, edge-case requirements, and verification commands (`python3 scripts/check-standard.py`, `pytest`).
-2. The subagent edits, runs the suite, and reports back via `send_message`.
+1. Dispatch an Implementation Subagent (every subagent prompt, including reviewers and fixers, must tell it to read `AGENTS.md` first) with only the GitHub ticket and specification (never prune points, per `AGENTS.md`), plus task scope, strict file boundaries, edge-case requirements, and verification commands (`python3 scripts/check-standard.py`, `uv run --no-project --with pytest python -m pytest tests -q`).
+2. The subagent edits, runs the suite, and returns its final report as the Agent tool result.
 3. The Coordinator inspects the report, git status, and diff, then terminates the subagent before review.
 
 ### Phase 3: Tiered Staged Verification
-- **Stage 1 (deterministic)**: run `python3 scripts/check-standard.py` and `pytest`. On any failure, return the logs to the implementer and spawn no review agents.
+- **Stage 1 (deterministic)**: run `python3 scripts/check-standard.py` and `uv run --no-project --with pytest python -m pytest tests -q`. On any failure, return the logs to the implementer and spawn no review agents.
 - **Stage 2 (adversarial review)**, only once Stage 1 is green, following `docs/standards/pr-review-standard.md`:
   - Standard tickets: one unified reviewer audits specification adherence and coding standards.
   - Core interface or protocol changes: three parallel reviewers, one per axis (three-axis review):
@@ -64,18 +68,18 @@ This document defines the official Chief of Staff Coordinator & Subagent Working
 Re-check codebase alignment and re-run the full Stage 1 checks before merging.
 
 ### Phase 6: Landing and Automated Roll-Back
-1. Open a pull request or merge the ticket as the repository workflow defines, and confirm `git status` is clean.
+1. Open a pull request or merge the ticket as the repository workflow defines, and confirm `git status` is clean. The pull request body must contain a `Closes #<n>` line for every issue it lands, so GitHub closes those issues on merge.
 2. Run the post-merge release gate on `main`.
 3. If it fails, never hotfix speculatively on the release branch: run `git revert -m 1 HEAD`, confirm `main` is green again, mark the ticket `ready-for-human` with diagnostic logs, and halt the release sequence.
 
 ## 3. Operational Resilience
 
 ### HTTP 429 Circuit Breaker
-- On `RESOURCE_EXHAUSTED` (HTTP 429), pause 120 seconds (using the `schedule` tool or a timer) and retry. After three successive backoff cycles, halt the sprint and write a durable handoff report.
+- On `RESOURCE_EXHAUSTED` (HTTP 429), wait 120 seconds before retrying. After three successive backoff cycles, halt the sprint and write a durable handoff report.
 
 ### Subagent Watchdogs
 - Each dispatch has a completion boundary: 10 minutes for implementation, 5 minutes for review.
-- On timeout, kill the worker with `manage_task(Action='kill')`, record a failure iteration, and clean up task state.
+- A subagent that has not reported within its boundary is stopped with `TaskStop`, its failure is recorded as an iteration in the ledger, and its task state is cleaned up.
 
 ### Living Execution Ledger
 - Record progress, subagent IDs, verification logs, and operational events in the active Work Order so execution can resume after compaction or disruption.

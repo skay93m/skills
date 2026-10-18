@@ -40,8 +40,12 @@ def write(root, files):
             f.write(text)
 
 
-def run_check(base_files, head_files, today="2026-10-10"):
-    """Return (exit_code, [(label, id), ...])."""
+def run_check(base_files, head_files, today="2026-10-10", working_tree=False, commit=True):
+    """Return (exit_code, [(label, id), ...]).
+
+    With commit=False the head files stay uncommitted, so only working-tree
+    mode sees them.
+    """
     with tempfile.TemporaryDirectory() as root:
         git(root, "init", "-q", "-b", "main")
         git(root, "config", "user.email", "test@example.com")
@@ -52,10 +56,13 @@ def run_check(base_files, head_files, today="2026-10-10"):
         git(root, "tag", "base")
         git(root, "checkout", "-q", "-b", "change")
         write(root, head_files)
-        git(root, "add", "-A")
-        git(root, "commit", "-q", "-m", "change")
-        done = subprocess.run([sys.executable, SCRIPT, "--base", "base", "--today", today],
-                              cwd=root, capture_output=True, text=True)
+        if commit:
+            git(root, "add", "-A")
+            git(root, "commit", "-q", "-m", "change")
+        args = [sys.executable, SCRIPT, "--base", "base", "--today", today]
+        if working_tree:
+            args.append("--working-tree")
+        done = subprocess.run(args, cwd=root, capture_output=True, text=True)
         return done.returncode, ANNOTATION.findall(done.stdout)
 
 
@@ -224,6 +231,45 @@ class Skills(unittest.TestCase):
     def test_nested_reference_link(self):
         _, found = run_check({}, {"skills/good-skill/ref.md": "See [more](other.md).\n"})
         self.assertIn("S5", ids(found, "BLOCKING"))
+
+
+class Writing(unittest.TestCase):
+    def test_us_style_fixture_fails(self):
+        text = "# Notes\n\nThe " + "color" + " setting \u2014 kept.\n\n---\n\nDone.\n"
+        code, found = run_check({}, {"docs/style.md": text})
+        self.assertEqual(ids(found, "BLOCKING"), {"W1", "W2", "W3"})
+        self.assertEqual(code, 1)
+
+    def test_british_fixture_passes(self):
+        text = "# Notes\n\nThe colour setting, kept.\n\nDone.\n"
+        code, found = run_check({}, {"docs/style.md": text})
+        self.assertEqual((code, found), (0, []))
+
+    def test_frontmatter_and_fenced_code_dividers_are_allowed(self):
+        text = "---\ntitle: Note\n---\n\n```\n---\n```\n\nText.\n"
+        _, found = run_check({}, {"docs/a.md": text})
+        self.assertNotIn("W2", ids(found))
+
+    def test_catalogue_and_untouched_lines_are_not_flagged(self):
+        base = {"docs/a.md": "The " + "color" + " stays \u2014 here.\n"}
+        head = {"docs/a.md": base["docs/a.md"] + "A catalogue entry.\n"}
+        _, found = run_check(base, head)
+        self.assertEqual(found, [])
+
+    def test_uncommitted_broken_file_is_reported_in_working_tree_mode(self):
+        broken = {"docs/broken.md": "Broken \u2014 file.\n\n---\n\nText.\n"}
+        code, found = run_check({}, broken, working_tree=True, commit=False)
+        self.assertEqual(code, 1)
+        self.assertEqual(ids(found, "BLOCKING"), {"W1", "W2"})
+
+    def test_uncommitted_edit_to_tracked_file_is_reported_in_working_tree_mode(self):
+        code, found = run_check({"docs/a.md": "Fine.\n"}, {"docs/a.md": "Fine.\nBroken \u2014 line.\n"},
+                                working_tree=True, commit=False)
+        self.assertEqual((code, ids(found, "BLOCKING")), (1, {"W1"}))
+
+    def test_commit_only_mode_ignores_uncommitted_files(self):
+        code, found = run_check({}, {"docs/broken.md": "Broken \u2014 file.\n"}, commit=False)
+        self.assertEqual((code, found), (0, []))
 
 
 class StandardAndConfig(unittest.TestCase):

@@ -35,7 +35,7 @@ Before finishing, scan your output for:
 - US spellings such as color, behavior, organize, analyze, and catalog;
 - table cells holding more than one point.
 
-The Stage 1 checker (`scripts/check-standard.py`) does not test spelling, em dashes, or dividers. Stage 2 advisory review does.
+The Stage 1 checker (`scripts/check-standard.py`) blocks em dashes (W1), body dividers (W2), and US spellings (W3) on added lines, before any Stage 2 review runs. See `docs/standards/automated-checks.md`.
 
 ## References
 

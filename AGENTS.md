@@ -36,16 +36,11 @@ Work shifts between two primary governing artefacts:
 - Authoritative operational directives packaging sprint tickets for autonomous Away From Keyboard (AFK) delivery.
 - Specify sequential ticket order, pre-configured prune points, and a living execution ledger.
 - Prune points are strictly isolated: subagents never see prune points, which remain under the exclusive authority of the Chief of Staff coordinator.
+- **Ticket text**: Tickets must not hard-code values that change, such as test counts, file counts, or line numbers. Name the command or source that produces the value instead. Forbidden: `the suite passes with 240 tests`. Write `the suite passes` and name the pytest command.
 
 ## Coordinator and Subagent Protocol
 
-All multi-step tasks follow the Chief of Staff Coordinator Protocol detailed in `docs/agents/coordinator-protocol.md`:
-- **Pure Coordinator**: The parent agent coordinates, delegates discrete execution to subagents, and synthesises outcomes without direct implementation in the parent context.
-- **Model Tiers**: Implementer and reviewer subagents operate on cost-effective `flash` models; higher-reasoning tiers are reserved for top-level coordinator orchestration.
-- **Batching Ceiling**: Never dispatch more than 10 subagents in a single batch.
-- **Review Ceiling**: Standard tickets enforce Pass 0 plus up to 2 remediation loops (maximum 3 review runs total). If Loop 2 fails to converge, the ticket fails closed to human review.
-- **Tiered Staged Verification**: Stage 1 deterministic checks (`pytest`, standard checker) gate Stage 2 adversarial reviews.
-- **Resilience**: Rate limit circuit breaker (120-second backoff on HTTP 429) and automated git revert roll-back on `main` if post-merge checks fail.
+All multi-step tasks follow the Chief of Staff Coordinator Protocol in `docs/agents/coordinator-protocol.md`.
 
 ## Style and Presentation Standards
 
@@ -73,17 +68,3 @@ This repository is also an Obsidian vault. Design documents with these installed
 This project integrates with the Basic Memory persistent memory app:
 - Context is normally queried from the `wiki` or `kensho2` project in Basic Memory. This is currently suspended.
 - Notes and persistent artefacts follow the `memory-notes` skill and schema conventions (YAML frontmatter, matching `# Heading`, semantic `[category]` observations, and wiki-link relations `[[target]]`).
-
-## Observations
-- [governance] Agile sprints are mapped to GitHub Milestones, Epics, and Issues #agile
-- [workflow] Dockets govern human deliberation and Work Orders govern autonomous AFK execution #workflow
-- [tooling] GitHub issues are referenced by bare URL so the GitHub Link plugin renders them #obsidian
-- [style] Repository style rules live only in skills/style/SKILL.md #style
-- [architecture] Chief of Staff enforces pure delegation, bounded review loops, and fail-closed isolation #protocol
-
-## Relations
-- governs [[coordinator-protocol]]
-- governs [[issue-tracker]]
-- governs [[domain]]
-- defines [[GLOSSARY]]
-- references [[authorised-skill-repositories]]

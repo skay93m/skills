@@ -12,6 +12,9 @@ problems in untouched lines are not reported. Skill checks run on skills the
 pull request adds or edits. S2 and S4 apply only when the skill is new, its
 name changes (S2), or lines are added to a file already over 100 lines (S4).
 
+With --working-tree, the diff runs from the base ref to the files on disk, so
+uncommitted changes and untracked files are checked too.
+
 Python standard library only.
 """
 import argparse
@@ -72,6 +75,11 @@ EVENT_TEXT = re.compile(
 ENV_ASSIGN = re.compile(r"^\s*[A-Z_][A-Z0-9_]*:\s*\$\{\{")
 EVAL_UNTRUSTED = re.compile(r"\beval\b.*\$\{?(PR_TITLE|PR_BODY|BRANCH_NAME|ISSUE_BODY|ISSUE_TITLE|COMMENT_BODY)")
 SHELL_STEP_LINK = re.compile(r"\]\((?!https?://|#|mailto:)([^)#\s]+\.md)")
+EM_DASH = "\u2014"
+RULE_LINE = re.compile(r"^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
+US_SPELLING = re.compile(
+    r"(?i)\b(analyz|behavior|color|favor|honor|labeled|labeling|modeling|canceled|"
+    r"catalog(?!ue)|center|defense|judgment|organiz|optimiz|prioritiz|recogniz|summariz|synthesiz)\w*")
 
 
 def git(*args, check=True):
@@ -102,9 +110,16 @@ class Report:
         return "\n".join(lines) + "\n"
 
 
-def parse_diff(base):
-    """Return (added: {path: [(lineno, text)]}, new_files: set)."""
-    out = git("diff", "--unified=0", "--no-color", "--no-renames", "--diff-filter=ACMR", f"{base}...HEAD")
+def parse_diff(base, working_tree=False):
+    """Return (added: {path: [(lineno, text)]}, new_files: set).
+
+    In working-tree mode the diff runs from base to the files on disk, and
+    untracked files count as wholly added.
+    """
+    if working_tree:
+        out = git("diff", "--unified=0", "--no-color", "--no-renames", "--diff-filter=ACMR", base)
+    else:
+        out = git("diff", "--unified=0", "--no-color", "--no-renames", "--diff-filter=ACMR", f"{base}...HEAD")
     added, new_files = {}, set()
     path, line, is_new = None, 0, False
     for raw in out.split("\n"):
@@ -121,6 +136,15 @@ def parse_diff(base):
         elif raw.startswith("+") and not raw.startswith("+++") and path:
             added[path].append((line, raw[1:]))
             line += 1
+    if working_tree:
+        for path in git("ls-files", "--others", "--exclude-standard").splitlines():
+            try:
+                with open(path, encoding="utf-8") as f:
+                    lines = f.read().split("\n")
+            except (OSError, UnicodeDecodeError):
+                continue
+            added[path] = list(enumerate(lines, 1))
+            new_files.add(path)
     return added, new_files
 
 
@@ -282,6 +306,42 @@ def check_skill(report, base, path, rows, is_new):
         report.add(False, "N5", path, where.get("metadata", 1), "metadata.category is missing.")
 
 
+def markdown_body_lines(path):
+    """Line numbers outside YAML frontmatter and fenced code blocks."""
+    try:
+        lines = open(path, encoding="utf-8").read().split("\n")
+    except (OSError, UnicodeDecodeError):
+        return set()
+    body, fence, in_frontmatter = set(), None, False
+    for number, text in enumerate(lines, 1):
+        if number == 1 and text.strip() == "---":
+            in_frontmatter = True
+            continue
+        if in_frontmatter:
+            in_frontmatter = text.strip() != "---"
+            continue
+        fence_match = re.match(r"\s*(```|~~~)", text)
+        if fence_match:
+            fence = None if fence == fence_match.group(1) else (fence or fence_match.group(1))
+            continue
+        if fence is None:
+            body.add(number)
+    return body
+
+
+def check_writing(report, path, rows):
+    """W1 applies to every added text line; W2 and W3 apply to markdown."""
+    markdown = path.endswith(".md")
+    body = markdown_body_lines(path) if markdown else set()
+    for ln, text in rows:
+        if EM_DASH in text:
+            report.add(True, "W1", path, ln, "An em dash. Use a comma, a colon or parentheses instead.")
+        if markdown and US_SPELLING.search(text):
+            report.add(True, "W3", path, ln, "A US spelling. Use the British form in skills/style/references/language-rules.md.")
+        if markdown and ln in body and RULE_LINE.match(text):
+            report.add(True, "W2", path, ln, "A horizontal divider. Use a heading to separate sections.")
+
+
 def check_reference_links(report, path, rows):
     for ln, text in rows:
         if SHELL_STEP_LINK.search(text):
@@ -303,9 +363,9 @@ def check_expiry(report, today):
                 return
 
 
-def run(base, today):
+def run(base, today, working_tree=False):
     report = Report()
-    added, new_files = parse_diff(base)
+    added, new_files = parse_diff(base, working_tree)
     for path, rows in sorted(added.items()):
         if path in EXEMPT:
             report.add(False, "STD", path, 1, "The checker or its tests changed.")
@@ -316,6 +376,7 @@ def run(base, today):
             risky = bool(re.search(r"(?i)\b(hooks?|permissions?|allow|mcpServers)\b|\brun\b.*`[^`]+`", "\n".join(t for _, t in rows)))
             report.add(risky, "C5", path, 1, "Agent configuration changed" + (": it adds a hook, command, tool or permission. Say what an agent can now do that it could not before." if risky else " (wording only)."))
         check_secrets_and_privacy(report, base, path, rows)
+        check_writing(report, path, rows)
         if path.startswith(".github/workflows/") and path.endswith((".yml", ".yaml")):
             check_workflow(report, path, rows)
         elif path.endswith(".sh") or path.startswith("scripts/") or (path.startswith("skills/") and path.endswith(".md")):
@@ -332,9 +393,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--base", default="origin/main", help="base ref to diff against")
     ap.add_argument("--today", default=None, help="override today's date (YYYY-MM-DD), for tests")
+    ap.add_argument("--working-tree", action="store_true",
+                    help="also check uncommitted changes and untracked files")
     args = ap.parse_args()
     today = datetime.date.fromisoformat(args.today) if args.today else datetime.date.today()
-    report = run(args.base, today)
+    report = run(args.base, today, args.working_tree)
     for item in report.items:
         print(report.annotation(item))
     summary_file = os.environ.get("GITHUB_STEP_SUMMARY")

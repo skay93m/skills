@@ -9,14 +9,15 @@ type: standard
 Standard: `sk-pr-review-standard`, version `1.0.0-draft`. Mechanical checks run as Stage 1 deterministic checks on every pull request and local iteration, gating Stage 2 advisory reviews. Sourcery and adversarial LLM subagents retain qualitative checks requiring judgement.
 
 - Script: `scripts/check-standard.py` (Python standard library only).
-- Test Runner: `pytest` or `python3 -m unittest discover -s tests`.
-- Workflow: `.github/workflows/standard-checks.yml`, executed on pull requests to `main`.
+- Test Runner: `uv run --no-project --with pytest python -m pytest tests -q`, which runs the whole `tests` folder. `python3 -m unittest discover -s tests` also works for the checker's own tests.
+- Workflow: `.github/workflows/standard-checks.yml`, executed on pull requests to `main`. Its `checks` job runs this script; its `pytest` job runs the test command above with `astral-sh/setup-uv` pinned by commit SHA.
 - Tests: `tests/test_check_standard.py`.
+- Working-tree mode: `python3 scripts/check-standard.py --working-tree` also checks uncommitted changes and untracked files against the base. CI does not use it.
 
 ## How It Behaves in Tiered Staged Verification
 
 - **Stage 1 Gate**: `scripts/check-standard.py` and unit tests execute first. If any blocking check fails, the pipeline halts immediately and reports failure logs. Zero LLM review agents are dispatched.
-- **Diff-Scoping**: The script compares the pull request with its base ref and scans only added lines. Pre-existing issues in untouched lines are not reported.
+- **Diff-Scoping**: The script compares the pull request with its base ref and scans only added lines. Pre-existing issues in untouched lines are not reported. Working-tree mode applies the same rule to uncommitted edits.
 - **Severity Annotations**: Each finding produces an annotation on the exact file and line, labelled `BLOCKING [ID]` or `NON-BLOCKING [ID]`. A blocking finding produces an error annotation and an exit code of 1.
 - **Skill Checks**: Evaluates skills added or edited in the pull request. S2 (naming) applies when a skill is new or its name changes. S4 (100 lines) applies when a skill is new or lines are added to a file already over 100 lines.
 - **Exemptions**: The checker and its tests quote search patterns and are exempt from pattern checks. Any modification to them, this document, or workflow files is reported as `[STD]`.
@@ -41,10 +42,15 @@ Standard: `sk-pr-review-standard`, version `1.0.0-draft`. Mechanical checks run 
 | S1 to S6 | Blocking | Skill frontmatter, name, description, length, nested references, and provenance |
 | N5 | Non-blocking | `metadata.category` is missing |
 | CUR | Non-blocking | The stamp's fresh-until date has passed |
+| W1 | Blocking | An em dash in any added text line |
+| W2 | Blocking | A horizontal divider in an added markdown body line; YAML frontmatter and fenced code blocks are exempt |
+| W3 | Blocking | A US spelling of a listed word stem in an added markdown line; the list lives in `scripts/check-standard.py` |
 
 ## Known Limits
 
 Pattern checks are heuristics. Unusual phone numbers or esoteric secret formats can slip through; GitHub secret scanning with push protection provides vendor coverage. Secret assignments are flagged when values are quoted, are 16 or more characters, or contain digits, capitals, or symbols.
+
+W3 covers only the listed stems and does not flag `artifact`, because the repository quotes upstream identifiers such as YAML keys. W3 also reads inline code, so wrapping a flagged word in backticks does not exempt it.
 
 ## What Stays with Advisory Review (Stage 2)
 
@@ -52,10 +58,10 @@ Advisory reviewers (Sourcery and adversarial subagents) retain judged checks: de
 
 ## Style and Presentation Standard
 
-Deterministic and advisory checks enforce repository style invariants:
-- **British English**: Consistent spelling across all documents and identifiers.
-- **Strictly Zero Em Dashes**: Prohibit em dashes across all documentation.
-- **Strictly Zero Body Horizontal Dividers**: Prohibit horizontal rules in markdown bodies.
+Deterministic checks W1 to W3 enforce repository style invariants on added lines, so Stage 2 advisory review does not need to:
+- **British English**: W3 flags listed US spellings in markdown.
+- **Strictly Zero Em Dashes**: W1 blocks em dashes in any added text line.
+- **Strictly Zero Body Horizontal Dividers**: W2 blocks horizontal rules in markdown bodies.
 
 ## Observations
 - [standard] Codify Stage 1 deterministic checks for sk-pr-review-standard #standards #automation
