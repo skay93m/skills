@@ -55,6 +55,17 @@ Every document, comment, and code artefact produced must strictly adhere to the 
 - **Authorised Skill Sources**: Permitted repositories are strictly documented in `docs/authorised-skill-repositories.md`.
 - **Triage Labels**: Standard triage label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
 
+## Obsidian Plugins
+
+This repository is also an Obsidian vault. Design documents with these installed plugins in mind:
+
+- **GitHub Link**: renders a bare GitHub issue or PR URL as a card with title and state. Write `https://github.com/skay93m/skills/issues/160` on its own, never `[#160](url)` (the plugin skips links with custom text). Avoid wrapping the URL in parentheses. Prefer a URL pointer over copying issue content into docs.
+- **Mehrmaid**: put Markdown inside Mermaid nodes using a `mehrmaid` code fence.
+- **Mermaid Tools**: authoring toolbar for Mermaid diagrams; no effect on file format.
+- **Ignore**: `.obsidianignore` (gitignore syntax) hides files such as `scripts/` and `tests/` from the explorer, search, and graph.
+- **GitHub Copilot**: editor suggestions only; no effect on file format.
+- **Claudian**: hosts the agent sessions in this vault.
+
 ## Context and Memory
 
 This project integrates with the Basic Memory persistent memory app:
@@ -64,6 +75,7 @@ This project integrates with the Basic Memory persistent memory app:
 ## Observations
 - [governance] Agile sprints are mapped to GitHub Milestones, Epics, and Issues #agile
 - [workflow] Dockets govern human deliberation and Work Orders govern autonomous AFK execution #workflow
+- [tooling] GitHub issues are referenced by bare URL so the GitHub Link plugin renders them #obsidian
 - [style] Repository mandates British English, zero em dashes, and zero body horizontal dividers #style
 - [architecture] Chief of Staff enforces pure delegation, bounded review loops, and fail-closed isolation #protocol
 
