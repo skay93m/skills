@@ -101,8 +101,6 @@ MODULE_SPECS = {
 }
 
 
-
-
 class TestDeepModulesScholarshipCadenceCognition(unittest.TestCase):
     """Contract verification test suite for scholarship, cadence, and cognition deep modules."""
 
@@ -287,7 +285,8 @@ class TestDeepModulesScholarshipCadenceCognition(unittest.TestCase):
         self.assertLessEqual(len(lines), 100, f"ask-syafiq/SKILL.md line count {len(lines)} exceeds 100")
 
         for mod_name, spec in MODULE_SPECS.items():
-            self.assertIn(f"`{spec['domain']}`", text, f"Domain {spec['domain']} missing in ask-syafiq router")
+            v1 = LEGACY_TO_V1_DOMAIN[spec["domain"]]
+            self.assertIn(f"`{v1}`", text, f"Domain {v1} missing in ask-syafiq router")
             self.assertIn(f"`{mod_name}`", text, f"Skill {mod_name} missing in ask-syafiq router")
 
     def test_domain_specific_rule_invariants(self):

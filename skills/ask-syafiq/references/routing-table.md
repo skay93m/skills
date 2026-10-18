@@ -9,7 +9,7 @@ This reference provides comprehensive routing guidelines, trigger phrases, inten
 
 ## 1. Deep Module Dispatch Catalog
 
-### 1.1 `wiki-ops` (Domain: `knowledge`)
+### 1.1 `wiki-ops` (Domain: `curate`)
 - **Intent**: Karpathy-style compiled knowledge operations, persistent note lifecycle, Basic Memory backend compliance, and knowledge hygiene.
 - **Trigger Phrases**:
   - "lint wiki", "check wiki consistency", "run knowledge lint"
@@ -21,7 +21,7 @@ This reference provides comprehensive routing guidelines, trigger phrases, inten
   - Semantic linting: verifies cross-references, detects orphan concepts, and flags stale claims.
   - Basic Memory tool governance: mandates read_note, write_note, edit_note, move_note, delete_note; blocks direct filesystem mutations.
 
-### 1.2 `autonomous-scrum` (Domain: `scrum`)
+### 1.2 `autonomous-scrum` (Domain: `code`)
 - **Intent**: Standalone AWT agile project management, sprint planning, issue lifecycle progression, and strict role separation.
 - **Trigger Phrases**:
   - "plan sprint", "start next sprint", "close current sprint"
@@ -32,7 +32,7 @@ This reference provides comprehensive routing guidelines, trigger phrases, inten
   - Event 0 sprint gates: enforces rigorous pre-flight checks (dependency resolution, spec completeness, test environment readiness) prior to sprint kickoff.
   - SQLite state management: updates task statuses, links tickets to issues, and calculates velocity metrics deterministically.
 
-### 1.3 `agent-ecosystem` (Domain: `ecosystem`)
+### 1.3 `agent-ecosystem` (Domain: `setup`)
 - **Intent**: Fleet-wide agent governance, golden configuration maintenance in `~/.agents`, subagent batching constraints, and inter-agent handoff standards.
 - **Trigger Phrases**:
   - "manage agent fleet", "audit agent config", "sync ~/.agents"
@@ -43,7 +43,7 @@ This reference provides comprehensive routing guidelines, trigger phrases, inten
   - Golden configuration management: synchronizes skills, MCP servers, and environment rules across active agents.
   - Inter-agent handoffs: defines structured summary schemas, residual risk logging, and context handoff contracts between coordinators and specialists.
 
-### 1.4 `academic-scholar` (Domain: `scholarship`)
+### 1.4 `academic-scholar` (Domain: `tutor`)
 - **Intent**: Academic research assistance, literature synthesis, bioethics reasoning, and scholarly coaching for the KCL MSc in Mental Health, Ethics and Law.
 - **Trigger Phrases**:
   - "research mental health law", "analyze ethics case", "legal citation check"
@@ -54,7 +54,7 @@ This reference provides comprehensive routing guidelines, trigger phrases, inten
   - Citation precision: formats and verifies legal and academic references (OSCOLA, Bluebook, Harvard styles).
   - Analytical depth: evaluates legal statutes (e.g. Mental Health Act, Mental Capacity Act) and bioethical principles (autonomy, beneficence, justice).
 
-### 1.5 `personal-cadence` (Domain: `cadence`)
+### 1.5 `personal-cadence` (Domain: `tutor`)
 - **Intent**: Personal productivity governance, ADHD momentum support, Jibun Techo time tracking, Hermes standup coordination, and cognitive energy alignment.
 - **Trigger Phrases**:
   - "morning brief", "evening review", "adhd momentum reset"
@@ -65,7 +65,7 @@ This reference provides comprehensive routing guidelines, trigger phrases, inten
   - Jibun Techo projections: maps daily vertical schedule allocations, tracks habitual consistency, and conducts weekly consolidation.
   - Momentum protection: provides low-friction starting steps, visual checklists, and executive function scaffolding for complex initiatives.
 
-### 1.6 `thinking-partner` (Domain: `cognition`)
+### 1.6 `thinking-partner` (Domain: `tutor`)
 - **Intent**: Socratic intellectual sparring, concept stress-testing, architectural tradeoff probing, and Architecture Decision Record (ADR) formulation.
 - **Trigger Phrases**:
   - "grill me", "stress-test this idea", "challenge my architecture"

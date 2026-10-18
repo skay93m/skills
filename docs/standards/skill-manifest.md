@@ -42,12 +42,12 @@ A manifest is authored in declarative YAML (or JSON) and adheres to the schema b
 | `version` | `string` | No | `"0.1.0"` | Semantic version string (e.g. `0.1.0`). |
 | `owner` | `string` | No | `"skay93m"` | GitHub user or team handle responsible for the skill. |
 | `provenance` | `string` | No | `"original"` | Upstream origin, issue reference, or author attribution. |
-| `disable-model-invocation` | `boolean` | No | `true` | When `true`, prevents models from invoking the skill automatically without explicit human slash command.<br>Default is `true` for personal skills.<br>`false` is permitted only for the gateway (`ask-syafiq`) and presentation (`style`) modules.<br>The scaffolder rejects `false` for every other skill. |
+| `disable-model-invocation` | `boolean` | No | `true` | When `true`, prevents models from invoking the skill automatically without explicit human slash command. See the notes below the table. |
 | `user-invoked` | `boolean` | No | `true` | Indicates whether the skill is intended for direct user slash invocation. |
 | `triggers` | `list[string]` | No | `[]` | Natural-language utterances, prompts, or trigger keywords activating the skill. |
 | `budgets` | `object` | No | `{}` | Resource ceilings for the skill entrypoint `SKILL.md`. |
 | `budgets.line-budget` | `integer` | No | `100` | Maximum line count for entrypoint `SKILL.md` (strictly $\le 100$). |
-| `budgets.token-budget` | `integer` | No | `700` | Exclusive token ceiling for entrypoint `SKILL.md`: an entrypoint estimated at this many tokens or more is rejected. The value may not exceed 700. |
+| `budgets.token-budget` | `integer` | No | `700` | Exclusive token ceiling for entrypoint `SKILL.md`. See the notes below the table. |
 | `references` | `list[string]` | No | `[]` | Terminal markdown reference documents located in `references/`. Must obey the terminal reference rule. |
 | `scripts` | `list[string]` | No | `[]` | Deterministic helper scripts located directly in `scripts/` without nested subdirectories or path traversal. |
 | `artifacts` | `object` | No | `{}` | Persistent file and report production contract. |
@@ -56,6 +56,13 @@ A manifest is authored in declarative YAML (or JSON) and adheres to the schema b
 | `router` | `object` | No | `{}` | Router dispatch configuration for `skills/ask-syafiq/SKILL.md`. |
 | `router.domain` | `string` | No | `"general"` | Taxonomy domain: strictly one of `curate`, `code`, `tutor`, `setup`, `style`, or `general`. |
 | `router.intents` | `list[string]` | No | `[]` | High-level intent descriptions registered in the master routing table. Must be non-empty strings. |
+
+Field notes:
+
+- `disable-model-invocation` defaults to `true` for personal skills.
+- `false` is permitted only for the gateway (`ask-syafiq`) and presentation (`style`) modules.
+- The scaffolder rejects `false` for every other skill.
+- `budgets.token-budget`: an entrypoint estimated at this many tokens or more is rejected, and the value may not exceed 700.
 
 ---
 

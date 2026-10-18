@@ -36,12 +36,12 @@ Dispatch incoming requests to the appropriate domain module or pipeline phase. S
 
 | Domain | Skill | Intents / Triggers |
 |---|---|---|
-| `knowledge` | `wiki-ops` |
-| `scrum` | `autonomous-scrum` |
-| `ecosystem` | `agent-ecosystem` |
-| `scholarship` | `academic-scholar` |
-| `cadence` | `personal-cadence` |
-| `cognition` | `thinking-partner` |
+| `curate` | `wiki-ops` | Compiled knowledge, linting |
+| `code` | `autonomous-scrum` | Agile engine, PO and Dev split |
+| `setup` | `agent-ecosystem` | Fleet governance, subagents |
+| `tutor` | `academic-scholar` | MSc prose, legal citations |
+| `tutor` | `personal-cadence` | ADHD momentum, standups |
+| `tutor` | `thinking-partner` | Socratic sparring |
 
 ### Upstream Engineering Pipeline
 `/grill-me` -> `/to-spec` -> `/to-tickets` -> `/tdd` -> `/code-review` -> `/pr`
