@@ -1,104 +1,98 @@
+---
+title: Coordinator & Subagent Protocol
+tags: [coordinator, protocol, chief-of-staff, subagents, governance, afk]
+type: protocol
+---
+
 # Coordinator & Subagent Protocol
 
-This document defines the official Coordinator & Subagent Working Protocol for all agent sessions (Claude, Codex, Antigravity) working in this repository.
+**First step: any agent following this protocol must begin by invoking the /chief-of-staff skill, before taking any other action.**
+
+Next, confirm `AGENTS.md` is in your context. If it is not, read it before acting.
+
+This document defines the official Chief of Staff Coordinator & Subagent Working Protocol for all agent sessions executing in this repository.
 
 ## 1. Core Principles
 
-### Role Separation (Pure Coordinator Pattern)
-The Parent or Primary Agent functions strictly as a **Coordinator Agent**:
-- **No Direct Implementation**: The Coordinator never writes application/feature code, tests, or skill files directly in the parent context.
-- **Pure Coordination**: The Coordinator's responsibilities are exclusively:
-  - Scoping, decomposing, and prioritizing issues and tasks.
-  - Delegating discrete execution tasks to specialized subagents.
-  - Managing subagent lifecycles and enforcing batch limits.
-  - Orchestrating adversarial code reviews.
-  - Dispatching fixes when defects are uncovered.
-  - Synthesizing final results and executing git operations (branching, PR creation, and landing).
-- **Context Preservation**: Keeping the primary context clean of transient implementation diffs and large test logs ensures deep reasoning capacity and clear architectural oversight.
+### Role Separation
+- The Coordinator never writes application code, tests, or skill files in the parent context. It scopes tasks, delegates to subagents, enforces batch limits, orchestrates verification and review, dispatches fixes, and performs git operations (branching, PRs, landing, roll-backs).
 
-### Single Ticket Flow
-- **Strict Focus**: The Coordinator focuses on one ticket or feature stream at a time from start to finish.
-- **Parallel Work Limit**: At most two non-conflicting, fully independent task flows may run concurrently when explicit separation is guaranteed.
-- **Run-to-Completion**: A ticket must complete its full lifecycle (planning → implementation → dual-axis adversarial review → fixer loop → verification → merge) before moving to subsequent work. This prevents work-in-progress (WIP) sprawl and context dilution.
+### Sequential Ticket Flow on Dedicated Sprint Branch
+- Each sprint runs on a dedicated branch (for example `sprint-1` from `origin/main`). Tickets land into it strictly sequentially, each completing its full lifecycle (planning, implementation, verification, fixer loop, merge) before the next begins.
+- No parallel multi-worktree ticket execution in unattended AFK sprints (avoids `.git/index.lock` collisions and semantic merge conflicts).
+- When all tickets are merged and the full 5-point CI release gate passes on the sprint branch, merge into `main` via a single verified pull request.
 
-### Cost-Efficiency Tier
-- Subagents handle heavy implementation, testing, review, and fixing tasks using cost-efficient models (`Model: "flash"` where supported, such as Gemini Flash / Flash Lite or fast tier models).
-- Expensive higher-tier reasoning models (`pro` or caller inheritance) are reserved for top-level coordinator orchestration, high-complexity architectural design, or when specifically mandated by the task.
+### Model Tiers
+- Subagents (implementers, reviewers, fixers) use cost-efficient `flash` tier models. Higher-tier models are reserved for coordination and high-complexity design, or when a task mandates them.
 
-### Batching & Lifecycle Cleanup
-- **Subagent Batch Limit**: Never spawn more than 10 subagents in a single batch (strictly adhering to the subagent batching invariant).
-- **Sequential Batches**: If a task requires more than 10 workers, queue them in sequential batches of at most 10, waiting for each batch to finish before launching the next.
-- **Active Lifecycle Cleanup**: Subagents are ephemeral. The Coordinator must immediately terminate or kill idle or completed subagents before dispatching subsequent phases or new batches. This releases session resources, avoids quota exhaustion (`RESOURCE_EXHAUSTED` / 429), and eliminates zombie processes.
-
----
+### Batching and Lifecycle Cleanup
+- Never spawn more than 10 subagents in one batch. Queue larger sets in sequential batches, waiting for each to finish.
+- Terminate idle or completed subagents before dispatching the next phase or batch.
 
 ## 2. Phase-by-Phase Workflow
 
-### Phase 1: Planning & Delegation Framing
-1. Review the issue or feature requirement (`gh issue view`, specification documents).
-2. Clarify scope boundaries, target file paths, constraints, and acceptance criteria.
-3. Formulate a self-contained, explicit task prompt for an Implementation subagent.
+### Phase 1: Sprint Planning
+1. Review the milestone, Work Order, and issues (`gh issue view`, specifications).
+2. Check codebase alignment once for cross-cutting architectural consistency.
+3. Fix scope boundaries, target paths, constraints, and acceptance criteria for the ticket.
+4. Write a self-contained task prompt for an Implementation subagent.
 
-### Phase 2: Implementation Phase
-1. Dispatch an Implementation Subagent (`flash` tier) with:
-   - Defined task scope and strict file boundaries.
-   - Deliverable specifications and edge-case requirements.
-   - Verification instructions (`python3 scripts/check-standard.py`, `pytest`, linter).
-2. The Implementation Subagent performs edits, runs the test suite, confirms zero errors, and reports back.
-3. The Coordinator reviews the completion report and inspects the git status and diff.
-4. The Coordinator immediately terminates the Implementation Subagent before initiating review.
+### Phase 2: Implementation Delegation
+1. Dispatch an Implementation Subagent (every subagent prompt, including reviewers and fixers, must tell it to read `AGENTS.md` first) with only the GitHub ticket and specification (never prune points, per `AGENTS.md`), plus task scope, strict file boundaries, edge-case requirements, and verification commands (`python3 scripts/check-standard.py`, `pytest`).
+2. The subagent edits, runs the suite, and reports back via `send_message`.
+3. The Coordinator inspects the report, git status, and diff, then terminates the subagent before review.
 
-### Phase 3: Two-Axis Adversarial Code Review Loop
-Every implementation must undergo a dual, concurrent adversarial review prior to merge approval. The Coordinator spawns two independent review subagents in parallel:
+### Phase 3: Tiered Staged Verification
+- **Stage 1 (deterministic)**: run `python3 scripts/check-standard.py` and `pytest`. On any failure, return the logs to the implementer and spawn no review agents.
+- **Stage 2 (adversarial review)**, only once Stage 1 is green, following `docs/standards/pr-review-standard.md`:
+  - Standard tickets: one unified reviewer audits specification adherence and coding standards.
+  - Core interface or protocol changes: two parallel reviewers, an Adversarial Spec Reviewer (omitted requirements, edge cases, interface drift, missing assertions) and an Adversarial Architecture and Standards Reviewer.
+  - Findings are reported as `BLOCKING [CHECK_ID] path:line` (must fix before merge) or `NON-BLOCKING [CHECK_ID] path:line` (advisory).
 
-1. **Adversarial Spec Reviewer**:
-   - **Mission**: Relentlessly hunt for loopholes, unhandled edge cases, omitted spec constraints, subtle semantic drift from original intent, missing contract assertions, and latent regressions.
-   - **Checklist**:
-     - Did the implementation address all functional and non-functional requirements in the ticket?
-     - Are error branches, empty states, and boundary conditions handled?
-     - Did any public interface or contract inadvertently drift or break?
-     - Are tests testing real edge cases or merely asserting happy paths?
+### Phase 4: Bounded Remediation Loop
+1. Review ceiling: Pass 0 plus up to 2 remediation loops (maximum 3 review runs per ticket).
+2. On blocking findings in Pass 0 or Loop 1, dispatch a Fixer Subagent with exact findings, files, lines, and instructions. The Fixer applies changes, runs deterministic tests, and reports back. The Coordinator terminates it and dispatches a re-review.
+3. If Loop 2 still has blocking findings, the ticket fails to converge. Check the Work Order for a declared prune point before resetting anything:
+   - Declared for that ticket: prune only the named non-essential criterion, defer it to its follow-up ticket, mark the failing test `@pytest.mark.skip(reason="Pruned to Issue #<n>")`, and re-verify the remaining essential scope. Never prune essential criteria.
+   - None declared, or essential scope failed: reset the worktree, mark the issue `ready-for-human`, log the incident in the Work Order, and move to the next non-dependent ticket.
+4. No code lands on `main` with unresolved blocking findings.
 
-2. **Adversarial Standards Reviewer**:
-   - **Mission**: Relentlessly audit the code against repository standards (`sk-pr-review-standard`, `scripts/check-standard.py`, coding style, and architecture guidelines).
-   - **Checklist**:
-     - **Line Budgets**: Do skill files (`SKILL.md`) strictly obey the 100-line budget (`S4`)? Are other files concise and modular?
-     - **Reference Depth**: Are markdown reference links strictly one level deep (`S5`), with zero nested chaining?
-     - **Naming & Conventions**: Do files and directories follow lowercase kebab-case?
-     - **Privacy & Security**: Are any secrets (`H1`), private note references (`H2`), personal information (`H3`), local user home paths (`H4`), or internal URLs (`H6`) exposed?
-     - **Code Cleanliness**: Are errors typed and handled? Are imports cleanly organized without redundant dependencies?
+### Phase 5: Pre-Merge Alignment
+Re-check codebase alignment and re-run the full Stage 1 checks before merging.
 
-3. **Finding Format**:
-   Review findings must specify exact paths, line numbers, and severity:
-   - `BLOCKING [CHECK_ID] path/to/file:line`: Must be remediated before merge.
-   - `NON-BLOCKING [CHECK_ID] path/to/file:line`: Advisory improvement or stylistic suggestion.
+### Phase 6: Landing and Automated Roll-Back
+1. Open a pull request or merge the ticket as the repository workflow defines, and confirm `git status` is clean.
+2. Run the post-merge release gate on `main`.
+3. If it fails, never hotfix speculatively on the release branch: run `git revert -m 1 HEAD`, confirm `main` is green again, mark the ticket `ready-for-human` with diagnostic logs, and halt the release sequence.
 
-### Phase 4: Fixer Loop
-1. If **either** adversarial reviewer reports one or more `BLOCKING` findings:
-   - The Coordinator dispatches a dedicated **Fixer Subagent** (`flash` tier).
-   - The prompt provides the exact reviewer findings, files, lines, and instructions to resolve the defects.
-   - The Fixer applies targeted changes, runs tests and standard checks, and reports back.
-2. The Coordinator terminates the Fixer and dispatches verification / adversarial re-review.
-3. The loop repeats until **0 blocking findings remain**.
-4. **Zero-Defect Gate**: No pull request or branch may be merged with unresolved blocking findings or known latent defects.
+## 3. Operational Resilience
 
-### Phase 5: Whole-Product Adversarial Review
-- At major milestone boundaries, multi-ticket epics, or release tags, the Coordinator triggers a holistic, whole-product adversarial audit.
-- Audits end-to-end integration across modules, full test suite stability, architectural consistency, documentation completeness, and performance regressions across the entire repository.
+### HTTP 429 Circuit Breaker
+- On `RESOURCE_EXHAUSTED` (HTTP 429), pause 120 seconds (using the `schedule` tool or a timer) and retry. After three successive backoff cycles, halt the sprint and write a durable handoff report.
 
-### Phase 6: Landing & Merging
-1. Verify git working directory and run full verification (`python3 scripts/check-standard.py`, `pytest`).
-2. Push branch to remote repository.
-3. Open a pull request using GitHub CLI (`gh pr create`).
-4. Merge using admin privileges (`gh pr merge --admin --merge`).
-5. Fast-forward local `main` (`git pull origin main`) and confirm `git status` is clean.
+### Subagent Watchdogs
+- Each dispatch has a completion boundary: 10 minutes for implementation, 5 minutes for review.
+- On timeout, kill the worker with `manage_task(Action='kill')`, record a failure iteration, and clean up task state.
 
----
+### Living Execution Ledger
+- Record progress, subagent IDs, verification logs, and operational events in the active Work Order so execution can resume after compaction or disruption.
 
-## 3. Documentation Integrity & Standards Invariants
+## 4. Style and Standards
 
-- **Markdown Line Budgets**: Adhere strictly to length limits, such as the 100-line limit on `SKILL.md` files. Keep agent documentation concise, precise, and modular.
-- **Reference Depth**: Reference links must remain one level deep from the parent skill. Never link a reference file to another reference file.
-- **Path Hygiene**: Never commit hardcoded machine-specific user home paths. Always use repo-relative paths.
-- **Privacy & Secrets**: Zero tolerance for credentials, API tokens, internal URLs, or private personal data.
-- **Standard Checks Verification**: Always run `python3 scripts/check-standard.py` and `pytest` on every iteration to guarantee full compliance before landing changes.
+Follow the style rules in `AGENTS.md` and the checks in `docs/standards/automated-checks.md` (British English, no em dashes, no body horizontal dividers, line budgets, reference depth, path hygiene, secrets).
+
+## Observations
+- [governance] Codify Chief of Staff AFK execution protocol and Docket 1 adversarial review decisions #afk #governance
+- [ceiling] Cap review loops at Pass 0 plus 2 remediation runs (max 3 runs total) before fail-closed quarantine #safety
+- [verification] Tier verification into Stage 1 deterministic checks and Stage 2 adversarial reviews #efficiency
+- [isolation] Keep prune points strictly confidential to Chief of Staff in Work Orders #integrity
+- [resilience] Mandate 120-second backoff circuit breaker for HTTP 429 and automated git revert rollback on main #resilience
+- [style] Enforce British English spelling, zero em dashes, and zero body horizontal dividers #style
+
+## Relations
+- implements [[docket-1]]
+- governs [[wo-1]]
+- governs [[AGENTS]]
+- aligns_with [[GLOSSARY]]
+- references [[pr-review-standard]]
+- references [[automated-checks]]
