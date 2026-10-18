@@ -1,0 +1,17 @@
+name: setup
+description: Minimal governance module for the agent fleet under ~/.agents and the subagent batch ceiling. Use when configuring the agent fleet or checking how many subagents may be dispatched.
+version: 1.0.0
+owner: skay93m
+provenance: original
+disable-model-invocation: true
+user-invoked: true
+triggers:
+  - "agent fleet"
+  - "batch ceiling"
+budgets:
+  line-budget: 100
+  token-budget: 700
+references: []
+scripts: []
+artifacts:
+  produces: false

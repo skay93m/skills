@@ -1,10 +1,10 @@
 """Multi-Agent npx skills Packaging & Verification Contract Test Suite (Ticket 11).
 
-Verifies that all 39 skills in the repository comply with:
+Verifies that all 43 skills in the repository comply with:
 - Entrypoint existence and frontmatter validity (name matching directory, description with 'Use when').
 - Strict line budgets (<= 100 lines) and token budgets (< 700 tokens).
 - Declarative skill manifests in manifests/ schema-validity and artifact contract compliance.
-- Single-module installation resolution (--skill <name>) for all 39 skills.
+- Single-module installation resolution (--skill <name>) for all 43 skills.
 - Multi-runtime packaging simulation across Claude Code, Codex, Antigravity, and Hermes,
   verifying self-contained asset resolution (references, templates, examples, scripts).
 """
@@ -81,7 +81,21 @@ TOMBSTONE_SKILLS = {
 STYLE_SKILLS = {
     "style",
 }
-ALL_SKILLS = DEEP_MODULES | ROUTER_SKILLS | KNOWLEDGE_AND_SEAM_SKILLS | TOMBSTONE_SKILLS | STYLE_SKILLS
+
+ACTION_DOMAIN_SKILLS = {
+    "curate",
+    "code",
+    "tutor",
+    "setup",
+}
+ALL_SKILLS = (
+    DEEP_MODULES
+    | ROUTER_SKILLS
+    | KNOWLEDGE_AND_SEAM_SKILLS
+    | TOMBSTONE_SKILLS
+    | STYLE_SKILLS
+    | ACTION_DOMAIN_SKILLS
+)
 
 # Ticket #164 deletes these skills and this set together. They are over the
 # 700 estimated token ceiling (characters divided by 4, rounded up) and are
@@ -118,18 +132,19 @@ def install_skill_to_runtime(source_dir: pathlib.Path, target_skills_dir: pathli
 class TestNpxSkillsPackagingContract(unittest.TestCase):
     """Packaging contract and multi-agent runtime verification test suite."""
 
-    def test_exact_inventory_of_39_skills(self):
-        """Repository must contain exactly 39 skills across the five defined categories."""
+    def test_exact_inventory_of_43_skills(self):
+        """Repository must contain exactly 43 skills across the six defined categories."""
         actual_dirs = sorted([p.name for p in SKILLS_DIR.iterdir() if p.is_dir()])
-        self.assertEqual(len(actual_dirs), 39, f"Expected 39 skill directories, found {len(actual_dirs)}")
+        self.assertEqual(len(actual_dirs), 43, f"Expected 43 skill directories, found {len(actual_dirs)}")
         self.assertEqual(set(actual_dirs), ALL_SKILLS)
         self.assertEqual(len(DEEP_MODULES), 6)
         self.assertEqual(len(ROUTER_SKILLS), 1)
         self.assertEqual(len(KNOWLEDGE_AND_SEAM_SKILLS), 5)
         self.assertEqual(len(TOMBSTONE_SKILLS), 26)
         self.assertEqual(len(STYLE_SKILLS), 1)
+        self.assertEqual(len(ACTION_DOMAIN_SKILLS), 4)
 
-    def test_all_39_skills_frontmatter_invariants(self):
+    def test_all_43_skills_frontmatter_invariants(self):
         """Every skill must contain a valid SKILL.md with valid name and description."""
         for skill_name in ALL_SKILLS:
             skill_dir = SKILLS_DIR / skill_name
@@ -159,7 +174,7 @@ class TestNpxSkillsPackagingContract(unittest.TestCase):
                 f"Description in {skill_name} contains 1st/2nd person pronouns",
             )
 
-    def test_all_39_skills_strictly_obey_line_and_token_budgets(self):
+    def test_all_43_skills_strictly_obey_line_and_token_budgets(self):
         """Every SKILL.md must strictly obey line budget (<= 100 lines) and token budget (< 700 tokens)."""
         for skill_name in ALL_SKILLS:
             skill_md = SKILLS_DIR / skill_name / "SKILL.md"
@@ -229,8 +244,8 @@ class TestNpxSkillsPackagingContract(unittest.TestCase):
                     self.assertIn("{{", tpl_content)
                     self.assertNotIn("{{", ex_content)
 
-    def test_module_installation_resolution_all_39_skills(self):
-        """Simulate npx skills add skay93m/skills --skill <name> resolution for all 39 skills."""
+    def test_module_installation_resolution_all_43_skills(self):
+        """Simulate npx skills add skay93m/skills --skill <name> resolution for all 43 skills."""
         for skill_name in ALL_SKILLS:
             resolved_dir = resolve_skill_source(REPO_ROOT, skill_name)
             self.assertTrue(resolved_dir.is_dir())
@@ -258,7 +273,7 @@ class TestNpxSkillsPackagingContract(unittest.TestCase):
                 target_skills_dir = temp_root / rel_path
                 target_skills_dir.mkdir(parents=True, exist_ok=True)
 
-                # 1. Test full suite installation: install all 39 skills
+                # 1. Test full suite installation: install all 43 skills
                 for skill_name in ALL_SKILLS:
                     src_dir = resolve_skill_source(REPO_ROOT, skill_name)
                     dest_dir = install_skill_to_runtime(src_dir, target_skills_dir, skill_name)

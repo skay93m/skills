@@ -1,0 +1,18 @@
+name: curate
+description: Gateway to knowledge operations and thinking partner work, delegating to the upstream basic-memory-skills and thinking-partner skills. Use when ingesting, searching, or maintaining notes in Basic Memory, or stress-testing a decision.
+version: 1.0.0
+owner: skay93m
+provenance: original
+disable-model-invocation: true
+user-invoked: true
+triggers:
+  - "curate knowledge"
+  - "basic memory"
+  - "thinking partner"
+budgets:
+  line-budget: 100
+  token-budget: 700
+references: []
+scripts: []
+artifacts:
+  produces: false

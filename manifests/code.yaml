@@ -1,0 +1,19 @@
+name: code
+description: Gateway to engineering pipelines for TDD, specs, tickets, and code review, delegating to the upstream mattpocock/skills skills. Use when writing a spec, splitting tickets, practising TDD, or reviewing code.
+version: 1.0.0
+owner: skay93m
+provenance: original
+disable-model-invocation: true
+user-invoked: true
+triggers:
+  - "write a spec"
+  - "split into tickets"
+  - "tdd"
+  - "review code"
+budgets:
+  line-budget: 100
+  token-budget: 700
+references: []
+scripts: []
+artifacts:
+  produces: false
