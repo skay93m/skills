@@ -49,7 +49,7 @@ The Parent or Primary Agent functions strictly as a **Coordinator Agent**:
 4. The Coordinator immediately terminates the Implementation Subagent before initiating review.
 
 ### Phase 3: Two-Axis Adversarial Code Review Loop
-Every implementation must undergo a dual, concurrent adversarial review prior to merge approval. The Coordinator spawns two independent review subagents in parallel. Each reviewer applies one axis and runs `/code-review` on the change. A reviewer that cannot run it says so in its verdict and cannot pass. Each reviewer posts its verdict as a PR comment whose first line is a marker such as `<!-- adversarial-review: axis=spec|standards verdict=pass|fail sha=<head sha> -->`. Any new commit voids earlier verdicts.
+Every implementation must undergo a dual, concurrent adversarial review prior to merge approval. The Coordinator spawns two independent review subagents in parallel. Each reviewer applies one axis and runs `/code-review` on the change. A reviewer that cannot run it says so in its verdict and cannot pass. Each reviewer posts its verdict as a PR comment whose first line is exactly `<!-- adversarial-review: axis=<spec|standards> verdict=<pass|fail> sha=<head sha> -->`. Any new commit voids earlier verdicts.
 
 1. **Adversarial Spec Reviewer**:
    - **Mission**: Relentlessly hunt for loopholes, unhandled edge cases, omitted spec constraints, subtle semantic drift from original intent, missing contract assertions, and latent regressions.
@@ -90,7 +90,7 @@ Every implementation must undergo a dual, concurrent adversarial review prior to
 1. Verify git working directory and run full verification (`python3 scripts/check-standard.py --base origin/main`, `pytest`).
 2. Push branch to remote repository.
 3. Open a pull request using GitHub CLI (`gh pr create`). A ticket batch may land as reviewed commits on one integration PR. The PR stays a draft while any of its tickets remain. Each ticket still completes Phase 3 and Phase 4 before the next starts.
-4. Once all of the batch's tickets are done, mark the PR ready (`gh pr ready`). Then merge with `gh pr merge --merge` only if the permission classifier (the Claude Code auto-mode safety check that can deny an action) and the repository ruleset allow it, and only after both adversarial reviewers have passed on the current head sha. Latent defects are always BLOCKING and must be fixed; only NON-BLOCKING style or clarity notes may be dismissed, with a stated reason. If the classifier or ruleset blocks the merge, stop and ask the human; do not work around it, and leave the PR ready for the human to merge once. Never use `--admin` or other bypasses to defeat a permission or review denial.
+4. The order is fixed. (a) Both adversarial reviewers pass on the current head sha. (b) Once all of the batch's tickets are done, mark the PR ready (`gh pr ready`). (c) Merge with `gh pr merge --merge` only if the permission classifier (the Claude Code auto-mode safety check that can deny an action) and the repository ruleset allow it. Latent defects are always BLOCKING and must be fixed; only NON-BLOCKING style or clarity notes may be dismissed, with a stated reason. If the classifier or ruleset blocks the merge, stop and ask the human; do not work around it, and leave the PR ready for the human to merge once. Never use `--admin` or other bypasses to defeat a permission or review denial.
 5. After a merge, fast-forward local `main` (`git pull origin main`) and confirm `git status` is clean.
 
 ---
