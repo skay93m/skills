@@ -395,7 +395,7 @@ If the owner prefers a staged cutover instead, the new module must land with a d
 
 Rollback: revert the cutover pull request. The removed skills are recoverable from Git history. Because automations are pinned, a rollback also requires repointing them to the earlier pin.
 
-Checks the cutover must pass: the repository standard (S1 to S6), no remaining reference to a removed skill name in `skills/` or `docs/`, and the module's `SKILL.md` within 100 lines.
+Checks the cutover must pass: the repository standard (S1 to S7), no remaining reference to a removed skill name in `skills/` or `docs/`, and the module's `SKILL.md` within 100 lines.
 
 ## Coordination
 

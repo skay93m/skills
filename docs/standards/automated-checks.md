@@ -19,7 +19,7 @@ Standard: `sk-pr-review-standard`, version `1.0.0-draft`. Mechanical checks run 
 - **Stage 1 Gate**: `scripts/check-standard.py` and unit tests execute first. If any blocking check fails, the pipeline halts immediately and reports failure logs. Zero LLM review agents are dispatched.
 - **Diff-Scoping**: The script compares the pull request with its base ref and scans only added lines. Pre-existing issues in untouched lines are not reported. Working-tree mode applies the same rule to uncommitted edits.
 - **Severity Annotations**: Each finding produces an annotation on the exact file and line, labelled `BLOCKING [ID]` or `NON-BLOCKING [ID]`. A blocking finding produces an error annotation and an exit code of 1.
-- **Skill Checks**: Evaluates skills added or edited in the pull request. S2 (naming) applies when a skill is new or its name changes. S4 (100 lines) applies when a skill is new or lines are added to a file already over 100 lines.
+- **Skill Checks**: S1 to S7 evaluate skills added or edited in the pull request. S2 (naming) applies when a skill is new or its name changes. S4 (100 lines) applies when a skill is new or lines are added to a file already over 100 lines. S7 (700 estimated tokens or more) applies when a skill is new or lines are added to it.
 - **Exemptions**: The checker and its tests quote search patterns and are exempt from pattern checks. Any modification to them, this document, or workflow files is reported as `[STD]`.
 
 ## Checks

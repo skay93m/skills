@@ -22,6 +22,8 @@ The canonical statement of `sk-pr-review-standard` for this repository. Tiered s
 
 Only the owner sets or changes the review date. An agent may point out that the freshness period has lapsed, but never refreshes the date.
 
+Check S7 (token ceiling) was added while the Standard is a draft, and the draft version covers it; the version and the review date are unchanged and stay owner-only.
+
 ## Purpose and Scope
 
 - Verification follows a tiered staged structure:
@@ -113,9 +115,9 @@ Reviewers apply the Pocock Skill Filter to every added or changed skill. A skill
 | S2 | Name is kebab-case, at most three words, equals its directory, no "anthropic" or "claude" | Blocking | Script |
 | S3 | Description at most 1,024 characters, has a "Use when" clause, no first or second person | Blocking | Script |
 | S4 | `SKILL.md` at most 100 lines | Blocking | Script |
-| S7 | `SKILL.md` estimated strictly under 700 tokens (characters divided by 4) | Blocking | Script |
 | S5 | A reference file does not link to another reference file | Blocking | Script |
 | S6 | Provenance in frontmatter: `metadata.origin`, `metadata.agent_involvement`, and `metadata.divergence` when the origin is an upstream | Blocking | Script |
+| S7 | `SKILL.md` estimated strictly under 700 tokens (characters divided by 4) | Blocking | Script |
 | N1, N2, N4, N6 | Skill quality: name form, description quality, writing principles, fragile operations | Non-blocking | Sourcery |
 | N5 | `metadata.category` is present | Non-blocking | Script |
 | N7 | Overlap with an authorised upstream skill | Non-blocking | Sourcery |

@@ -453,6 +453,16 @@ class TestScaffoldingExecution(unittest.TestCase):
         test_code = test_file.read_text(encoding="utf-8")
         self.assertIn("exceeds 40", test_code)
 
+    def test_scaffold_rejects_entrypoint_at_token_ceiling(self):
+        manifest = {
+            "name": "tiny-ceiling",
+            "description": "Use when testing the strict token ceiling.",
+            "budgets": {"token-budget": 1},
+        }
+        with self.assertRaises(ValueError) as ctx:
+            new_skill.scaffold_skill(manifest, self.skills_dir, self.tests_dir)
+        self.assertIn("strictly under", str(ctx.exception))
+
     def test_scaffold_provenance_and_divergence_standard_s6(self):
         manifest = {
             "name": "derived-skill",

@@ -4,6 +4,7 @@ Each test builds a throwaway git repository, commits a base, commits a change,
 and runs the checker against the base. Secret-like and personal-looking values
 are assembled at run time from pieces; none is a real credential or person.
 """
+import importlib.util
 import os
 import re
 import secrets
@@ -207,6 +208,43 @@ class Skills(unittest.TestCase):
     def test_skill_over_token_ceiling_is_blocking(self):
         big = GOOD_SKILL + ("word " * 600 + "\n")
         _, found = run_check({}, {"skills/good-skill/SKILL.md": big})
+        self.assertIn("S7", ids(found, "BLOCKING"))
+
+    def test_estimator_rounds_characters_divided_by_four_upwards(self):
+        spec = importlib.util.spec_from_file_location("check_standard", SCRIPT)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        for chars, expected in [(0, 0), (1, 1), (3, 1), (4, 1), (5, 2), (8, 2), (9, 3)]:
+            self.assertEqual(mod.estimate_tokens("x" * chars), expected)
+        # The scaffolder must use the identical estimator.
+        scaffold = os.path.join(os.path.dirname(SCRIPT), "new-skill.py")
+        spec2 = importlib.util.spec_from_file_location("new_skill_est", scaffold)
+        mod2 = importlib.util.module_from_spec(spec2)
+        spec2.loader.exec_module(mod2)
+        for chars in range(0, 40):
+            self.assertEqual(mod.estimate_tokens("y" * chars), mod2.estimate_tokens("y" * chars))
+
+    def _skill_of_tokens(self, tokens):
+        pad = tokens * 4 - len(GOOD_SKILL)
+        self.assertGreater(pad, 1)
+        return GOOD_SKILL + "x" * (pad - 1) + "\n"
+
+    def test_ceiling_boundary_699_passes(self):
+        _, found = run_check({}, {"skills/good-skill/SKILL.md": self._skill_of_tokens(699)})
+        self.assertNotIn("S7", ids(found))
+
+    def test_ceiling_boundary_700_fails(self):
+        _, found = run_check({}, {"skills/good-skill/SKILL.md": self._skill_of_tokens(700)})
+        self.assertIn("S7", ids(found, "BLOCKING"))
+
+    def test_ceiling_boundary_701_fails(self):
+        _, found = run_check({}, {"skills/good-skill/SKILL.md": self._skill_of_tokens(701)})
+        self.assertIn("S7", ids(found, "BLOCKING"))
+
+    def test_edited_skill_pushed_over_ceiling_is_blocking(self):
+        big = self._skill_of_tokens(701)
+        _, found = run_check({"skills/good-skill/SKILL.md": GOOD_SKILL},
+                             {"skills/good-skill/SKILL.md": big})
         self.assertIn("S7", ids(found, "BLOCKING"))
 
     def test_skill_under_token_ceiling_passes(self):

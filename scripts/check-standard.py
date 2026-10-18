@@ -11,6 +11,8 @@ Only lines the pull request adds are scanned for pattern checks, so older
 problems in untouched lines are not reported. Skill checks run on skills the
 pull request adds or edits. S2 and S4 apply only when the skill is new, its
 name changes (S2), or lines are added to a file already over 100 lines (S4).
+S7 rejects an entrypoint estimated at 700 or more tokens (characters divided
+by 4, rounded up) when the skill is new or lines are added to it.
 
 With --working-tree, the diff runs from the base ref to the files on disk, so
 uncommitted changes and untracked files are checked too.

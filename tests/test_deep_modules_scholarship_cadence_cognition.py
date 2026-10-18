@@ -28,6 +28,12 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 new_skill = importlib.import_module("new-skill")
 
+TESTS_DIR = str(pathlib.Path(__file__).resolve().parent)
+if TESTS_DIR not in sys.path:
+    sys.path.insert(0, TESTS_DIR)
+# Ticket #164 deletes this shared map.
+from legacy_domains import LEGACY_TO_V1_DOMAIN  # noqa: E402
+
 MD_LINK_PATTERN = re.compile(r"\]\((?!https?://|#|mailto:)([^)#\s]+\.md)")
 
 MODULE_SPECS = {
@@ -95,14 +101,6 @@ MODULE_SPECS = {
 }
 
 
-LEGACY_TO_V1_DOMAIN = {
-    "knowledge": "curate",
-    "scrum": "code",
-    "ecosystem": "setup",
-    "scholarship": "tutor",
-    "cadence": "tutor",
-    "cognition": "tutor",
-}
 
 
 class TestDeepModulesScholarshipCadenceCognition(unittest.TestCase):

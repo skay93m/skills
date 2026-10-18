@@ -399,7 +399,7 @@ def validate_manifest(manifest):
         if "token-budget" in budgets:
             tb = budgets["token-budget"]
             if isinstance(tb, bool) or not isinstance(tb, int) or tb <= 0 or tb > 700:
-                raise ValueError(f"Invalid token-budget '{tb}': must be an integer between 1 and 700")
+                raise ValueError(f"Invalid token-budget '{tb}': must be an integer between 1 and 700 (the entrypoint must stay strictly under it)")
 
     if "references" in manifest:
         refs = manifest["references"]
@@ -496,9 +496,11 @@ def validate_manifest(manifest):
 
 
 def estimate_tokens(text):
-    """Rough estimation of token count for English text."""
-    words = text.split()
-    return int(len(words) * 1.3)
+    """Deterministic token estimate: characters divided by 4, rounded up.
+
+    Must match estimate_tokens in scripts/check-standard.py; a test asserts it.
+    """
+    return -(-len(text) // 4)
 
 
 def format_title(kebab_name):
@@ -819,9 +821,9 @@ Canonical example output demonstrating successful artifact generation.
                 f"Generated SKILL.md exceeds line budget ({len(skill_lines)} > {line_limit} lines)"
             )
         tok_est = estimate_tokens(skill_content)
-        if tok_est > tok_ceiling:
+        if tok_est >= tok_ceiling:
             raise ValueError(
-                f"Generated SKILL.md exceeds token budget (~{tok_est} > {tok_ceiling} tokens)"
+                f"Generated SKILL.md exceeds token budget (~{tok_est} estimated tokens; it must stay strictly under {tok_ceiling})"
             )
 
         skill_md = skill_dir / "SKILL.md"

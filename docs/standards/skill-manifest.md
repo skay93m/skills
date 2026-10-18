@@ -42,12 +42,12 @@ A manifest is authored in declarative YAML (or JSON) and adheres to the schema b
 | `version` | `string` | No | `"0.1.0"` | Semantic version string (e.g. `0.1.0`). |
 | `owner` | `string` | No | `"skay93m"` | GitHub user or team handle responsible for the skill. |
 | `provenance` | `string` | No | `"original"` | Upstream origin, issue reference, or author attribution. |
-| `disable-model-invocation` | `boolean` | No | `true` | When `true`, prevents models from invoking the skill automatically without explicit human slash command. Default is `true` for personal skills. `false` is permitted only for the gateway (`ask-syafiq`) and presentation (`style`) modules; the scaffolder rejects it for every other skill. |
+| `disable-model-invocation` | `boolean` | No | `true` | When `true`, prevents models from invoking the skill automatically without explicit human slash command.<br>Default is `true` for personal skills.<br>`false` is permitted only for the gateway (`ask-syafiq`) and presentation (`style`) modules.<br>The scaffolder rejects `false` for every other skill. |
 | `user-invoked` | `boolean` | No | `true` | Indicates whether the skill is intended for direct user slash invocation. |
 | `triggers` | `list[string]` | No | `[]` | Natural-language utterances, prompts, or trigger keywords activating the skill. |
 | `budgets` | `object` | No | `{}` | Resource ceilings for the skill entrypoint `SKILL.md`. |
 | `budgets.line-budget` | `integer` | No | `100` | Maximum line count for entrypoint `SKILL.md` (strictly $\le 100$). |
-| `budgets.token-budget` | `integer` | No | `700` | Maximum token budget for entrypoint `SKILL.md` (strictly $\le 700$). |
+| `budgets.token-budget` | `integer` | No | `700` | Exclusive token ceiling for entrypoint `SKILL.md`: an entrypoint estimated at this many tokens or more is rejected. The value may not exceed 700. |
 | `references` | `list[string]` | No | `[]` | Terminal markdown reference documents located in `references/`. Must obey the terminal reference rule. |
 | `scripts` | `list[string]` | No | `[]` | Deterministic helper scripts located directly in `scripts/` without nested subdirectories or path traversal. |
 | `artifacts` | `object` | No | `{}` | Persistent file and report production contract. |
@@ -69,7 +69,7 @@ A manifest is authored in declarative YAML (or JSON) and adheres to the schema b
 
 ### 3.2 Entrypoint Budgets
 - Entrypoint `SKILL.md` must not exceed **100 lines** (Standard S4).
-- Entrypoint `SKILL.md` token budget must not exceed **700 tokens**.
+- Entrypoint `SKILL.md` must stay strictly under **700 estimated tokens** (characters divided by 4, rounded up); 700 or more is rejected (Standard S7).
 - Extended documentation, procedures, schemas, and checklists must be offloaded to terminal `references/`.
 
 ### 3.3 Provenance and Naming

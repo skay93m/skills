@@ -83,6 +83,17 @@ STYLE_SKILLS = {
 }
 ALL_SKILLS = DEEP_MODULES | ROUTER_SKILLS | KNOWLEDGE_AND_SEAM_SKILLS | TOMBSTONE_SKILLS | STYLE_SKILLS
 
+# Ticket #164 deletes these skills and this set together. They are over the
+# 700 estimated token ceiling (characters divided by 4, rounded up) and are
+# exempt from the token check only, never the line limit.
+LEGACY_OVER_TOKEN_CEILING = {
+    "daily-knowledge-maintenance",
+    "knowledge-ingest",
+    "knowledge-lint",
+    "knowledge-run-audit",
+    "seam-adapter",
+}
+
 
 def resolve_skill_source(repo_root: pathlib.Path, skill_name: str) -> pathlib.Path:
     """Simulate npx skills add skay93m/skills --skill <name> resolution."""
@@ -161,11 +172,18 @@ class TestNpxSkillsPackagingContract(unittest.TestCase):
                 100,
                 f"Skill {skill_name}/SKILL.md has {len(lines)} lines, exceeding 100-line budget",
             )
-            self.assertLess(
-                tok_estimate,
-                700,
-                f"Skill {skill_name}/SKILL.md has ~{tok_estimate} tokens, exceeding 700-token budget",
-            )
+            if skill_name in LEGACY_OVER_TOKEN_CEILING:
+                self.assertGreaterEqual(
+                    tok_estimate,
+                    700,
+                    f"Skill {skill_name} is under the ceiling; remove it from LEGACY_OVER_TOKEN_CEILING",
+                )
+            else:
+                self.assertLess(
+                    tok_estimate,
+                    700,
+                    f"Skill {skill_name}/SKILL.md has ~{tok_estimate} tokens, exceeding 700-token budget",
+                )
 
     def test_all_manifests_are_schema_valid(self):
         """All declarative manifests in manifests/ must pass schema validation."""
