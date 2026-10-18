@@ -1,7 +1,7 @@
 ---
 name: ask-syafiq
 description: Master router skill providing rapid workspace detection across 8 repositories, intent-based routing to 6 deep modules, and execution phase boundary guidance. Use when routing requests, selecting deep modules, detecting repository context, or managing session transitions.
-disable-model-invocation: false
+disable-model-invocation: true
 user-invoked: true
 version: 0.2.0
 provenance: original
