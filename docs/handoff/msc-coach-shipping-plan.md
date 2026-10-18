@@ -18,7 +18,7 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 - Out of scope: `mhel-coaching` workspace detection.
 - `ask-syafiq` routing and count changes wait for the msc-coach skill manifest (#154). The "8 repositories" and "6 modules" counts, and the 100-line and 700-token budgets, are handled there.
 - Copy from a pinned msc-coach commit on its GitHub `origin/main`, not from the local working tree at `../msc-coach`. Record the SHA on #146 and in the PR body.
-- Use fresh branches from `origin/main`, one PR per ticket (#150, #151, #154), and the coordinator protocol (`docs/agents/coordinator-protocol.md`).
+- Use one integration branch, `feat-msc-coach-shipping-plan` (PR #155), for every ticket, and the coordinator protocol (`docs/agents/coordinator-protocol.md`).
 - Never overwrite an existing skill directory.
 - Keep provenance and version fields. Fix only what the standard check flags. Report repo-side fixes back to msc-coach (#153).
 - Gate: `python3 scripts/check-standard.py --base origin/main` shows 0 blocking and 0 non-blocking findings, and `pytest` passes. The `npx skills add skay93m/skills` check runs after merge, because it installs from the default branch.
@@ -60,6 +60,14 @@ Blocking edges are GitHub native dependencies, except the two external ones (rea
 
 - #146 label swapped from `needs-triage` to `ready-for-human`. Done.
 - Glossary terms **Source repository** and **Collision** are written in `GLOSSARY.md` (landing in PR #155). #147 closes when that PR merges.
+
+## One-PR delivery (decided by the human, 2026-10-18)
+
+- The agent cannot merge unattended: the classifier blocks self-merge and the `main` ruleset requires an approving review. All tickets therefore land as commits on PR #155, which stays a draft until done. The human merges it once.
+- Each ticket still gets the Spec and Standards adversarial reviews and a fix loop before the next starts. Each reviewer posts its verdict as a PR comment so the human can audit it.
+- #149 collision decisions use the agent's best guess and are listed at the top of the PR body for the human to check.
+- #152 can run before merge: `npx skills add skay93m/skills#<branch> --list` installs from a branch ref (verified 2026-10-18).
+- Work after #147 waits for the human's explicit ready signal. Do not infer it from msc-coach's repository state.
 
 ## Merge policy (decided by the human)
 
