@@ -46,7 +46,10 @@ This document defines the official Chief of Staff Coordinator & Subagent Working
 - **Stage 1 (deterministic)**: run `python3 scripts/check-standard.py` and `pytest`. On any failure, return the logs to the implementer and spawn no review agents.
 - **Stage 2 (adversarial review)**, only once Stage 1 is green, following `docs/standards/pr-review-standard.md`:
   - Standard tickets: one unified reviewer audits specification adherence and coding standards.
-  - Core interface or protocol changes: two parallel reviewers, an Adversarial Spec Reviewer (omitted requirements, edge cases, interface drift, missing assertions) and an Adversarial Architecture and Standards Reviewer.
+  - Core interface or protocol changes: three parallel reviewers, one per axis (three-axis review):
+    - Spec: an Adversarial Spec Reviewer for omitted requirements, edge cases, interface drift, and missing assertions.
+    - Codebase: an Adversarial Codebase Reviewer for how the change fits the whole codebase, including duplicated modules, broken seams, and conflicts with existing conventions.
+    - Standards: an Adversarial Standards Reviewer for `skills/style/SKILL.md`, `docs/standards/`, and the repository coding standards.
   - Findings are reported as `BLOCKING [CHECK_ID] path:line` (must fix before merge) or `NON-BLOCKING [CHECK_ID] path:line` (advisory).
 
 ### Phase 4: Bounded Remediation Loop
