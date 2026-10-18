@@ -19,9 +19,9 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 - `ask-syafiq` routing and count changes wait for the msc-coach skill manifest (#154). The "8 repositories" and "6 modules" counts, and the 100-line and 700-token budgets, are handled there.
 - Copy from a pinned msc-coach commit on its GitHub `origin/main`, not from the local working tree at `../msc-coach`. Record the SHA on #146 and in the PR body.
 - Use one integration branch, `feat-msc-coach-shipping-plan` (PR #155), for every ticket, and the coordinator protocol (`docs/agents/coordinator-protocol.md`).
-- Never overwrite an existing skill directory.
+- A msc-coach copy never replaces an existing skill directory. Extending or merging edits the existing skill in place via a reviewed change.
 - Keep provenance and version fields. Fix only what the standard check flags. Report repo-side fixes back to msc-coach (#153).
-- Shipping gate: for the msc-coach shipping PR, `python3 scripts/check-standard.py --base origin/main` must print 0 blocking and 0 non-blocking findings, and `pytest` must pass. This 0/0 criterion is the project gate already stated here, not a new rule. These are the script's findings, separate from reviewer NON-BLOCKING notes. Phase 6 step 1 of `docs/agents/coordinator-protocol.md` lists the commands.
+- Shipping gate: for the msc-coach shipping PR, a project criterion (not a pre-existing rule), `python3 scripts/check-standard.py --base origin/main` must print 0 blocking and 0 non-blocking findings, and `pytest` must pass. These are the script's findings, separate from reviewer NON-BLOCKING notes. Phase 6 step 1 of `docs/agents/coordinator-protocol.md` lists the commands.
 - On the ready signal, count the skills myself. If the count is not 22 or `ask-coach` is missing, halt and report.
 - No ADR: the decisions are easy to reverse.
 - `docs/authorised-skill-repositories.md` does not apply. msc-coach is a source repo, not a third-party Authorised Skill Repository.
@@ -29,8 +29,8 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 ## Collision protocol
 
 - A collision is an exact name match or a functional overlap. Report all of them to the human before anything is copied. While the human is away (authorised 2026-10-18), report them in the PR body instead.
-- While the human is away (authorised 2026-10-18), the agent applies the default resolution order and lists every decision at the top of the PR body. Order: try extend first, then merge and synthesise; rename applies only when the two skills are functionally distinct (a pure name clash). The human's approval of each case is given by reviewing that list before merging. PR #155 carries collision decisions, so the agent does not merge it even where the classifier and ruleset would allow; it leaves PR #155 ready for the human, who merges it once. msc-coach changes still go through the skills agent.
-- The skills agent implements any change in this repo. msc-coach changes only msc-coach, and may propose and negotiate on #146.
+- After the human's ready signal for #148 is received, the agent applies the default resolution order while the human is away (authorised 2026-10-18). Before that signal, nothing from #148 onward starts. Order: try extend first, then merge and synthesise; rename applies only when the two skills are functionally distinct (a pure name clash). The agent lists every decision at the top of the PR body. The human's approval of each case is given by reviewing that list before merging. PR #155 merge hold: see Phase 6 of `docs/agents/coordinator-protocol.md`.
+- msc-coach changes only msc-coach, and may propose and negotiate on #146. Every change in this repository is implemented by the skills agent.
 - Non-colliding skills ship first (#150). Colliding ones follow after resolution (#151).
 - Overlap suspicion (unverified): the 2026-10-18 snapshot listed `academic-thinking-partner`, which may overlap `thinking-partner` and `academic-scholar`. That name is gone from the later local tree, so recheck at #148 against the pinned SHA.
 
