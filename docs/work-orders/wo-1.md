@@ -10,16 +10,16 @@ Packages Sprint 1 for autonomous AFK execution under `docs/agents/coordinator-pr
 
 ## 1. Sprint Identity
 
-- **Milestone**: `v1.0.0: Minimal Production Deploy` (Spec: #157)
+- **Milestone**: `v1.0.0: Minimal Production Deploy` (Spec: [#157](https://github.com/skay93m/skills/issues/157))
 - **Branch**: `sprint-1` from `origin/main`; one release PR into `main` after the 5-point gate (Ticket 3)
 
 ## 2. Ticket Order
 
 | Order | Issue | Review Tier |
 | :--- | :--- | :--- |
-| 1 | #160 | Standard |
-| 2 | #114 | Standard |
-| 3 | #162 | Core Release Gate |
+| 1 | [#160](https://github.com/skay93m/skills/issues/160) | Standard |
+| 2 | [#114](https://github.com/skay93m/skills/issues/114) | Standard |
+| 3 | [#162](https://github.com/skay93m/skills/issues/162) | Core Release Gate |
 
 ## 3. Pre-Configured Prune Points (Coordinator Exclusive Authority)
 
@@ -27,9 +27,9 @@ The Chief of Staff consults these designated boundaries only if Loop 2 review fa
 
 | Ticket | Pre-Configured Prune Point (Non-Critical) | Essential Scope (Non-Negotiable) | Fail-Closed Behaviour |
 | :--- | :--- | :--- | :--- |
-| **#160** | If token ceiling check in `check-standard.py` blocks due to legacy skill count or reference files, prune token ceiling adjustment and defer explicitly to Issue #163. | Creation of `skills/style/`, British English enforcement, zero em dashes, zero horizontal dividers, `AGENTS.md` sprint refactor. | Fail closed to `ready-for-human` if any essential scope fails. |
-| **#114** | None permitted. | Complete deletion of superseded maintenance code and green test suite. | Fail closed to `ready-for-human`. |
-| **#162** | None permitted. | Clean pass across all 5 release gates and clean git working tree. | Fail closed, abort release tag. |
+| **[#160](https://github.com/skay93m/skills/issues/160)** | If token ceiling check in `check-standard.py` blocks due to legacy skill count or reference files, prune token ceiling adjustment and defer explicitly to Issue [#163](https://github.com/skay93m/skills/issues/163). | Creation of `skills/style/`, British English enforcement, zero em dashes, zero horizontal dividers, `AGENTS.md` sprint refactor. | Fail closed to `ready-for-human` if any essential scope fails. |
+| **[#114](https://github.com/skay93m/skills/issues/114)** | None permitted. | Complete deletion of superseded maintenance code and green test suite. | Fail closed to `ready-for-human`. |
+| **[#162](https://github.com/skay93m/skills/issues/162)** | None permitted. | Clean pass across all 5 release gates and clean git working tree. | Fail closed, abort release tag. |
 
 ## 4. Living Execution Ledger
 
