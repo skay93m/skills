@@ -36,7 +36,7 @@ Per-ticket requirements live in issues #146-#154 and their dated decision-update
 
 | # | Ticket | Label | Blocked by |
 |---|---|---|---|
-| 147 | Glossary: Collision and Source repository | implemented, in review on PR #155 (closes on merge) | none |
+| 147 | Glossary: Collision and Source repository | ready-for-agent | none |
 | 148 | Pre-flight check on msc-coach ready signal | ready-for-human | the human ready signal |
 | 149 | Resolve collisions with msc-coach | ready-for-human | 148 |
 | 150 | Ship the non-colliding msc-coach skills | ready-for-agent | 148 |
@@ -45,7 +45,9 @@ Per-ticket requirements live in issues #146-#154 and their dated decision-update
 | 153 | Report repo-side fixes back to msc-coach | ready-for-agent | 150 |
 | 154 | Update ask-syafiq routing and counts | ready-for-human | 150 and the msc-coach manifest |
 
-Blocking edges are GitHub native dependencies, except the two external ones (ready signal, manifest), which are written in the ticket bodies.
+Dependencies (blocked by) are GitHub native dependencies, except the two external ones (ready signal, manifest), which are written in the ticket bodies.
+
+Note: #147 is implemented and in review on PR #155; it closes on merge.
 
 ## Facts
 
