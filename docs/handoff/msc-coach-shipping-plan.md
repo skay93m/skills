@@ -1,6 +1,6 @@
 # Handoff: shipping msc-coach skills
 
-Written 2026-10-18 at the end of a grill-with-docs and to-tickets session. Nothing has been implemented.
+Written 2026-10-18 at the end of a grill-with-docs and to-tickets session. #147 is implemented and reviewed on PR #155; nothing from #148 onward has started.
 
 ## Status
 
@@ -63,7 +63,7 @@ Blocking edges are GitHub native dependencies, except the two external ones (rea
 
 ## One-PR delivery (decided by the human, 2026-10-18)
 
-- The agent cannot merge unattended: the classifier blocks self-merge and the `main` ruleset requires an approving review. All tickets therefore land as commits on PR #155, which stays a draft until done. The human merges it once.
+- All tickets land as commits on PR #155, which stays a draft until its tickets are done. The agent merges it only if the classifier and the `main` ruleset allow it, after both adversarial reviewers pass and the PR is marked ready. Otherwise it stops and the human merges PR #155 once.
 - Each ticket still gets the Spec and Standards adversarial reviews and a fix loop before the next starts. Each reviewer posts its verdict as a PR comment so the human can audit it.
 - #149 collision decisions use the agent's best guess and are listed at the top of the PR body for the human to check.
 - #152 can run before merge: `npx skills add skay93m/skills#<branch> --list` installs from a branch ref (verified 2026-10-18).
@@ -71,6 +71,6 @@ Blocking edges are GitHub native dependencies, except the two external ones (rea
 
 ## Merge policy (decided by the human)
 
-- This overrides the "reviewed and merged by the human" criterion in #150. The agent may merge its own PRs, but only after it has spawned two adversarial reviewer subagents that each invoke `/code-review` on the PR, one on the Spec axis and one on the Standards axis, and every finding is resolved or explicitly dismissed.
+- This overrides the "reviewed and merged by the human" criterion in #150. The agent merges its own PRs only under the One-PR delivery rule above. Two adversarial reviewer subagents, one on the Spec axis and one on the Standards axis, each run `/code-review` on the PR. Every BLOCKING finding is fixed, and every NON-BLOCKING finding is resolved or dismissed with a stated reason.
 - Mentioning `/code-review` in the policy is not a request to run it now. Run it per PR, at merge time.
 - The permission classifier blocked a create-and-squash-merge earlier ("Merge Without Review"). The human has since added the `Bash(gh pr merge:*)` allow rule. The classifier is separate from the allow list and may still block a merge. If it does, stop and ask the human; do not work around it.

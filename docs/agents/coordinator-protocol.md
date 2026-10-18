@@ -43,7 +43,7 @@ The Parent or Primary Agent functions strictly as a **Coordinator Agent**:
 1. Dispatch an Implementation Subagent (`flash` tier) with:
    - Defined task scope and strict file boundaries.
    - Deliverable specifications and edge-case requirements.
-   - Verification instructions (`python3 scripts/check-standard.py`, `pytest`, linter).
+   - Verification instructions (`python3 scripts/check-standard.py --base origin/main`, `pytest`, linter).
 2. The Implementation Subagent performs edits, runs the test suite, confirms zero errors, and reports back.
 3. The Coordinator reviews the completion report and inspects the git status and diff.
 4. The Coordinator immediately terminates the Implementation Subagent before initiating review.
@@ -87,7 +87,7 @@ Every implementation must undergo a dual, concurrent adversarial review prior to
 - Audits end-to-end integration across modules, full test suite stability, architectural consistency, documentation completeness, and performance regressions across the entire repository.
 
 ### Phase 6: Landing & Merging
-1. Verify git working directory and run full verification (`python3 scripts/check-standard.py`, `pytest`).
+1. Verify git working directory and run full verification (`python3 scripts/check-standard.py --base origin/main`, `pytest`).
 2. Push branch to remote repository.
 3. Open a pull request using GitHub CLI (`gh pr create`). A ticket batch may land as reviewed commits on one integration PR. The PR stays a draft while any of its tickets remain. Each ticket still completes Phase 3 and Phase 4 before the next starts.
 4. Once all of the batch's tickets are done, mark the PR ready (`gh pr ready`). Then merge with `gh pr merge --merge` only if the permission classifier (the Claude Code auto-mode safety check that can deny an action) and the repository ruleset allow it, and only after both adversarial reviewers have passed on the current head sha. Latent defects are always BLOCKING and must be fixed; only NON-BLOCKING style or clarity notes may be dismissed, with a stated reason. If the classifier or ruleset blocks the merge, stop and ask the human; do not work around it, and leave the PR ready for the human to merge once. Never use `--admin` or other bypasses to defeat a permission or review denial.
@@ -101,4 +101,4 @@ Every implementation must undergo a dual, concurrent adversarial review prior to
 - **Reference Depth**: Reference links must remain one level deep from the parent skill. Never link a reference file to another reference file.
 - **Path Hygiene**: Never commit hardcoded machine-specific user home paths. Always use repo-relative paths.
 - **Privacy & Secrets**: Zero tolerance for credentials, API tokens, internal URLs, or private personal data.
-- **Standard Checks Verification**: Always run `python3 scripts/check-standard.py` and `pytest` on every iteration to guarantee full compliance before landing changes.
+- **Standard Checks Verification**: Always run `python3 scripts/check-standard.py --base origin/main` and `pytest` on every iteration to guarantee full compliance before landing changes.
