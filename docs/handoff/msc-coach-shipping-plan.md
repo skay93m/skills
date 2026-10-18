@@ -56,11 +56,13 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 
 Blocking edges are GitHub native dependencies, except the two external ones (ready signal, manifest), which are written in the ticket bodies.
 
-## Pending small items
+## Resolved open items
 
-- #146 carries `needs-triage`. The agent suggested swapping it for `ready-for-human`. The human has not answered.
-- Glossary terms to add in #147:
-  - **Collision**: two skills, across this repo and a source repository, with the same name or overlapping function.
-  - **Source repository**: a repo where skills are developed, such as msc-coach, with this repo as the shipping destination.
-  - Keep both free of implementation detail.
-- When the work starts, the human merges every PR. The agent does not merge. An attempt to create and squash-merge a PR was blocked by the permission classifier earlier in this session.
+- #146 label swapped from `needs-triage` to `ready-for-human`. Done.
+- Glossary terms **Source repository** and **Collision** are written in `GLOSSARY.md` (uncommitted, on the local checkout). #147 stays open until that change lands through a PR.
+
+## Merge policy (decided by the human)
+
+- The agent may merge its own PRs, but only after it has spawned two adversarial reviewer subagents that each invoke `/code-review` on the PR, one on the Spec axis and one on the Standards axis, and every finding is resolved or explicitly dismissed.
+- Mentioning `/code-review` in the policy is not a request to run it now. Run it per PR, at merge time.
+- The permission classifier blocked a create-and-squash-merge earlier ("Merge Without Review"). The human has since added the `Bash(gh pr merge:*)` allow rule. The classifier is separate from the allow list and may still block a merge. If it does, stop and ask the human; do not work around it.

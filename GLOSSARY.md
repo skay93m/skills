@@ -26,6 +26,13 @@ The future command-line interface to manage, verify, update, and heal agent skil
 A skill that lives in an Authorised Skill Repository other than this one. A skill here that overlaps one should extend it and record how it differs.
 _Avoid_: external skill, third-party skill
 
+**Source repository**:
+A repository where skills are developed, such as msc-coach, with this repository as the shipping destination.
+
+**Collision**:
+Two skills, across this repository and a Source repository, that have the same name or overlapping function.
+_Avoid_: conflict, clash
+
 ### Pull request review standard
 
 **Standard**:
