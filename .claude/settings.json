@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/pytest -q)",
+      "Bash(python3 scripts/check-standard.py --base origin/main)"
+    ]
+  }
+}
