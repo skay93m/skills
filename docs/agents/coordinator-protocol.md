@@ -91,7 +91,7 @@ Every implementation must undergo a dual, concurrent adversarial review prior to
 2. Push branch to remote repository.
 3. Open a pull request using GitHub CLI (`gh pr create --draft`). A ticket batch may land as reviewed commits on one integration PR. The PR stays a draft while any of its tickets remain. Each ticket still completes Phase 3 and Phase 4 before the next starts. After the last ticket, both reviewers also review the whole batch (cumulative diff) on the final head.
 4. The order is fixed:
-   - (a) Both adversarial reviewers pass on the current head sha, on the per-ticket reviews and on the whole-batch review. The Coordinator confirms each verdict by comparing the marker sha with `gh pr view --json headRefOid`.
+   - (a) Both adversarial reviewers pass on the final head sha, covering the whole-batch review. The Coordinator confirms each verdict by comparing the marker sha with `gh pr view --json headRefOid`.
    - (b) Once all of the batch's tickets are done, mark the PR ready (`gh pr ready`).
    - (c) Merge with `gh pr merge --merge` only if the permission classifier (the Claude Code auto-mode safety check that can deny an action) and the repository ruleset allow it. Latent defects are always BLOCKING and must be fixed; only NON-BLOCKING style or clarity notes may be dismissed, with a stated reason. If the classifier or ruleset blocks the merge, stop and ask the human; do not work around it, and leave the PR ready for the human to merge once. Never use `--admin` or other bypasses to defeat a permission or review denial.
 5. After a merge, fast-forward local `main` (`git pull origin main`) and confirm `git status` is clean.

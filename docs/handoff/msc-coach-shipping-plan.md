@@ -28,8 +28,8 @@ Ship the finalised skills from the source repository `skay93m/msc-coach` into th
 
 ## Collision protocol
 
-- A collision is an exact name match or a functional overlap. Report all of them to the human before anything is copied.
-- Default resolution order: extend the existing skill, then merge and synthesise, then rename only if the two are functionally distinct. The human approves each case.
+- A collision is an exact name match or a functional overlap. Report all of them to the human before anything is copied. While the human is away (authorised 2026-10-18), report them in the PR body instead.
+- While the human is away (authorised 2026-10-18), the agent applies the default resolution order (extend the existing skill, then merge and synthesise, then rename only if the two are functionally distinct) and lists every decision at the top of the PR body. The human's approval of each case is given by reviewing that list before merging. Exact-name collisions with no functional overlap: rename only if distinct. msc-coach changes still go through the skills agent.
 - The skills agent implements any change in this repo. msc-coach changes only msc-coach, and may propose and negotiate on #146.
 - Non-colliding skills ship first (#150). Colliding ones follow after resolution (#151).
 - Overlap suspicion (unverified): the 2026-10-18 snapshot listed `academic-thinking-partner`, which may overlap `thinking-partner` and `academic-scholar`. That name is gone from the later local tree, so recheck at #148 against the pinned SHA.
@@ -64,8 +64,7 @@ Blocking edges are GitHub native dependencies, except the two external ones (rea
 ## One-PR delivery and merge (decided by the human, 2026-10-18)
 
 - All tickets land as commits on PR #155, which stays a draft until its tickets are done.
-- The agent cannot merge unattended in general. See Phase 6 of the protocol.
-- #149 collision decisions use the agent's best guess and are listed at the top of the PR body for the human to check.
+- #149 collision decisions follow the Collision protocol above and are listed at the top of the PR body.
 - #152: the `npx skills add skay93m/skills` install check runs after merge, because it installs from the default branch. #152 may also check before merge from the branch ref: `npx skills add skay93m/skills#<branch> --list` (verified 2026-10-18).
 - Work after #147 waits for the human's explicit ready signal. Do not infer it from msc-coach's repository state.
 
