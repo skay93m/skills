@@ -1,6 +1,12 @@
-# Pull request review standard
+---
+title: Pull Request Review Standard
+tags: [standards, review, pr, sourcery, quality, staged-verification]
+type: standard
+---
 
-The canonical statement of `sk-pr-review-standard` for this repository. The mechanical checks run as a script on every pull request, Sourcery's review rules keep the checks that need judgement, and the repository owner decides every merge.
+# Pull Request Review Standard
+
+The canonical statement of `sk-pr-review-standard` for this repository. Tiered staged verification separates mechanical checks executed by deterministic scripts from qualitative checks evaluated by advisory reviewers (Sourcery and adversarial LLM subagents). The repository owner decides every merge.
 
 ## Identity
 
@@ -16,53 +22,55 @@ The canonical statement of `sk-pr-review-standard` for this repository. The mech
 
 Only the owner sets or changes the review date. An agent may point out that the freshness period has lapsed, but never refreshes the date.
 
-## Purpose and scope
+## Purpose and Scope
 
-- Sourcery acts as an advisory reviewer. It recommends approve, comment or request changes, explains its reasoning and names exact findings. It never merges, and the owner has the final say on every merge.
-- The first implementation covers this repository. A review covers the diff and the repository context it touches. It is not an audit of the whole repository.
+- Verification follows a tiered staged structure:
+  - **Stage 1 (Deterministic Checks)**: Automated scripts (`scripts/check-standard.py`, `pytest`) run first. Any failure immediately stops the gate without invoking LLM or advisory reviewers.
+  - **Stage 2 (Advisory and Adversarial Reviews)**: Sourcery and specialised adversarial review subagents evaluate specification compliance, architecture, and code quality.
+- Sourcery acts as an advisory reviewer. It recommends approve, comment, or request changes, explains its reasoning, and names exact findings. It never merges, and the owner has the final decision on every merge.
+- The implementation covers this repository. A review covers the diff and the repository context it touches. It is not an audit of the whole repository.
 - Existing problems in lines a pull request does not touch are not reported.
-- The quality bar is the same whether an agent, the owner or both wrote the change.
+- The quality bar is identical whether an agent, the owner, or both authored the change.
 
-## The stamp
+## The Stamp
 
 Each Sourcery review rule opens with this line:
 
 `Standard sk-pr-review-standard v<version>, reviewed <date>, fresh until <date>.`
 
-The stamp lets a review say which version of the standard it used. Sourcery quotes only the check that matched, so the stamp line itself does not appear in its comments; the check ID does. The stamp in the dashboard must match the version in this file.
+The stamp enables a review to declare which version of the standard it used. Sourcery quotes only the check that matched, so the stamp line itself does not appear in comments; the check ID does. The stamp in the dashboard must match the version in this file.
 
 ## Versioning
 
-- **Major**: a blocking check is added, removed or loosened.
-- **Minor**: non-blocking checks change.
-- **Patch**: wording only.
+- **Major**: A blocking check is added, removed, or loosened.
+- **Minor**: Non-blocking checks change.
+- **Patch**: Wording only.
 - A change that only describes repository settings or process, and changes no check, does not change the version.
 
-Every bump needs the owner's approval and a new review date.
+Every version bump requires the owner's approval and a new review date.
 
-## Currency findings
+## Currency Findings
 
 | Finding | Severity |
 |---|---|
 | A missing or malformed stamp | Blocking |
 | A stamp whose version differs from this file | Blocking |
 | A lapsed freshness period | Non-blocking, with a comment recommending a re-review (check `CUR`) |
-| A pull request that edits the standard, its checker, its tests or its workflow | Non-blocking (check `STD`) |
+| A pull request that edits the standard, its checker, its tests, or its workflow | Non-blocking (check `STD`) |
 
-## Findings and the verdict
+## Findings and the Verdict
 
-Every finding has a label and a check ID, in the form `BLOCKING [S4]` or `NON-BLOCKING [N2]`, and gives the file, the line and a reason. The labels are text. They are not a merge gate.
+Every finding has a label and a check ID, in the form `BLOCKING [S4]` or `NON-BLOCKING [N2]`, and gives the file, the line, and a reason. The labels are text. They are not an automated merge block.
 
 The owner maps them to a verdict:
-
 - Any blocking finding: request changes.
 - Only non-blocking findings: comment.
 - No findings: approve, as the owner's decision.
-- Not enough evidence for a confident call: comment only.
+- Insufficient evidence for a confident call: comment only.
 
-Sourcery's setting to approve pull requests is on, and its approval is its own judgement. A blocking label does not stop it from approving, so the owner reads the findings before every merge. GitHub auto-merge is off, and a ruleset on `main` requires a pull request with one approval. Sourcery's approval satisfies that requirement, so a pull request Sourcery approves can be merged normally. The owner is the only person who merges, and reads the findings first. When Sourcery withholds approval, merging needs the owner's bypass, which is exceptional. To hand blocking findings to an agent, use [repair-prompt-template.md](repair-prompt-template.md).
+Sourcery's setting to approve pull requests is active, and its approval is its own judgement. A blocking label does not stop it from approving, so the owner reads findings before every merge. GitHub auto-merge is disabled, and a ruleset on `main` requires a pull request with one approval. When Sourcery withholds approval, merging requires the owner's bypass, which is exceptional. To hand blocking findings to an agent, use `docs/standards/repair-prompt-template.md`.
 
-## Hard-stops
+## Hard-Stops
 
 All seven are blocking, even in advisory mode.
 
@@ -76,7 +84,14 @@ All seven are blocking, even in advisory mode.
 | H6 | Internal hosts, private network addresses, or private session links |
 | H7 | An unresolved security finding from any reviewer, or a description that admits one |
 
-## Check registry
+## Style and Presentation Standard
+
+Every pull request must conform to repository style rules:
+- **British English**: All prose, identifiers, and documentation must use British English spelling (prioritise, behaviour, organisation, synthesise, artefact).
+- **Strictly Zero Em Dashes**: Never use em dashes. Use commas, colons, or parentheses.
+- **Strictly Zero Body Horizontal Dividers**: Never insert horizontal rules in markdown bodies (only YAML frontmatter delimiters are permitted).
+
+## Check Registry
 
 "Script" is `scripts/check-standard.py` (see [automated-checks.md](automated-checks.md)). "Sourcery" means a dashboard review rule (see [sourcery-rules.md](sourcery-rules.md)). "Owner" means the owner's own review.
 
@@ -84,7 +99,7 @@ All seven are blocking, even in advisory mode.
 |---|---|---|---|
 | H1 to H4, H6 | The hard-stops above that a pattern can find | Blocking | Script |
 | H5, H7 | Pasted prompts and transcripts; open security findings | Blocking | Owner and Sourcery |
-| STD | A change to the standard, its checker, tests or workflow | Non-blocking | Script |
+| STD | A change to the standard, its checker, tests, or workflow | Non-blocking | Script |
 | CUR | The stamp's fresh-until date has passed | Non-blocking | Script |
 | S1 | Frontmatter holds `name` and `description` | Blocking | Script |
 | S2 | Name is kebab-case, at most three words, equals its directory, no "anthropic" or "claude" | Blocking | Script |
@@ -97,7 +112,7 @@ All seven are blocking, even in advisory mode.
 | N7 | Overlap with an authorised upstream skill | Non-blocking | Sourcery |
 | C1 to C3 | Docker socket mount, download piped into a shell, writes outside the repository | Blocking | Script |
 | C4 | Hidden or injected instructions in text agents read | Blocking | Sourcery |
-| C5 | A change to agent configuration | Blocking when it adds a hook, command, tool or permission; otherwise non-blocking | Script |
+| C5 | A change to agent configuration | Blocking when it adds a hook, command, tool, or permission; otherwise non-blocking | Script |
 | C6 | A package installed without an exact version | Non-blocking | Script |
 | C7 | A third-party action pinned by tag or branch | Blocking (non-blocking for GitHub-owned actions) | Script |
 | C8 | Outsider-controlled text used directly in a workflow script or passed to `eval` | Blocking | Script |
@@ -105,6 +120,17 @@ All seven are blocking, even in advisory mode.
 
 S2 applies when a skill is new or its name changes. S4 applies when a skill is new or a pull request adds lines to a file already over 100 lines.
 
-## Changing the standard
+## Changing the Standard
 
 The standard changes only through a pull request that the owner approves. The checker reports any such change as `STD`, and the owner re-stamps it by setting a new review date and, where needed, a new version.
+
+## Observations
+- [standard] Establish canonical sk-pr-review-standard with tiered staged verification #standards #review
+- [tiering] Stage 1 deterministic scripts gate Stage 2 qualitative advisory reviews #staged-verification
+- [style] Mandate British English, zero em dashes, and zero body horizontal dividers #style
+
+## Relations
+- implements [[AGENTS]]
+- relates_to [[automated-checks]]
+- relates_to [[coordinator-protocol]]
+- defines [[GLOSSARY]]

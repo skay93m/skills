@@ -2,13 +2,11 @@
 
 Personal skills, deep modules, and governance architecture for multi-agent workflows across Claude Code, Codex, Antigravity, and Hermes.
 
-[![Release: v0.2.0](https://img.shields.io/badge/release-v0.2.0-blue.svg)](https://github.com/skay93m/skills/releases/tag/v0.2.0)
-[![Tests: 316 passing](https://img.shields.io/badge/tests-316%20passing-brightgreen.svg)](https://github.com/skay93m/skills/actions)
+[![Release: v1.0.0-rc](https://img.shields.io/badge/release-v1.0.0--rc-blue.svg)](https://github.com/skay93m/skills/releases)
+[![Tests: 317 passing](https://img.shields.io/badge/tests-317%20passing-brightgreen.svg)](https://github.com/skay93m/skills/actions)
 [![Standard Checks: 0 violations](https://img.shields.io/badge/standard%20checks-0%20violations-success.svg)](https://github.com/skay93m/skills/actions)
 
----
-
-## Operator Quickstart (Human First)
+## Operator Quickstart
 
 Get started with the skills ecosystem in three steps:
 
@@ -16,180 +14,54 @@ Get started with the skills ecosystem in three steps:
    ```bash
    npx skills add skay93m/skills
    ```
-   *To install a single deep module instead, specify `--skill <name>` (e.g. `npx skills add skay93m/skills --skill wiki-ops`).*
+   *To install a single deep module instead, specify `--skill <name>` (for example: `npx skills add skay93m/skills --skill style`).*
 
-2. **Start any session with the master router**:
+2. **Start any session with the master gateway**:
    Invoke `/ask-syafiq` in your agent prompt:
    > *"What workspace am I in, and how should we structure this session?"*
 
-3. **Follow guided routing or invoke deep modules directly**:
-   The master router automatically identifies your workspace (e.g., `skills`, `sk-wiki`, `awt`) and routes your intent to one of the 6 Deep Modules or into the 6-phase engineering pipeline.
+3. **Follow guided routing**:
+   The gateway detects repository context and dispatches to the specialised domain module.
 
-> [!TIP]
-> You never need to memorize individual skill names or parameters. Simply invoke `/ask-syafiq` or describe what you want to do in natural language. The router detects your repository context, validates execution boundaries, and dispatches to the specialized deep module.
+## Operator Decision Matrix
 
----
+When you have a specific goal, consult this matrix to select the right capability:
 
-## Operator Decision Matrix ("Which module do I reach for?")
+| Goal | Reach for | Role | Details |
+| :--- | :--- | :--- | :--- |
+| **Starting a session or orienting in a repo** | `ask-syafiq` | Master Gateway | See [`docs/specs/v1-production-readiness.md`](docs/specs/v1-production-readiness.md) |
+| **Writing voice, British English, rubrics** | `style` | Presentation Domain | See [`skills/style/SKILL.md`](skills/style/SKILL.md) |
+| **Compiled knowledge and wiki ingestion** | `curate` | Knowledge Domain | Delegates to [`basic-memory-skills`](docs/authorised-skill-repositories.md) |
+| **Building code, TDD, reviews, and PRs** | `code` | Engineering Domain | Delegates to [`mattpocock/skills`](docs/authorised-skill-repositories.md) |
+| **Postgraduate scholarship, Socratic sparring** | `tutor` | Scholarship Domain | See [`docs/specs/v1-production-readiness.md`](docs/specs/v1-production-readiness.md) |
+| **Fleet governance, batch ceilings, golden sync** | `setup` | Governance Domain | See [`docs/agents/coordinator-protocol.md`](docs/agents/coordinator-protocol.md) |
 
-When you have a specific goal, consult this matrix to reach for the right capability immediately:
+## Architecture: The 4+1 Deep Module Model
 
-| What do you want to accomplish? | Reach for | Domain / Engine | Quick Action / Invocation |
-|---|---|---|---|
-| **Starting a session / switching repos** | `ask-syafiq` | Master Router | `/ask-syafiq` or `"orient this session"` |
-| **Managing ADHD momentum & daily schedule** | `personal-cadence` | `cadence` | `"plan daily cadence"` or `"morning brief"` |
-| **Building code / engineering pipeline** | Upstream Pipeline | Multi-Agent Lifecycle | `/grill-me` → `/to-spec` → `/to-tickets` → `/tdd` → `/code-review` → `/pr` |
-| **Evaluating hard architectural choices** | `thinking-partner` | `cognition` | `/grill-me` or `"challenge my architecture"` |
-| **Writing postgraduate essays / legal research** | `academic-scholar` | `scholarship` | `"review legal argument"` or `"verify oscola citations"` |
-| **Compiling wiki notes & running lints** | `wiki-ops` | `knowledge` | `"run knowledge lint"` or `"compile wiki"` |
-| **Running agile sprints & ticket triage** | `autonomous-scrum` | `scrum` | `"plan sprint"` or `"check event 0 gates"` |
-| **Managing fleet of agents & golden config** | `agent-ecosystem` | `ecosystem` | `"audit agent fleet"` or `"sync ~/.agents"` |
+The repository organises capabilities into a master gateway (`ask-syafiq`), four action domain deep modules (`curate`, `code`, `tutor`, `setup`), and one cross-cutting presentation module (`style`). Architectural decisions and rationale are codified in [`docs/adr/0002-four-domain-gateway-and-style-architecture.md`](docs/adr/0002-four-domain-gateway-and-style-architecture.md):
 
----
-
-## Architecture Diagram
-
-All incoming requests and session transitions route through `ask-syafiq` into the 6 bounded Deep Modules:
-
-```text
-                                       ┌───────────────┐
-                                       │  ask-syafiq   │
-                                       │(Master Router)│
-                                       └───────┬───────┘
-                                               │
-       ┌───────────────┬───────────────┬───────┴───────┬───────────────┬───────────────┐
-       ▼               ▼               ▼               ▼               ▼               ▼
-┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
-│  wiki-ops   │ │ autonomous- │ │   agent-    │ │  academic-  │ │  personal-  │ │  thinking-  │
-│             │ │    scrum    │ │  ecosystem  │ │   scholar   │ │   cadence   │ │   partner   │
-└─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
-  (knowledge)       (scrum)       (ecosystem)    (scholarship)     (cadence)      (cognition)
+```mermaid
+flowchart TD
+    Gateway["ask-syafiq<br/>(Master Gateway)"]
+    Gateway --> Curate["curate<br/>(Knowledge)"]
+    Gateway --> Code["code<br/>(Engineering)"]
+    Gateway --> Tutor["tutor<br/>(Scholarship)"]
+    Gateway --> Setup["setup<br/>(Governance)"]
+    Gateway -.-> Style["style<br/>(Presentation)"]
 ```
 
----
+## Agile Sprint Framework and Operational Interfaces
 
-## Deep Modules & Master Router Catalog
+Repository feature development, refactoring, and maintenance follow native GitHub Agile workflows documented across governing files:
 
-Every deep module is a bounded, deterministic skill package complying with strict budgets (≤ 100 lines, < 700 tokens), terminal references (depth 1), and explicit artifact contracts.
-
-### 1. `wiki-ops`
-- **Domain**: `knowledge`
-- **Purpose**: Karpathy-style compiled knowledge engine for personal wiki and research operations. Ingests raw thoughts, compiles structured indexes, runs structural and semantic lints, and executes bounded note reconciliation.
-- **Core Invariants**:
-  - Basic Memory MCP compliance: All mutations occur through Basic Memory tools; direct filesystem writes under wiki paths are prohibited.
-  - Prompt injection isolation: Raw source material is encapsulated in XML tags (`<source_content>`) to prevent instruction hijacking.
-  - Additive artifact generation: Produces structured reports without destructive overwrite of raw inputs.
-- **Artifact Contracts**: Produces `knowledge-report` ([`templates/knowledge-report.template.md`](skills/wiki-ops/templates/knowledge-report.template.md), [`examples/knowledge-report.example.md`](skills/wiki-ops/examples/knowledge-report.example.md)).
-- **Direct Install**:
-  ```bash
-  npx skills add skay93m/skills --skill wiki-ops
-  ```
-
-### 2. `autonomous-scrum`
-- **Domain**: `scrum`
-- **Purpose**: Standalone AWT agile sprint engine enforcing automated sprint planning, backlog triage, ticket progression, and milestone burndown.
-- **Core Invariants**:
-  - Strict PO vs. Dev boundary: Agents acting as developers never modify acceptance criteria or self-approve ticket completion; Product Owner governance remains distinct.
-  - Event 0 sprint gates: Strict pre-flight validation (dependency closure, spec completeness, test environment readiness) before any sprint starts.
-  - Read-only SQLite state tracking: Tracks tasks, issues, and sprints deterministically in `awt.db`.
-- **Artifact Contracts**: Produces `sprint-report` ([`templates/sprint-report.template.md`](skills/autonomous-scrum/templates/sprint-report.template.md), [`examples/sprint-report.example.md`](skills/autonomous-scrum/examples/sprint-report.example.md)).
-- **Direct Install**:
-  ```bash
-  npx skills add skay93m/skills --skill autonomous-scrum
-  ```
-
-### 3. `agent-ecosystem`
-- **Domain**: `ecosystem`
-- **Purpose**: Fleet-wide governance for multi-agent environments across Claude Code, Codex, Antigravity, and Hermes, enforcing golden configurations and inter-agent coordination.
-- **Core Invariants**:
-  - Golden layout: Centralized synchronization through `~/.agents` golden directory structure.
-  - Subagent batching ceiling: Strict limit of ≤ 10 concurrent subagents per batch; subsequent batches wait until the active batch completes.
-  - Durable handoffs: Inter-agent handoffs and session completions are persisted to durable notes under `docs/handoff/<slug>.md`.
-- **Artifact Contracts**: Produces `agent-handoff` ([`templates/agent-handoff.template.md`](skills/agent-ecosystem/templates/agent-handoff.template.md), [`examples/agent-handoff.example.md`](skills/agent-ecosystem/examples/agent-handoff.example.md)).
-- **Direct Install**:
-  ```bash
-  npx skills add skay93m/skills --skill agent-ecosystem
-  ```
-
-### 4. `academic-scholar`
-- **Domain**: `scholarship`
-- **Purpose**: Postgraduate supervisory coaching and legal research scaffolding for King's College London (KCL) MSc in Mental Health, Ethics and Law.
-- **Core Invariants**:
-  - Student-authored prose invariant: Strict supervisory coaching, critique, and Socratic interrogation only; absolute ban on ghost-writing or model-authored prose.
-  - Primary statutory authorities: Governed by UK mental health statutes (Mental Health Act 1983, Mental Capacity Act 2005) and Strasbourg / European Court of Human Rights (ECHR) jurisprudence.
-  - Legal citation standard: Strict OSCOLA citation compliance for statutes, cases, and academic literature.
-- **Artifact Contracts**: Produces `supervisory-feedback` ([`templates/supervisory-feedback.template.md`](skills/academic-scholar/templates/supervisory-feedback.template.md), [`examples/supervisory-feedback.example.md`](skills/academic-scholar/examples/supervisory-feedback.example.md)).
-- **Direct Install**:
-  ```bash
-  npx skills add skay93m/skills --skill academic-scholar
-  ```
-
-### 5. `personal-cadence`
-- **Domain**: `cadence`
-- **Purpose**: Executive function and ADHD momentum coaching, daily energy alignment, time tracking, and coordination with ambient daemons.
-- **Core Invariants**:
-  - Jibun Techo 3-phase projections: Vertical timeline mapping covering Plan → Reality → Delta.
-  - Hermes standups: Automated morning kickoff briefs and evening retrospective reconciliations.
-  - Circadian energy mapping: Matching high-focus tasks to peak cognitive bandwidth and low-friction tasks to recovery troughs.
-  - Neko companion coordination: Desktop companion status hooks and non-intrusive focus cycle nudges.
-- **Artifact Contracts**: Produces `daily-cadence` ([`templates/daily-cadence.template.md`](skills/personal-cadence/templates/daily-cadence.template.md), [`examples/daily-cadence.example.md`](skills/personal-cadence/examples/daily-cadence.example.md)).
-- **Direct Install**:
-  ```bash
-  npx skills add skay93m/skills --skill personal-cadence
-  ```
-
-### 6. `thinking-partner`
-- **Domain**: `cognition`
-- **Purpose**: Oxford tutorial Socratic sparring partner and cognitive challenger for stress-testing architectures, unmasking hidden assumptions, and formulating decision records.
-- **Core Invariants**:
-  - Adversarial interrogation before agreement: Relentlessly probes assumptions, edge cases, and second-order consequences.
-  - Reversibility taxonomy: Explicit classification of Type 1 (irreversible, high-blast-radius) versus Type 2 (reversible, two-way-door) decisions.
-  - Architecture Decision Records (ADRs): Formulates structured, auditable decision records documenting context, tradeoffs, and consequences.
-- **Artifact Contracts**: Produces `concept-adr` ([`templates/concept-adr.template.md`](skills/thinking-partner/templates/concept-adr.template.md), [`examples/concept-adr.example.md`](skills/thinking-partner/examples/concept-adr.example.md)).
-- **Direct Install**:
-  ```bash
-  npx skills add skay93m/skills --skill thinking-partner
-  ```
-
-### Master Router: `ask-syafiq`
-- **Domain**: `general`
-- **Purpose**: Rapid workspace detection across 8 repositories, intent-based routing to 6 deep modules, and execution phase boundary guidance.
-- **Core Invariants**:
-  - Workspace detection: Automatically identifies 8 canonical repositories (`skills`, `sk-wiki`, `awt`, `kos`, `syafiq-kay.github.io`, `neko`, `hermes`, `archive`) via root heuristics.
-  - Intent routing: Dispatches requests directly to the corresponding deep module or pipeline phase.
-  - Execution phase boundaries: Enforces context hygiene (`Continue`, `/clear`, `/handoff`, `Subagent`, `/compact`).
-- **Direct Install**:
-  ```bash
-  npx skills add skay93m/skills --skill ask-syafiq
-  ```
-
----
-
-## Upstream Engineering Pipeline
-
-All software engineering tasks follow a sequential, multi-agent delivery lifecycle designed to eliminate latent defects and ensure strict specification adherence (for full coordinator and subagent delegation protocols, see [`docs/agents/coordinator-protocol.md`](docs/agents/coordinator-protocol.md)):
-
-```text
-/grill-me  ──>  /to-spec  ──>  /to-tickets  ──>  /tdd  ──>  /code-review  ──>  /pr
-```
-
-1. **/grill-me (Socratic Stress-Testing)**: Relentless adversarial Socratic interview to interrogate requirements, expose implicit assumptions, discover failure modes, and align on boundaries before writing code.
-2. **/to-spec (Formal Specification)**: Distill interview consensus and requirements into an unambiguous, bounded technical specification defining interface seams, data models, and acceptance criteria.
-3. **/to-tickets (Atomic Work Decomposition)**: Decompose specifications into small, independent, test-driven implementation tickets with strict line budgets (≤ 100 lines) and explicit acceptance gates.
-4. **/tdd (Test-Driven Implementation)**: Implement tickets following the strict Red → Green → Refactor cycle: write failing test (Red), minimal implementation passing test (Green), and standards refactor.
-5. **/code-review (Two-Axis Adversarial Review)**: Parallel adversarial review running two independent subagents:
-   - **Standards Axis**: Verifies budgets (≤ 100 lines, < 700 tokens), terminal references, security, and repository conventions.
-   - **Spec Axis**: Verifies exact issue/spec requirement conformance with zero extraneous changes.
-   Zero approval granted on latent defects.
-6. **/pr (Pull Request Delivery)**: Construct high-fidelity pull requests containing structured change summaries, automated verification proofs, and risk assessments ready for human owner review and merge.
-
----
+- **Sprints**: Tracked as GitHub Milestones. See [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
+- **Dockets**: Deliberation packages prepared for human review and inline annotation in Obsidian. See [`docs/dockets/`](docs/dockets/) and [`GLOSSARY.md`](GLOSSARY.md).
+- **Work Orders**: Authoritative operational directives packaging sprint tickets, sequential execution order, living execution ledgers, and confidential prune points. See [`docs/work-orders/`](docs/work-orders/) and [`GLOSSARY.md`](GLOSSARY.md).
+- **Chief of Staff AFK Protocol**: Autonomous sprint execution with staged deterministic pre-checks, a three-pass review ceiling, isolated scope pruning, automated `git revert` rollback on `main`, and 429 rate-limit backoff. See [`docs/agents/coordinator-protocol.md`](docs/agents/coordinator-protocol.md).
 
 ## Multi-Agent Runtime Installation
 
 Skills in this repository are packaged for instant installation across all major agent runtimes using `npx skills`:
-
-### Installation Commands
 
 ```bash
 # Install the complete suite
@@ -197,66 +69,22 @@ npx skills add skay93m/skills
 
 # Install individual deep modules
 npx skills add skay93m/skills --skill ask-syafiq
-npx skills add skay93m/skills --skill wiki-ops
-npx skills add skay93m/skills --skill autonomous-scrum
-npx skills add skay93m/skills --skill agent-ecosystem
-npx skills add skay93m/skills --skill academic-scholar
-npx skills add skay93m/skills --skill personal-cadence
-npx skills add skay93m/skills --skill thinking-partner
+npx skills add skay93m/skills --skill style
 ```
 
-### Supported Runtimes & Target Directories
+Supported runtime directories and discovery mechanisms are detailed in [`docs/standards/skill-manifest.md`](docs/standards/skill-manifest.md).
 
-| Runtime | Skill Installation Path | Discovery Mechanism | Execution Model |
-|---|---|---|---|
-| **Claude Code** | `~/.claude/skills/<skill>` | Direct folder resolution (`SKILL.md`) | Interactive CLI & subagent tools |
-| **Codex** | `~/.codex/skills/<skill>` | Codex skill registry | Agent tool execution |
-| **Antigravity (AGY)** | `~/.gemini/antigravity-cli/skills` or `~/.agents/skills` | Builtin / custom skill loader | Pair programmer & background subagents |
-| **Hermes** | `~/.hermes/skills/<skill>` | Agent tool executor | Autonomous agent daemon |
+## Safe Tombstone Policy
 
-> [!NOTE]
-> **Self-Contained Packaging**: Every installed skill directory contains all required references (`references/`), templates (`templates/`), and examples (`examples/`). There are zero relative cross-package dependencies or broken links across modules.
+To protect backwards compatibility across existing agent sessions and prompts, 26 legacy utility skills (`sk-*` and `task-assistant`) are maintained as fail-closed safe tombstones with zero side effects. See [`docs/specs/v1-production-readiness.md`](docs/specs/v1-production-readiness.md).
 
----
+## Developer and Contributor Guide
 
-## Safe Tombstone Policy (Migration Safety)
-
-In `v0.2.0`, 26 legacy utility skills (`sk-*` and `task-assistant`) have been replaced with **Fail-Closed Safe Tombstones**:
-
-- **Fail-Closed Behavior**: Every tombstone carries `disable-model-invocation: true` and executes zero mutations, zero shell commands, and zero filesystem writes.
-- **Migration Guidance**: When invoked by existing agent workflows or historical prompts, the stub cleanly informs the agent that the capability has been retired and provides the exact `npx skills` replacement command for the successor deep module.
-- **Retention Period**: Tombstones remain in place through `v0.3.0` to ensure backwards compatibility for existing agent prompts and configurations before full retirement.
-
----
-
-## Developer & Contributor Guide
-
-### Architectural Standards & Invariants
-
-Every skill in this repository is governed by the Skill Manifest Standard (`docs/standards/skill-manifest.md`) and must strictly uphold:
-- **Line Budget**: ≤ 100 lines for `SKILL.md`.
-- **Token Budget**: < 700 estimated tokens for `SKILL.md`.
-- **Terminal References**: Reference files in `references/` are 1-level deep from `SKILL.md` and must never link to other markdown reference files (`docs/standards/skill-manifest.md#31-terminal-reference-invariant-no-chaining`).
-- **Artifact Contracts**: Modules producing user-facing or durable deliverables must provide declarative contracts with paired templates (`templates/`) and verified examples (`examples/`).
-
-### Scaffolding New Skills
-
-Scaffold new skills deterministically using declarative manifests:
-```bash
-python3 scripts/new-skill.py --manifest manifests/<name>.yaml
-```
-
-### Automated Quality Verification
-
-Run the automated verification suite before submitting pull requests:
-
-```bash
-# Run comprehensive contract & unit test suite (316 tests)
-pytest
-
-# Run deterministic PR review standards (security, privacy, budgets, hygiene)
-python3 scripts/check-standard.py
-```
-
-> [!IMPORTANT]
-> All pull requests require 0 test failures (`pytest`) and 0 blocking findings from `scripts/check-standard.py` to maintain repository integrity.
+- **Standards and Invariants**: Governed by [`docs/standards/skill-manifest.md`](docs/standards/skill-manifest.md) and [`docs/standards/pr-review-standard.md`](docs/standards/pr-review-standard.md).
+- **Style Rules**: British English spelling throughout, strictly zero em dashes, and strictly zero horizontal dividers in markdown bodies.
+- **Verification Suite**:
+  ```bash
+  pytest
+  python3 scripts/check-standard.py
+  ```
+  All pull requests require 0 test failures (`pytest`) and 0 blocking findings from `scripts/check-standard.py`. See [`docs/standards/automated-checks.md`](docs/standards/automated-checks.md).

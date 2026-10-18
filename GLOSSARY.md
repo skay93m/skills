@@ -1,3 +1,9 @@
+---
+title: Glossary
+tags: [glossary, domain, language, governance]
+type: glossary
+---
+
 # Glossary
 
 The language of `skills`: a public repository of agent skills, and the standard that an advisory reviewer uses to review its pull requests.
@@ -7,7 +13,7 @@ The language of `skills`: a public repository of agent skills, and the standard 
 ### Skill repositories
 
 **Authority**:
-The human-readable Markdown file (`docs/authorised-skill-repositories.md`) that defines which skill repositories are allowed to be used or updated. This is the single source of truth for repository allowlists.
+The human-readable Markdown file ([[authorised-skill-repositories]]) that defines which skill repositories are allowed to be used or updated. 
 
 **Projection**:
 The machine-readable JSON file (e.g., `golden-skills.json`) derived from the Authority. It must not be manually edited to bypass the Authority.
@@ -17,7 +23,7 @@ This repository (`skills`), containing Syafiq's custom agent skills, onboarding 
 _Avoid_: sk-skills, SK-skills, syafiq-kay-skills
 
 **Authorised Skill Repository**:
-A third-party or external repository (like `mattpocock-skills` or `basic-memory-skills`) that has been explicitly permitted in the Authority.
+A third-party or external repository that has been explicitly permitted in the [[authorised-skill-repositories]]. This is the single source of truth for repository allowlists.
 
 **Skills CLI**:
 The future command-line interface to manage, verify, update, and heal agent skills.
@@ -26,6 +32,28 @@ The future command-line interface to manage, verify, update, and heal agent skil
 A skill that lives in an Authorised Skill Repository other than this one. A skill here that overlaps one should extend it and record how it differs.
 _Avoid_: external skill, third-party skill
 
+**Source repository**:
+A repository where skills are developed, such as msc-coach, with this repository as the shipping destination.
+
+**Collision**:
+Two skills, across this repository and a Source repository, that have the same name or overlapping function.
+_Avoid_: conflict, clash
+
+**Agent Skills Standard**:
+The open packaging and metadata specification (agentskills.io) defining SKILL.md frontmatter, directory layout, and progressive disclosure for agent harnesses.
+_Avoid_: skill protocol, agent spec
+
+**Deep Module**:
+A skill architecture providing a concise, low-surface interface in SKILL.md backed by substantial internal depth (references, templates, scripts), avoiding namespace sprawl.
+_Avoid_: monolithic skill, multi-skill bundle
+
+**Pocock Skill Filter**:
+The three-part standard (Behavioural Delta, Upstream Overlap, and "What We Care About") that disqualifies generic model instructions and duplicate skills from the repository.
+_Avoid_: prompt checklist, linter rules
+
+**Style Module**:
+A cross-cutting, model-invoked module governing Syafiq's writing voice, presentation rubrics, artefact templates, and ubiquitous language across all agent interactions.
+_Avoid_: formatting guide, style guide
 ### Pull request review standard
 
 **Standard**:
@@ -125,3 +153,24 @@ _Avoid_: safe edit, blind overwrite
 **Auditor**:
 The separate agent that checks a Run afterwards and writes its `<run-id>-audit` note. The Run never writes it.
 _Avoid_: reviewer
+
+### Sprint governance and review
+
+**Docket**:
+A versioned markdown submission (e.g., `Docket 1` or `docs/dockets/docket-1.md`) prepared specifically for human deliberation, async inspection in Obsidian, and inline annotation (`> agreed`, `> comment`). When Syafiq states "docket reviewed" or "docket n approved", the agent inspects the file for inline annotations and acts accordingly.
+_Avoid_: RFC, pitch, discussion document, proposal
+
+**Work Order (WO)**:
+An authoritative operational directive (e.g., `WO-1` or `docs/work-orders/wo-1.md`) that packages sprint tickets, sequential execution order, living execution ledgers, and Chief-of-Staff-only prune points for autonomous AFK delivery.
+_Avoid_: task bundle, job order, sprint memo
+
+## Observations
+- [standard] Establish canonical terminology for skills repository governance and development #glossary
+- [convention] Terms use British English spelling and zero em dashes #style
+- [governance] Dockets and Work Orders govern human deliberation and autonomous execution #agile
+
+## Relations
+- defines [[authorised-skill-repositories]]
+- defines [[coordinator-protocol]]
+- defines [[issue-tracker]]
+- defines [[domain]]
