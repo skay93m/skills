@@ -24,7 +24,7 @@ Work shifts between two primary governing artefacts:
 ### Dockets (`docs/dockets/docket-<no>.md`)
 - Prepared for human deliberation, architectural trade-offs, and asynchronous inspection in Obsidian.
 - Deliberation is captured via inline human annotations (e.g. `> agreed`, `> comment`).
-- When Syafiq indicates "docket reviewed" or "docket <n> approved", agents inspect the docket annotations and adopt the recorded decisions directly.
+- When Syafiq indicates "docket reviewed" or "docket n approved", agents inspect the docket annotations and adopt the recorded decisions directly.
 
 ### Work Orders (`docs/work-orders/wo-<no>.md`)
 - Authoritative operational directives packaging sprint tickets for autonomous Away From Keyboard (AFK) delivery.
@@ -69,7 +69,7 @@ This repository is also an Obsidian vault. Design documents with these installed
 ## Context and Memory
 
 This project integrates with the Basic Memory persistent memory app:
-- Context is queried from the `sk-wiki` project in Basic Memory.
+- Context is normally queried from the `wiki` or `kensho2` project in Basic Memory. This is currently suspended.
 - Notes and persistent artefacts follow the `memory-notes` skill and schema conventions (YAML frontmatter, matching `# Heading`, semantic `[category]` observations, and wiki-link relations `[[target]]`).
 
 ## Observations
