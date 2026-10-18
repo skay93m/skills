@@ -59,7 +59,7 @@ Blocking edges are GitHub native dependencies, except the two external ones (rea
 ## Resolved open items
 
 - #146 label swapped from `needs-triage` to `ready-for-human`. Done.
-- Glossary terms **Source repository** and **Collision** are written in `GLOSSARY.md` (uncommitted, on the local checkout). #147 stays open until that change lands through a PR.
+- Glossary terms **Source repository** and **Collision** are written in `GLOSSARY.md` (landing in PR #155). #147 closes when that PR merges.
 
 ## Merge policy (decided by the human)
 
