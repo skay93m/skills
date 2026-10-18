@@ -238,6 +238,20 @@ class TestAskSyafiqMasterRouter(unittest.TestCase):
         self.assertIn("10", self.skill_text)
         self.assertIn("10", routing_text)
 
+    def test_ask_coach_routing_documented(self):
+        """Coaching intents route to /ask-coach, which exists and is not counted as a deep module."""
+        routing_text = ROUTING_TABLE_MD.read_text(encoding="utf-8")
+        self.assertTrue((REPO_ROOT / "skills" / "ask-coach" / "SKILL.md").is_file())
+        for text in (self.skill_text, routing_text):
+            self.assertIn("/ask-coach", text)
+            self.assertIn("skills/ask-coach/SKILL.md", text)
+            self.assertIn("academic-scholar", text)
+        self.assertIn("Not a seventh deep module", self.skill_text)
+        self.assertIn("unchanged", routing_text)
+        self.assertNotIn("mhel-coaching", self.skill_text + routing_text)
+        self.assertIn("across 8 repositories", self.skill_text)
+        self.assertIn("6 deep modules", self.skill_text)
+
 
 if __name__ == "__main__":
     unittest.main()

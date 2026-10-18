@@ -43,6 +43,9 @@ Dispatch incoming requests to the appropriate domain module or pipeline phase. S
 | `cadence` | `personal-cadence` | ADHD momentum, Jibun Techo projections, Hermes standups |
 | `cognition` | `thinking-partner` | Oxford tutorial Socratic sparring, concept stress-testing |
 
+### Coaching Handoff (`/ask-coach`)
+If `skills/ask-coach/SKILL.md` exists or `/ask-coach` is installed, route coaching, MSc study, viva, supervision, and session start or end intents to `/ask-coach` (22-skill coaching set, own router). Not a seventh deep module: do not pick a coaching command here. Without it, use `academic-scholar`.
+
 ### Upstream Engineering Pipeline
 `/grill-me` -> `/to-spec` -> `/to-tickets` -> `/tdd` -> `/code-review` -> `/pr`
 

@@ -76,6 +76,16 @@ This reference provides comprehensive routing guidelines, trigger phrases, inten
   - Tradeoff analysis: evaluates competing technical solutions across complexity, maintainability, and operational cost dimensions.
   - ADR generation: captures the final decision context, alternatives considered, consequences, and compliance obligations into standard ADR documents.
 
+### 1.7 `/ask-coach` (Handoff, not a deep module)
+- **Detect**: `skills/ask-coach/SKILL.md` exists in the skills repository, or `/ask-coach` is installed.
+- **Intent**: Coaching and MSc study workflow: orientation, returning after a break, session start and end, supervision prep and debrief, viva, quizzes, academic review.
+- **Trigger Phrases**:
+  - "coach me", "where was I", "next coaching command", "start study session"
+  - "prep supervision", "viva practice", "academic review", "end session"
+- **Rule**: Hand off to `/ask-coach` and stop; it owns the 22 coaching skills and picks the command. This router never selects a coaching command itself.
+- **Fallback**: If `/ask-coach` is absent, route to `academic-scholar` (1.4).
+- **Counts**: The 6 deep modules and 8 workspaces are unchanged; `/ask-coach` adds neither.
+
 ---
 
 ## 2. Upstream Engineering Pipeline
