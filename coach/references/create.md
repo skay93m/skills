@@ -24,8 +24,9 @@ Present the proposed boundary, adapter files (`AGENTS.md` with `architecture_rev
 Upon ratification:
 1. Initialize the coach vault structure under `/Users/syafiq/basic-memory/coaches/<domain>-coach` (or extend the existing vault).
 2. Ensure explicit `project="<domain>-coach"` usage for all memory operations.
-3. Link relevant Superfocus items (read-only reference).
-4. **Register in Life Compass**: Append `<domain>-coach` to the `active_coaches` list in `wiki:projects/life-compass/current-season` (`project="wiki"`) so `life-coach` automatically includes it in weekly alignment and session oversight.
+3. **Basic Memory Cloud Registration & Initial Upload**: Run `bm cloud upload /Users/syafiq/basic-memory/coaches/<domain>-coach --project <domain>-coach --create-project` to ensure the new coach project immediately appears in the Basic Memory Web App.
+4. Link relevant Superfocus items (read-only reference).
+5. **Register in Life Compass**: Append `<domain>-coach` to the `active_coaches` list in `wiki:projects/life-compass/current-season` (`project="wiki"`) so `life-coach` automatically includes it in weekly alignment and session oversight.
 
 ## Step 4: Independent Standards + Spec Review Pass
 Execute an independent review of the created/extended workspace against the Coach Adapter Interface and Shared Coaching Boundary standards before handoff.
