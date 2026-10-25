@@ -69,3 +69,15 @@ Be relentless in improving the environment. Use every user message as an excuse 
 
 ## Zero-Poll Yield Rule
 After launching a subagent (`invoke_subagent`) or messaging a subagent (`send_message`), immediately end your turn (call no more tools). Never call `manage_subagents(Action="list")` in a polling loop while waiting for a subagent—rely strictly on the system's reactive wakeup notification.
+
+## Hybrid Worker Pool (`flash_lite` Subagents + `claude -p` Headless CLI)
+
+To maximize engineering throughput while keeping token costs near zero, the Life OS and agent fleet enforce the **Hybrid Worker Pool Pattern**:
+1. **Lightweight Orchestration**: Use `flash_lite` subagents or Python pre-processor scripts to gather, grep, and distill context down to minimal compact digests.
+2. **Headless Execution**: Pipe the distilled digest via `stdin` into `claude -p "<prompt>" --model sonnet --max-turns 1` (or `--max-turns 2 --allowedTools "Read,Grep"`).
+3. **Deterministic Post-Processing**: Capture structured output, apply automated linter checks (`tools/wiki.sh check`), and persist via Basic Memory MCP or Git.
+
+### Why This Matters
+This pattern completely avoids:
+- **AGY Frontier Token Burn**: Expensive reasoning models are never wasted on mechanical file reads or searching.
+- **Claude Interactive Context-Window Compounding**: Eliminates $O(N^2)$ turn billing and massive MCP schema bloat by keeping worker sessions strictly stateless and single-turn.
