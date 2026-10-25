@@ -81,3 +81,16 @@ To maximize engineering throughput while keeping token costs near zero, the Life
 This pattern completely avoids:
 - **AGY Frontier Token Burn**: Expensive reasoning models are never wasted on mechanical file reads or searching.
 - **Claude Interactive Context-Window Compounding**: Eliminates $O(N^2)$ turn billing and massive MCP schema bloat by keeping worker sessions strictly stateless and single-turn.
+
+## Multi-Subscription Headless Worker Pool (`flash_lite`, `claude -p`, `codex exec`, Copilot)
+
+To optimize cost, context windows, and platform capabilities, the agent fleet leverages a multi-subscription headless worker pool:
+1. **`flash_lite` Subagents**: Default coordinator-to-worker shell, file, and Basic Memory MCP runner for fast, low-cost parallel tasks.
+2. **`claude -p` (Claude Subscription Headless Worker)**: 
+   - Command: `claude -p "<prompt>" --strict-mcp-config --max-turns 1 --model sonnet`
+   - Use `--strict-mcp-config` when piping stdin digests so unneeded MCP servers do not boot on startup, preventing context pollution and startup latency.
+3. **`codex exec` (ChatGPT / OpenAI Subscription Headless Worker)**:
+   - Command: `codex exec "<prompt>"` (or piping instructions via stdin).
+   - Key Flags: `-m`/`--model` (e.g. `o3`), `-s`/`--sandbox` (`read-only`, `workspace-write`, `danger-full-access`), `--ephemeral`, `--skip-git-repo-check`, `--output-last-message`.
+   - Used for stateless 1-shot code generation, batch refactoring, or second-opinion reviews using the OpenAI/Codex subscription without multi-turn interactive context compounding.
+4. **GitHub Copilot (Lower Limit)**: Reserved strictly for inline IDE autocomplete and lightweight PR summaries rather than bulk agent loops.
